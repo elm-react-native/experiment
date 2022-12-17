@@ -133,6 +133,18 @@ const ElmThunkComponent = (props) => {
   return React.useMemo(() => props.thunk(), props.refs);
 };
 
+const getEntryName = () => {
+  for (var k in scope.Elm) {
+    if (scope.Elm.hasOwnProperty(k)) {
+      var v = scope.Elm[k];
+      if (typeof v === "object" && typeof v.init === "function") {
+        return k;
+      }
+    }
+  }
+  return null;
+};
+
 const ElmRoot = (props) => {
   const [model, setModel] = React.useState(null);
   const viewRef = React.useRef(null);
@@ -147,7 +159,7 @@ const ElmRoot = (props) => {
     };
   }, [props.resolveComponent]);
   React.useEffect(() => {
-    const elmApp = scope.Elm[props.entry || "Main"].init({
+    const elmApp = scope.Elm[getEntryName()].init({
       flags: props.flags,
       navigation: navigationRef,
       onInit(initialModel, view, sendToApp, title) {
