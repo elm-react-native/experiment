@@ -220,7 +220,12 @@ function _VirtualDom_factsToReactProps(inputProps, eventNode) {
           props.style = v;
         }
       } else {
-        props[key] = _Json_unwrap(value);
+        const v = _Json_unwrap(value);
+        if (typeof v === "function" && typeof v.f === "function") {
+          props[key] = v.f;
+        } else {
+          props[key] = v;
+        }
       }
 
       continue;

@@ -1,6 +1,10 @@
 const path = require("path");
 const fs = require("fs");
 
+if (!process.argv[2]) {
+  throw new Error("output file is required");
+}
+
 const _p = (p) => path.join(__dirname, p);
 
 const replacejsx = fs
