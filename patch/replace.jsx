@@ -3,6 +3,10 @@ var _VirtualDom_nodeNS = F2(function(namespace, tag)
 {
   return F2(function(factList, kidList)
   {
+    if (/\.Screen$/.test(tag))
+    {
+      return _VirtualDom_elmNodeWithoutEvent({tag, factList, kidList});
+    }
     return <ElmNodeComponent tag={tag} factList={factList} kidList={kidList} />;
   });
 });
@@ -54,7 +58,7 @@ var _Browser_document = _Debugger_document || F4(function(impl, flagDecoder, deb
   return _Platform_initialize(
     flagDecoder,
     args,
-    impl.init,
+    (flags) => impl.init(flags, args.navigation),
     impl.update,
     impl.subscriptions,
     function(sendToApp, initialModel) {
@@ -71,4 +75,42 @@ var _Browser_document = _Debugger_document || F4(function(impl, flagDecoder, deb
       });
     }
   );
+});
+
+function _Browser_application(impl)
+{
+  return _Browser_document({
+    init: function(flags, navigation)
+    {
+      return A3(impl.init, flags, "", navigation);
+    },
+    view: impl.view,
+    update: impl.update,
+    subscriptions: impl.subscriptions
+  });
+}
+
+var _Browser_go = F2(function(key, n)
+{
+  return A2($elm$core$Task$perform, $elm$core$Basics$never, _Scheduler_binding(function() {
+    key.goBack();
+  }));
+});
+
+var _Browser_pushUrl = F2(function(key, url)
+{
+  return A2($elm$core$Task$perform, $elm$core$Basics$never, _Scheduler_binding(function() {
+    if (key.isReady()) {
+      key.dispatch(StackActions.push(url));
+    }
+  }));
+});
+
+var _Browser_replaceUrl = F2(function(key, url)
+{
+  return A2($elm$core$Task$perform, $elm$core$Basics$never, _Scheduler_binding(function() {
+    if (key.isReady()) {
+      key.navigate(url);
+    }
+  }));
 });

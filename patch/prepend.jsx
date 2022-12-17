@@ -18,6 +18,7 @@ import {
   TextInput,
   TouchableHighlight,
   TouchableOpacity,
+  StyleSheet,
   TouchableWithoutFeedback,
   View,
   VirtualizedList,
@@ -26,7 +27,15 @@ import {
   InputAccessoryView,
   SafeAreaView,
 } from "react-native";
+import {
+  NavigationContainer,
+  createNavigationContainerRef,
+  StackActions,
+} from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
+const navigationRef = createNavigationContainerRef();
+const Stack = createNativeStackNavigator();
 const allComponents = {
   ActivityIndicator,
   Button,
@@ -52,7 +61,13 @@ const allComponents = {
   TouchableNativeFeedback,
   InputAccessoryView,
   SafeAreaView,
+  "Stack.Navigator": Stack.Navigator,
 };
+
+// const StackScreens = (props) => {
+//   const children = props.screens;
+//   return <Stack.Navigator>{children}</Stack.Navigator>;
+// };
 
 const EventNodeContext = React.createContext();
 let scope = {};
@@ -85,18 +100,31 @@ const listToElementArray = (list) => {
     : items;
 };
 
+const listToChildren = (list) => {
+  const children = listToElementArray(list);
+  if (children.length === 0) return null;
+  if (children.length === 1) return children[0];
+  else return children;
+};
+
+const _VirtualDom_elmNodeWithoutEvent = (props) => {
+  if (props.tag === "Stack.Screen") {
+    const actualProps = _VirtualDom_factsToReactProps(props, null);
+    return <Stack.Screen {...actualProps} />;
+  }
+
+  const Component = scope.resolveComponent(props.tag);
+  const actualProps = _VirtualDom_factsToReactProps(props, null);
+  const children = listToChildren(props.kidList);
+  return <Component {...actualProps}>{children}</Component>;
+};
+
 const ElmNodeComponent = (props) => {
   const eventNode = React.useContext(EventNodeContext);
   const actualProps = _VirtualDom_factsToReactProps(props, eventNode);
   const Component = scope.resolveComponent(props.tag);
 
-  const children = listToElementArray(props.kidList);
-  if (children.length === 0) {
-    return <Component {...actualProps} />;
-  } else if (children.length === 1) {
-    return <Component {...actualProps}>{children[0]}</Component>;
-  }
-
+  const children = listToChildren(props.kidList);
   return <Component {...actualProps}>{children}</Component>;
 };
 
@@ -117,9 +145,10 @@ const ElmRoot = (props) => {
       else return name;
     };
   }, [props.resolveComponent]);
-  React.useLayoutEffect(() => {
+  React.useEffect(() => {
     const elmApp = scope.Elm[props.entry || "Main"].init({
       flags: props.flags,
+      navigation: navigationRef,
       onInit(initialModel, view, sendToApp, title) {
         viewRef.current = view;
         sendToAppRef.current = sendToApp;
@@ -150,9 +179,11 @@ const ElmRoot = (props) => {
     titleRef.current !== doc.title &&
       (_VirtualDom_doc.title = titleRef.current = doc.title);
     return (
-      <EventNodeContext.Provider value={sendToAppRef.current}>
-        {listToElementArray(doc.body)}
-      </EventNodeContext.Provider>
+      <NavigationContainer ref={navigationRef}>
+        <EventNodeContext.Provider value={sendToAppRef.current}>
+          {listToChildren(doc.body)}
+        </EventNodeContext.Provider>
+      </NavigationContainer>
     );
   }
 };

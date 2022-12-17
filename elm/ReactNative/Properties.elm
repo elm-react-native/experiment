@@ -1,6 +1,18 @@
-module ReactNative.Properties exposing (onstyle, property, record, refreshing, style)
+module ReactNative.Properties exposing
+    ( color
+    , component
+    , disabled
+    , name
+    , onstyle
+    , options
+    , property
+    , record
+    , refreshing
+    , style
+    , title
+    )
 
-import Html exposing (Attribute)
+import Html exposing (Attribute, Html)
 import Html.Attributes as Attr
 import Json.Decode as Decode
 import Json.Encode as Encode
@@ -20,6 +32,11 @@ style =
     property "style" << record
 
 
+options : a -> Attribute msg
+options =
+    property "options" << record
+
+
 onstyle : (a -> List Encode.Value) -> Attribute msg
 onstyle =
     style
@@ -27,3 +44,24 @@ onstyle =
 
 refreshing =
     property "refreshing" << Encode.bool
+
+
+component : (a -> Html msg) -> Attribute msg
+component =
+    property "component" << record
+
+
+name =
+    property "name" << Encode.string
+
+
+title =
+    property "title" << Encode.string
+
+
+color =
+    property "color" << Encode.string
+
+
+disabled =
+    property "disabled" << Encode.bool

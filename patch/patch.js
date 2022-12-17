@@ -64,10 +64,12 @@ source.push(appendjsx);
 const output = source
   .map((line) => {
     // inject arbitray js code
-    return line.replace(
-      /'544d4631-adf8-\${(.*)}-4719-b1cc-46843cc90ca4'/,
-      "$1"
-    );
+    return line
+      .replace(/'544d4631-adf8-\${(.*)}-4719-b1cc-46843cc90ca4'/, "$1")
+      .replace(
+        /^(var \$[$\w]+\$ReactNative\$StyleSheet\$([\w]+) = )\{\}/,
+        "$1StyleSheet.$2"
+      );
   })
   .join("\n");
 
