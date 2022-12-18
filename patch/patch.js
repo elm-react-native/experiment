@@ -66,6 +66,7 @@ const output = source
     // inject arbitray js code
     return line
       .replace(/'544d4631-adf8-\${(.*)}-4719-b1cc-46843cc90ca4'/, "$1")
+      .replace(/\$author\$project\$ReactNative\$require\(/g, "require(")
       .replace(
         /^(var \$[$\w]+\$ReactNative\$StyleSheet\$([\w]+) = )\{\}/,
         "$1StyleSheet.$2"

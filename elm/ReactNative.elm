@@ -10,6 +10,7 @@ module ReactNative exposing
     , modal
     , pressable
     , refreshControl
+    , require
     , safeAreaView
     , scrollView
     , sectionList
@@ -124,3 +125,8 @@ inputAccessoryView =
 
 safeAreaView =
     node "SafeAreaView"
+
+
+require : String -> String
+require s =
+    s

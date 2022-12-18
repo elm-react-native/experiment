@@ -8,6 +8,7 @@ module ReactNative.Properties exposing
     , property
     , record
     , refreshing
+    , source
     , style
     , title
     )
@@ -35,6 +36,11 @@ style =
 options : a -> Attribute msg
 options =
     property "options" << record
+
+
+source : a -> Attribute msg
+source =
+    property "source" << record
 
 
 onstyle : (a -> List Encode.Value) -> Attribute msg
