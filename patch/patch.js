@@ -84,6 +84,8 @@ const output = source
         /\$author\$project\$ReactNative\$StyleSheet\$(create\(|hairlineWidth\b)/g,
         "StyleSheet.$1"
       )
+      .replace(/^var \$author\$project\$ReactNative\$Easing\$.*$/, "")
+      .replace(/\$author\$project\$ReactNative\$Easing\$(\w+)/g, "Easing.$1")
       .replace(/(^\s*)_default: /, "$1default: ")
       .replace(/^var Platform\.(OS|isPad|isTV|isTesting|Version) = .*$/, "")
       .replace(/^var StyleSheet.hairlineWidth = .*$/, "");

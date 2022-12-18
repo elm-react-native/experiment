@@ -3,7 +3,7 @@ var _VirtualDom_nodeNS = F2(function(namespace, tag)
 {
   return F2(function(factList, kidList)
   {
-    if (/\.Screen$/.test(tag))
+    if (/(\.Screen$)|(^Animated\.View$)/.test(tag))
     {
       return _VirtualDom_elmNodeWithoutEvent({tag, factList, kidList});
     }
@@ -145,4 +145,28 @@ var $author$project$ReactNative$Vibrate$vibrate = function (p) {
       Vibration.vibrate(_List_toArray(p), b);
     }));
   };
+};
+
+var $author$project$ReactNative$Animated$create = function (x) {
+  return new Animated.Value(x);
+};
+
+var $author$project$ReactNative$Animated$timing = function (cft) {
+  return function(v) {
+    return Animated.timing(v, cft);
+  };
+};
+
+var $author$project$ReactNative$Animated$start = function (v) {
+  return _Scheduler_binding(function(callback) {
+    v.start((res) => {
+      callback(_Scheduler_succeed(res));
+    });
+  });
+};
+
+var $author$project$ReactNative$Animated$stop = function (v) {
+  return _Scheduler_binding(function(callback) {
+    v.stop();
+  });
 };

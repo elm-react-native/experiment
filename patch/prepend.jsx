@@ -30,6 +30,8 @@ import {
   Vibration,
   Platform,
   PlatformColor,
+  Animated,
+  Easing,
 } from "react-native";
 import {
   NavigationContainer,
@@ -115,6 +117,10 @@ const _VirtualDom_elmNodeWithoutEvent = (props) => {
   if (props.tag === "Stack.Screen") {
     const actualProps = _VirtualDom_factsToReactProps(props, null);
     return <Stack.Screen {...actualProps} />;
+  } else if (props.tag === "Animated.View") {
+    const actualProps = _VirtualDom_factsToReactProps(props, null);
+    const children = listToChildren(props.kidList);
+    return <Animated.View {...actualProps}>{children}</Animated.View>;
   }
 
   const Component = scope.resolveComponent(props.tag);
