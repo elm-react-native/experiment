@@ -120,3 +120,23 @@ var _Browser_replaceUrl = F2(function(key, url)
     }
   }));
 });
+
+var $author$project$ReactNative$Vibrate$cancel = function () {
+  return A2($elm$core$Task$perform, $elm$core$Basics$never, _Scheduler_binding(function() {
+    Vibration.cancel();
+  }));
+}();
+
+var $author$project$ReactNative$Vibrate$once = function () {
+  return A2($elm$core$Task$perform, $elm$core$Basics$never, _Scheduler_binding(function() {
+    Vibration.vibrate();
+  }));
+}();
+
+var $author$project$ReactNative$Vibrate$vibrate = function (p) {
+  return function (b) {
+    return A2($elm$core$Task$perform, $elm$core$Basics$never, _Scheduler_binding(function() {
+      Vibration.vibrate(_List_toArray(p), b);
+    }));
+  };
+};

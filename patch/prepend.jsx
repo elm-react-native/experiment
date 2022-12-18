@@ -27,6 +27,7 @@ import {
   InputAccessoryView,
   SafeAreaView,
   Alert,
+  Vibration,
 } from "react-native";
 import {
   NavigationContainer,
