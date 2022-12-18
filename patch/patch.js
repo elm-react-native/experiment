@@ -67,10 +67,26 @@ const output = source
     return line
       .replace(/'544d4631-adf8-\${(.*)}-4719-b1cc-46843cc90ca4'/, "$1")
       .replace(/\$author\$project\$ReactNative\$require\(/g, "require(")
+      .replace(/\$author\$project\$ReactNative\$Platform\$os\b/g, "Platform.OS")
       .replace(
-        /^(var \$[$\w]+\$ReactNative\$StyleSheet\$([\w]+) = )\{\}/,
-        "$1StyleSheet.$2"
-      );
+        /\$author\$project\$ReactNative\$Platform\$color\(/g,
+        "PlatformColor("
+      )
+      .replace(
+        /\$author\$project\$ReactNative\$Platform\$version\b/g,
+        "Platform.Version"
+      )
+      .replace(
+        /\$author\$project\$ReactNative\$Platform\$(isTV\b|isPad\b|isTesting\b|select\()/g,
+        "Platform.$1"
+      )
+      .replace(
+        /\$author\$project\$ReactNative\$StyleSheet\$(create\(|hairlineWidth\b)/g,
+        "StyleSheet.$1"
+      )
+      .replace(/(^\s*)_default: /, "$1default: ")
+      .replace(/^var Platform\.(OS|isPad|isTV|isTesting|Version) = .*$/, "")
+      .replace(/^var StyleSheet.hairlineWidth = .*$/, "");
   })
   .join("\n");
 

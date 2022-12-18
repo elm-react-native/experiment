@@ -28,6 +28,8 @@ import {
   SafeAreaView,
   Alert,
   Vibration,
+  Platform,
+  PlatformColor,
 } from "react-native";
 import {
   NavigationContainer,
@@ -260,7 +262,7 @@ function _VirtualDom_factsToReactProps(inputProps, eventNode) {
             return _List_toArray(v(...args)).map(_Json_unwrap_nested);
           };
         } else if (props.style) {
-          props.style = Object.assign(props.style, _Json_unwrap(value));
+          props.style = StyleSheet.compose(props.style, _Json_unwrap(value));
         } else {
           props.style = v;
         }
