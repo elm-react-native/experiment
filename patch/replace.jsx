@@ -3,7 +3,7 @@ var _VirtualDom_nodeNS = F2(function(namespace, tag)
 {
   return F2(function(factList, kidList)
   {
-    if (/(\.Screen$)|(^Animated\.View$)/.test(tag))
+    if (/\.Screen$/.test(tag))
     {
       return _VirtualDom_elmNodeWithoutEvent({tag, factList, kidList});
     }
@@ -151,9 +151,22 @@ var $author$project$ReactNative$Animated$create = function (x) {
   return new Animated.Value(x);
 };
 
-var $author$project$ReactNative$Animated$timing = function (cft) {
+var $author$project$ReactNative$Animated$createXY = function (x) {
+  return function (y) {
+    return new Animated.ValueXY({x, y});
+  };
+};
+
+var $author$project$ReactNative$Animated$timing = function (cfg) {
   return function(v) {
-    return Animated.timing(v, cft);
+    if (typeof cfg.useNativeDrivder === 'undefined') cfg.useNativeDriver = false;
+    return Animated.timing(v, cfg);
+  };
+};
+var $author$project$ReactNative$Animated$spring = function (cfg) {
+  return function(v) {
+    if (typeof cfg.useNativeDrivder === 'undefined') cfg.useNativeDriver = false;
+    return Animated.spring(v, cfg);
   };
 };
 
@@ -168,5 +181,126 @@ var $author$project$ReactNative$Animated$start = function (v) {
 var $author$project$ReactNative$Animated$stop = function (v) {
   return _Scheduler_binding(function(callback) {
     v.stop();
+  });
+};
+
+function _VirtualDom_makeCallback(eventNode, initialHandler)
+{
+  function callback(event)
+  {
+    var handler = callback.q;
+    var result = _Json_runHelp(handler.a, arguments.length > 1 ? Array.from(arguments) : event);
+
+    if (!$elm$core$Result$isOk(result))
+    {
+      return;
+    }
+
+    var tag = $elm$virtual_dom$VirtualDom$toHandlerInt(handler);
+
+    // 0 = Normal
+    // 1 = MayStopPropagation
+    // 2 = MayPreventDefault
+    // 3 = Custom
+
+    var value = result.a;
+    var message = !tag ? value : tag < 3 ? value.a : value.message;
+    var stopPropagation = tag == 1 ? value.b : tag == 3 && value.stopPropagation;
+    var currentEventNode = (
+      stopPropagation && event.stopPropagation(),
+      (tag == 2 ? value.b : tag == 3 && value.preventDefault) && event.preventDefault(),
+      eventNode
+    );
+    var tagger;
+    var i;
+    while (tagger = currentEventNode.j)
+    {
+      if (typeof tagger == 'function')
+      {
+        message = tagger(message);
+      }
+      else
+      {
+        for (var i = tagger.length; i--; )
+        {
+          message = tagger[i](message);
+        }
+      }
+      currentEventNode = currentEventNode.p;
+    }
+    currentEventNode(message, stopPropagation); // stopPropagation implies isSync
+  }
+
+  callback.q = initialHandler;
+
+  return callback;
+}
+
+
+var $author$project$ReactNative$PanResponder$create = function (_v0) {
+  return function(eventNode) {
+    var props = {};
+    for (; _v0.b; _v0 = _v0.b) { // WHILE_CONS
+      const entry = _v0.a
+      if (entry.$ === "a0") {
+        if (entry.o && entry.o.a && entry.o.a.animatedEvent) {
+          props[_VirtualDom_makeEventPropName(entry.n)] =
+            Animated.event(
+              entry.o.a.animatedEvent.mapping,
+              {
+                useNativeDriver: !!entry.o.a.animatedEvent.useNativeDrivder,
+                listener: _VirtualDom_makeCallback(eventNode, entry.o)
+              });
+        } else {
+          props[_VirtualDom_makeEventPropName(entry.n)] = _VirtualDom_makeCallback(
+            eventNode,
+            entry.o
+          );
+        }
+      } else if (entry.$ === "a2") {
+        props[entry.n] = entry.o;
+      } 
+    }
+
+    return PanResponder.create(props);
+  }
+};
+var $author$project$ReactNative$Animated$event = function (_v0) {
+  return Animated.event([_v0, _v1]);
+};
+var $author$project$ReactNative$Animated$event2 = function (_v0) {
+  return function (_v1) {
+    return function (_v2) {
+      _v2.animatedEvent = {
+        mapping: [_v0 === _Utils_Tuple0 ? null : _v0, _v1],
+        options: {useNativeDrivder:false },
+      };
+      return _v2;
+    }
+  };
+};
+var $author$project$ReactNative$Animated$mapping = function (fn) {
+  return function(v) {
+    if (fn.a === 2) {
+      if (v instanceof Animated.Value) {
+        return A2(fn, v, new Animated.Value(0)); 
+      } else {
+        return A2(fn, v.x, v.y);
+      }
+    } else {
+      if (v instanceof Animated.Value) {
+        fn(v);
+      } else {
+        fn(v.x);
+      }
+    }
+  };
+};
+var $author$project$ReactNative$Animated$getLayout = function (v) {
+  return v.getLayout();
+};
+var $author$project$ReactNative$PanResponder$onStartShouldSetPanResponder = function (d) {
+  return A2(_VirtualDom_property, "onStartShouldSetPanResponder", function(event, gestureState) {
+    return _Json_unwrap(A2(_Json_run, d, _Json_wrap([event, gestureState])));
   });
 };

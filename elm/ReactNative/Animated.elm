@@ -2,88 +2,47 @@ module ReactNative.Animated exposing
     ( AnimationResult
     , Value
     , create
-    , defaultSpringConfig
-    , defaultTimingConfig
+    , createXY
+    , event
+    , event2
+    , getLayout
+    , mapping
     , spring
     , start
     , timing
     , view
     )
 
-import Html exposing (node)
+import Html exposing (Attribute, node)
+import Html.Attributes exposing (attribute)
+import Json.Decode as Decode exposing (Decoder)
 import ReactNative.Easing as Easing exposing (EasingFunction)
 import Task exposing (Task)
 
 
 type Value
     = Value
-
-
-type alias EasingFunction =
-    Float -> Float
-
-
-type alias TimingConfig =
-    { toValue : Float
-    , duration : Int
-    , easing : EasingFunction
-    , delay : Int
-    , isInteraction : Bool
-    , useNativeDriver : Bool
-    }
-
-
-defaultTimingConfig : TimingConfig
-defaultTimingConfig =
-    { toValue = 0
-    , duration = 500
-    , easing = Easing.ease
-    , delay = 0
-    , isInteraction = False
-    , useNativeDriver = False
-    }
-
-
-type alias SpringConfig =
-    { toValue : Float
-    , friction : Int
-    , tension : Int
-    , speed : Int
-    , bounciness : Int
-    , stiffness : Int
-    , damping : Int
-    , mass : Int
-    , velocity : Int
-    , restDisplacementThreshold : Float
-    , restSpeedThreshold : Float
-    , delay : Int
-    , isInteraction : Bool
-    , useNativeDriver : Bool
-    }
-
-
-defaultSpringConfig : SpringConfig
-defaultSpringConfig =
-    { toValue = 0
-    , friction = 7
-    , tension = 40
-    , speed = 12
-    , bounciness = 8
-    , stiffness = 100
-    , damping = 10
-    , mass = 1
-    , velocity = 0
-    , restDisplacementThreshold = 0.001
-    , restSpeedThreshold = 0.001
-    , delay = 0
-    , isInteraction = True
-    , useNativeDriver = False
-    }
+    | ValueXY
 
 
 create : Float -> Value
 create x =
     Value
+
+
+createXY : Float -> Float -> Value
+createXY x =
+    \y -> ValueXY
+
+
+getLayout : Value -> { left : Value, top : Value }
+getLayout v =
+    { left = v, top = v }
+
+
+mapping : (Value -> a) -> Value -> Value
+mapping fn =
+    identity
 
 
 view =
@@ -118,12 +77,12 @@ loop i =
     identity
 
 
-timing : TimingConfig -> Value -> Value
-timing cft =
+timing : cfg -> Value -> Value
+timing cfg =
     identity
 
 
-spring : SpringConfig -> Value -> Value
+spring : cfg -> Value -> Value
 spring cfg =
     identity
 
@@ -137,15 +96,21 @@ start v =
     Task.succeed { finished = False }
 
 
-
--- FIXME: ?? should stop kill the start task
-
-
-stop : Value -> Task Never AnimationResult
+stop : Value -> Task Never ()
 stop v =
-    Task.succeed { finished = False }
+    Task.succeed ()
 
 
 delay : Int -> Value -> Task Never AnimationResult
 delay s v =
     Task.succeed { finished = False }
+
+
+event : m -> Decoder msg -> Decoder msg
+event _ =
+    identity
+
+
+event2 : a -> b -> Decoder msg -> Decoder msg
+event2 _ =
+    \_ -> identity

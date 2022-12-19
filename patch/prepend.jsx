@@ -32,6 +32,7 @@ import {
   PlatformColor,
   Animated,
   Easing,
+  PanResponder,
 } from "react-native";
 import {
   NavigationContainer,
@@ -68,6 +69,7 @@ const allComponents = {
   InputAccessoryView,
   SafeAreaView,
   "Stack.Navigator": Stack.Navigator,
+  "Animated.View": Animated.View,
 };
 
 // const StackScreens = (props) => {
@@ -117,10 +119,6 @@ const _VirtualDom_elmNodeWithoutEvent = (props) => {
   if (props.tag === "Stack.Screen") {
     const actualProps = _VirtualDom_factsToReactProps(props, null);
     return <Stack.Screen {...actualProps} />;
-  } else if (props.tag === "Animated.View") {
-    const actualProps = _VirtualDom_factsToReactProps(props, null);
-    const children = listToChildren(props.kidList);
-    return <Animated.View {...actualProps}>{children}</Animated.View>;
   }
 
   const Component = scope.resolveComponent(props.tag);
@@ -272,6 +270,10 @@ function _VirtualDom_factsToReactProps(inputProps, eventNode) {
         } else {
           props.style = v;
         }
+      } else if (key === "__panResponder") {
+        const v = _Json_unwrap(value);
+        const panResponder = React.useRef(v(eventNode)).current;
+        props = Object.assign(props, panResponder.panHandlers);
       } else {
         const v = _Json_unwrap(value);
         if (typeof v === "function" && typeof v.f === "function") {
