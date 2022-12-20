@@ -6,8 +6,8 @@ os =
 
 
 select : a -> a
-select x =
-    x
+select =
+    identity
 
 
 version =
@@ -27,8 +27,8 @@ isTesting =
 
 
 color : String -> String
-color c =
-    ""
+color =
+    identity
 
 
 colors : String -> List String -> String

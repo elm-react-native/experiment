@@ -31,8 +31,8 @@ create x =
 
 
 createXY : Float -> Float -> Value
-createXY x =
-    \y -> ValueXY
+createXY x y =
+    ValueXY
 
 
 getLayout : Value -> { left : Value, top : Value }
@@ -41,8 +41,8 @@ getLayout v =
 
 
 mapping : (Value -> a) -> Value -> Value
-mapping fn =
-    identity
+mapping fn b =
+    b
 
 
 view =
@@ -78,13 +78,13 @@ loop i =
 
 
 timing : cfg -> Value -> Value
-timing cfg =
-    identity
+timing cfg v =
+    v
 
 
 spring : cfg -> Value -> Value
-spring cfg =
-    identity
+spring cfg v =
+    v
 
 
 type alias AnimationResult =
@@ -107,10 +107,10 @@ delay s v =
 
 
 event : m -> Decoder msg -> Decoder msg
-event _ =
-    identity
+event m d =
+    d
 
 
 event2 : a -> b -> Decoder msg -> Decoder msg
-event2 _ =
-    \_ -> identity
+event2 a b d =
+    d

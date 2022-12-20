@@ -2,8 +2,8 @@ module ReactNative.StyleSheet exposing (absoluteFill, compose, create, hairlineW
 
 
 create : a -> a
-create a =
-    a
+create =
+    identity
 
 
 hairlineWidth =

@@ -139,36 +139,33 @@ var $author$project$ReactNative$Vibrate$once = function () {
   }));
 }();
 
-var $author$project$ReactNative$Vibrate$vibrate = function (p) {
-  return function (b) {
+var $author$project$ReactNative$Vibrate$vibrate = F2(
+  function (p, b) {
     return A2($elm$core$Task$perform, $elm$core$Basics$never, _Scheduler_binding(function() {
       Vibration.vibrate(_List_toArray(p), b);
     }));
   };
-};
 
 var $author$project$ReactNative$Animated$create = function (x) {
   return new Animated.Value(x);
 };
 
-var $author$project$ReactNative$Animated$createXY = function (x) {
-  return function (y) {
-    return new Animated.ValueXY({x, y});
-  };
-};
+var $author$project$ReactNative$Animated$createXY = F2(
+  function (x, y) {
+      return new Animated.ValueXY({x, y});
+  });
 
-var $author$project$ReactNative$Animated$timing = function (cfg) {
-  return function(v) {
+var $author$project$ReactNative$Animated$timing = F2(
+  function (cfg, v) {
     if (typeof cfg.useNativeDrivder === 'undefined') cfg.useNativeDriver = false;
     return Animated.timing(v, cfg);
-  };
-};
-var $author$project$ReactNative$Animated$spring = function (cfg) {
-  return function(v) {
+  });
+
+var $author$project$ReactNative$Animated$spring = F2(
+  function (cfg, v) {
     if (typeof cfg.useNativeDrivder === 'undefined') cfg.useNativeDriver = false;
     return Animated.spring(v, cfg);
-  };
-};
+  });
 
 var $author$project$ReactNative$Animated$start = function (v) {
   return _Scheduler_binding(function(callback) {
@@ -236,7 +233,6 @@ function _VirtualDom_makeCallback(eventNode, initialHandler)
   return callback;
 }
 
-
 var $author$project$ReactNative$PanResponder$create = function (_v0) {
   return function(eventNode) {
     var props = {};
@@ -265,22 +261,26 @@ var $author$project$ReactNative$PanResponder$create = function (_v0) {
     return PanResponder.create(props);
   }
 };
-var $author$project$ReactNative$Animated$event = function (_v0) {
-  return Animated.event([_v0, _v1]);
-};
-var $author$project$ReactNative$Animated$event2 = function (_v0) {
-  return function (_v1) {
-    return function (_v2) {
-      _v2.animatedEvent = {
-        mapping: [_v0 === _Utils_Tuple0 ? null : _v0, _v1],
-        options: {useNativeDrivder:false },
-      };
-      return _v2;
-    }
-  };
-};
-var $author$project$ReactNative$Animated$mapping = function (fn) {
-  return function(v) {
+var $author$project$ReactNative$Animated$event = F2(
+  function (_v0, _v1) {
+    _v1.animatedEvent = {
+      mapping: [_v0],
+      options: {useNativeDrivder:false },
+    };
+    return _v1;
+  });
+
+var $author$project$ReactNative$Animated$event2 = F3(
+  function (_v0, _v1, _v2) {
+    _v2.animatedEvent = {
+      mapping: [_v0 === _Utils_Tuple0 ? null : _v0, _v1],
+      options: {useNativeDrivder:false },
+    };
+    return _v2;
+  });
+
+var $author$project$ReactNative$Animated$mapping = F2(
+  function (fn, v) {
     if (fn.a === 2) {
       if (v instanceof Animated.Value) {
         return A2(fn, v, new Animated.Value(0)); 
@@ -294,8 +294,8 @@ var $author$project$ReactNative$Animated$mapping = function (fn) {
         fn(v.x);
       }
     }
-  };
-};
+  });
+
 var $author$project$ReactNative$Animated$getLayout = function (v) {
   return v.getLayout();
 };

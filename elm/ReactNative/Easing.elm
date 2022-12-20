@@ -1,4 +1,4 @@
-module ReactNative.Easing exposing (EasingFunction, ease)
+module ReactNative.Easing exposing (EasingFunction, bounce, ease)
 
 
 type alias EasingFunction =

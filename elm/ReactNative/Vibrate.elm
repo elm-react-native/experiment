@@ -2,9 +2,8 @@ module ReactNative.Vibrate exposing (cancel, once, pattern, repeat)
 
 
 vibrate : List Int -> Bool -> Cmd msg
-vibrate p =
-    \b ->
-        Cmd.none
+vibrate p b =
+    Cmd.none
 
 
 cancel : Cmd msg
@@ -30,6 +29,7 @@ once =
 --    { wait : Int
 --    , duration : Maybe Int
 --    }
+
 
 pattern : List Int -> Cmd msg
 pattern p =

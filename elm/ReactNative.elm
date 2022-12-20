@@ -128,5 +128,5 @@ safeAreaView =
 
 
 require : String -> String
-require s =
-    s
+require =
+    identity
