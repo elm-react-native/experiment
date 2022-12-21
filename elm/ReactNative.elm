@@ -1,5 +1,6 @@
 module ReactNative exposing
-    ( activityIndicator
+    ( KeyboardType
+    , activityIndicator
     , button
     , drawerLayoutAndroid
     , flatList
@@ -29,6 +30,24 @@ module ReactNative exposing
 import Html exposing (node)
 import Html.Attributes exposing (property)
 import Json.Encode as Encode
+
+
+{-| <https://lefkowitz.me/visual-guide-to-react-native-textinput-keyboardtype-options/>
+-}
+type KeyboardType
+    = DefaultType
+    | NumberPad
+    | DecimalPad
+    | Numeric
+    | EmailAddress
+    | PhonePad
+    | Url
+    | AsciiCapable
+    | NumbersAndPunctuation
+    | NamePhonePad
+    | Twitter
+    | WebSearch
+    | VisiblePassword
 
 
 text props str =
