@@ -72,11 +72,6 @@ const allComponents = {
   "Animated.View": Animated.View,
 };
 
-// const StackScreens = (props) => {
-//   const children = props.screens;
-//   return <Stack.Navigator>{children}</Stack.Navigator>;
-// };
-
 const EventNodeContext = React.createContext();
 let scope = {};
 

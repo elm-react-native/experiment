@@ -12,6 +12,36 @@ const replacejsx = fs
   .split(/\r?\n/);
 const prependjsx = fs.readFileSync(_p("./prepend.jsx"), { encoding: "utf-8" });
 const appendjsx = fs.readFileSync(_p("./append.jsx"), { encoding: "utf-8" });
+const toRemove = [
+  "function _VirtualDom_diff(x, y)",
+  "function _VirtualDom_diffHelp(x, y, patches, index)",
+  "function _VirtualDom_pairwiseRefEqual(as, bs)",
+  "function _VirtualDom_diffNodes(x, y, patches, index, diffKids)",
+  "function _VirtualDom_diffFacts(x, y, category)",
+  "function _VirtualDom_diffKids(xParent, yParent, patches, index)",
+  "function _VirtualDom_diffKeyedKids(xParent, yParent, patches, rootIndex)",
+  "function _VirtualDom_insertNode(changes, localPatches, key, vnode, yIndex, inserts)",
+  "function _VirtualDom_removeNode(changes, localPatches, key, vnode, index)",
+  "function _VirtualDom_addDomNodes(domNode, vNode, patches, eventNode)",
+  "function _VirtualDom_addDomNodesHelp(domNode, vNode, patches, i, low, high, eventNode)",
+  "function _VirtualDom_applyPatches(rootDomNode, oldVirtualNode, patches, eventNode)",
+  "function _VirtualDom_applyPatchesHelp(rootDomNode, patches)",
+  "function _VirtualDom_applyPatch(domNode, patch)",
+  "function _VirtualDom_applyPatchRedraw(domNode, vNode, eventNode)",
+  "function _VirtualDom_applyPatchReorder(domNode, patch)",
+  "function _VirtualDom_applyPatchReorderEndInsertsHelp(endInserts, patch)",
+  "function _VirtualDom_virtualize(node)",
+  "function _VirtualDom_render(vNode, eventNode)",
+  "function _VirtualDom_applyFacts(domNode, eventNode, facts)",
+  "function _VirtualDom_applyStyles(domNode, styles)",
+  "function _VirtualDom_applyAttrs(domNode, attrs)",
+  "function _VirtualDom_applyAttrsNS(domNode, nsAttrs)",
+  "function _VirtualDom_applyEvents(domNode, eventNode, events)",
+  "function _VirtualDom_pushPatch(patches, type, index, data)",
+  "function _VirtualDom_dekey(keyedNode)",
+  "var _VirtualDom_init = F4(function(virtualNode, flagDecoder, debugMetadata, args)",
+];
+
 const source = fs
   .readFileSync(_p("../build/elm.js"), { encoding: "utf-8" })
   .trim()
@@ -38,7 +68,7 @@ const splitToFunctions = (lines) => {
   return fns;
 };
 
-const replacefn = (fn, source) => {
+const replacefn = (source, fn) => {
   const begin = fn[0];
   const hasIndent = /^var \$.*= F\d\($/.test(begin);
   const i = source.indexOf(begin);
@@ -57,13 +87,33 @@ const replacefn = (fn, source) => {
 
     source.splice(i, j - i + 1, ...fn);
   }
+  return source;
+};
+
+const removefn = (source, firstLine) => {
+  let i = source.indexOf(firstLine);
+  if (i !== -1) {
+    let j;
+    for (j = i + 1; j < source.length; j++) {
+      if (/^[}]/.test(source[j])) {
+        break;
+      }
+    }
+
+    for (; i > 0; i--) {
+      if (!/^\/\//.test(source[i])) {
+        break;
+      }
+    }
+
+    source.splice(i, j - i + 1);
+  }
+  return source;
 };
 
 source.splice(0, 2, prependjsx);
-const fns = splitToFunctions(replacejsx);
-for (const fn of fns) {
-  replacefn(fn, source);
-}
+toRemove.reduce(removefn, source);
+splitToFunctions(replacejsx).reduce(replacefn, source);
 source.splice(
   source.length - 1,
   1,
