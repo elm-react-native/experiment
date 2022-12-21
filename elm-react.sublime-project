@@ -1,0 +1,25 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "build_systems": [
+    {
+      "working_dir": "$project_path",
+      "name": "Build demo/ButtonExample.elm",
+      "shell_cmd": "./build.sh demo/ButtonExample.elm"
+    }
+  ],
+  "settings": {
+    "build_on_save": false,
+    "LSP": {
+      "LSP-typescript": {
+        "enabled": false
+      },
+      "LSP-elm": {
+        "enabled": false
+      }
+    }
+  }
+}

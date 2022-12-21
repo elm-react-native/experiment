@@ -1,0 +1,3 @@
+[submodule "template-project"]
+	path = template-project
+	url = git@github.com:elm-react-native/template-project.git

@@ -5,6 +5,8 @@ if (!process.argv[2]) {
   throw new Error("output file is required");
 }
 
+console.log(process.argv[2]);
+
 const _p = (p) => path.join(__dirname, p);
 
 const replacejsx = fs
