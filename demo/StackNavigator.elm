@@ -17,7 +17,6 @@ import ReactNative.Properties
         , onstyle
         , options
         , property
-        , record
         , style
         , title
         )

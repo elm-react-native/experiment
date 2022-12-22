@@ -2,11 +2,11 @@ module ReactNative.Properties exposing
     ( color
     , component
     , disabled
+    , encode
     , name
     , onstyle
     , options
     , property
-    , record
     , refreshing
     , source
     , style
@@ -23,24 +23,24 @@ property =
     Attr.property
 
 
-record : a -> Encode.Value
-record a =
+encode : a -> Encode.Value
+encode a =
     Encode.string "544d4631-adf8-${a}-4719-b1cc-46843cc90ca4"
 
 
 style : a -> Attribute msg
 style =
-    property "style" << record
+    property "style" << encode
 
 
 options : a -> Attribute msg
 options =
-    property "options" << record
+    property "options" << encode
 
 
 source : a -> Attribute msg
 source =
-    property "source" << record
+    property "source" << encode
 
 
 onstyle : (a -> List Encode.Value) -> Attribute msg
@@ -54,7 +54,7 @@ refreshing =
 
 component : (a -> Html msg) -> Attribute msg
 component =
-    property "component" << record
+    property "component" << encode
 
 
 name =

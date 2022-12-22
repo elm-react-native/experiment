@@ -9,7 +9,7 @@ import Process
 import ReactNative exposing (button, image, pressable, require, safeAreaView, text, view)
 import ReactNative.Alert as Alert
 import ReactNative.Events exposing (onClick, onPress, onRefresh)
-import ReactNative.Properties exposing (color, disabled, onstyle, record, source, style, title)
+import ReactNative.Properties exposing (color, disabled, onstyle, source, style, title)
 import ReactNative.StyleSheet as StyleSheet
 import Task
 

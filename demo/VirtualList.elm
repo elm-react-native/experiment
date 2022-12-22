@@ -6,7 +6,7 @@ import Json.Decode as Decode
 import Json.Encode as Encode
 import ReactNative exposing (safeAreaView, text, view, virtualizedList)
 import ReactNative.Events exposing (onClick, onPress, onRefresh)
-import ReactNative.Properties exposing (onstyle, property, record, style)
+import ReactNative.Properties exposing (encode, onstyle, property, style)
 import ReactNative.StyleSheet as StyleSheet
 
 
@@ -55,13 +55,13 @@ root =
     safeAreaView [ style styles.container ]
         [ virtualizedList
             [ property "renderItem" <|
-                record
+                encode
                     (\{ item } -> itemView item.title)
 
-            --, property "keyExtractor" <| record (\item -> item.key)
-            , property "data" <| record []
-            , property "getItemCount" <| record (\_ -> 50)
-            , property "getItem" <| record (\_ index -> { key = index, title = "Item2 " ++ String.fromInt index })
+            --, property "keyExtractor" <| encode (\item -> item.key)
+            , property "data" <| encode []
+            , property "getItemCount" <| encode (\_ -> 50)
+            , property "getItem" <| encode (\_ index -> { key = index, title = "Item2 " ++ String.fromInt index })
             ]
             []
         ]

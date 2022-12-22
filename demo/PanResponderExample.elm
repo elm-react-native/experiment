@@ -9,7 +9,7 @@ import ReactNative.Animated as Animated exposing (AnimationResult)
 import ReactNative.Easing as Easing
 import ReactNative.Events exposing (onPress)
 import ReactNative.PanResponder as PanResponder
-import ReactNative.Properties exposing (record, style, title)
+import ReactNative.Properties exposing (style, title)
 import ReactNative.StyleSheet as StyleSheet
 import Task
 

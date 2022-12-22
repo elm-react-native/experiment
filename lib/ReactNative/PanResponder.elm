@@ -17,7 +17,7 @@ import Html exposing (Attribute)
 import Html.Attributes exposing (attribute, property)
 import Html.Events exposing (on)
 import Json.Decode as Decode exposing (Decoder)
-import ReactNative.Properties exposing (record)
+import ReactNative.Properties exposing (encode)
 
 
 type PanResponder
@@ -31,7 +31,7 @@ create _ =
 
 prop : PanResponder -> Attribute msg
 prop =
-    property "__panResponder" << record
+    property "__panResponder" << encode
 
 
 type InteractionHandle
