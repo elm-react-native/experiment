@@ -144,7 +144,7 @@ var $author$project$ReactNative$Vibrate$vibrate = F2(
     return A2($elm$core$Task$perform, $elm$core$Basics$never, _Scheduler_binding(function() {
       Vibration.vibrate(_List_toArray(p), b);
     }));
-  };
+  });
 
 var $author$project$ReactNative$Animated$create = function (x) {
   return new Animated.Value(x);

@@ -68,7 +68,7 @@ update msg model =
         FadeOut ->
             ( model
             , model.fadeAnim
-                |> Animated.timing { defaultTimingConfig | toValue = 0, duration = 3000 }
+                |> Animated.timing { toValue = 0, duration = 3000 }
                 |> Animated.start
                 |> Task.perform FadeOutCallback
             )
