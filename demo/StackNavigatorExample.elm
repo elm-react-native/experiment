@@ -54,7 +54,7 @@ update msg model =
             ( model, Nav.navigate model.key "Details" )
 
         GotoDetailsAgain ->
-            ( model, Nav.push model.key "Details" )
+            ( model, Nav.push model.key "Details" {} )
 
 
 homeScreen _ _ =

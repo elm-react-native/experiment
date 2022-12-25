@@ -8,9 +8,9 @@ navigate =
     replaceUrl
 
 
-push : Key -> String -> Cmd msg
-push =
-    pushUrl
+push : Key -> String -> p -> Cmd msg
+push k s p =
+    pushUrl k s
 
 
 goBack : Key -> Cmd msg

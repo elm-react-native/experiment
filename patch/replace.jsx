@@ -103,14 +103,14 @@ var _Browser_go = F2(function(key, n)
   }));
 });
 
-var _Browser_pushUrl = F2(function(key, url)
-{
-  return A2($elm$core$Task$perform, $elm$core$Basics$never, _Scheduler_binding(function() {
-    if (key.isReady()) {
-      key.dispatch(StackActions.push(url));
-    }
-  }));
-});
+var $author$project$ReactNative$Navigation$push = F3(
+  function (k, s, p) {
+    return A2($elm$core$Task$perform, $elm$core$Basics$never, _Scheduler_binding(function() {
+      if (k.isReady()) {
+        k.dispatch(StackActions.push(s, p));
+      }
+    }));
+  });
 
 var _Browser_replaceUrl = F2(function(key, url)
 {

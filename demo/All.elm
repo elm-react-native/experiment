@@ -143,7 +143,7 @@ updateList msg model =
                     initExample info
             in
             ( { model | detail = Just ( info, exampleModel ) }
-            , Cmd.batch [ Nav.push info.key "ExampleDetails", Cmd.map ExampleMsg exampleCmd ]
+            , Cmd.batch [ Nav.push info.key "ExampleDetails" { exampleId = info.id }, Cmd.map ExampleMsg exampleCmd ]
             )
 
 
