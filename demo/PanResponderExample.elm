@@ -40,16 +40,6 @@ pan =
     Animated.createXY 0 0
 
 
-panResponder =
-    PanResponder.create
-        [ PanResponder.onStartShouldSetPanResponder <|
-            Decode.succeed True
-        , PanResponder.onPanResponderMove <|
-            Animated.event2 () (Animated.mapping (\x y -> { dx = x, dy = y }) pan) (Decode.succeed NoOp)
-        , PanResponder.onPanResponderRelease <| Decode.succeed PanResponderRelease
-        ]
-
-
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -93,7 +83,14 @@ root model =
         [ Animated.view
             [ style styles.box
             , style <| Animated.getLayout pan
-            , PanResponder.prop panResponder
+            , PanResponder.prop <|
+                PanResponder.create
+                    [ PanResponder.onStartShouldSetPanResponder <|
+                        Decode.succeed True
+                    , PanResponder.onPanResponderMove <|
+                        Animated.event2 () (Animated.mapping (\x y -> { dx = x, dy = y }) pan) (Decode.succeed NoOp)
+                    , PanResponder.onPanResponderRelease <| Decode.succeed PanResponderRelease
+                    ]
             ]
             []
         ]
