@@ -1,4 +1,4 @@
-module VirtualList exposing (..)
+module VirtualListExample exposing (..)
 
 import Browser
 import Debug
@@ -6,7 +6,7 @@ import Json.Decode as Decode
 import Json.Encode as Encode
 import ReactNative exposing (safeAreaView, text, view, virtualizedList)
 import ReactNative.Events exposing (onClick, onPress, onRefresh)
-import ReactNative.Properties exposing (encode, onstyle, property, style)
+import ReactNative.Properties exposing (encode, property, style)
 import ReactNative.StyleSheet as StyleSheet
 
 
@@ -21,11 +21,19 @@ type Msg
 main : Program () Model Msg
 main =
     Browser.element
-        { init = \() -> ( "", Cmd.none )
-        , view = \_ -> root
-        , update = \msg model -> ( model, Cmd.none )
+        { init = init
+        , view = root
+        , update = update
         , subscriptions = \_ -> Sub.none
         }
+
+
+init () =
+    ( "", Cmd.none )
+
+
+update msg model =
+    ( model, Cmd.none )
 
 
 styles =
@@ -51,7 +59,7 @@ itemView title =
         [ text [ style styles.title ] title ]
 
 
-root =
+root model =
     safeAreaView [ style styles.container ]
         [ virtualizedList
             [ property "renderItem" <|

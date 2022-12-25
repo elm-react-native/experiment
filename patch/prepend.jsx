@@ -73,6 +73,7 @@ const allComponents = {
 };
 
 const EventNodeContext = React.createContext();
+const ModelContext = React.createContext();
 let scope = {};
 
 const ElmMapComponent = (props) => {
@@ -110,10 +111,24 @@ const listToChildren = (list) => {
   else return children;
 };
 
+const screenComponentsCache = new Map();
 const _VirtualDom_elmNodeWithoutEvent = (props) => {
   if (props.tag === "Stack.Screen") {
-    const actualProps = _VirtualDom_factsToReactProps(props, null);
-    return <Stack.Screen {...actualProps} />;
+    const { component, ...actualProps } = _VirtualDom_factsToReactProps(
+      props,
+      null
+    );
+
+    let screenComponent = screenComponentsCache.get(component);
+    if (!screenComponent) {
+      screenComponent = (props) => {
+        const model = React.useContext(ModelContext);
+        return component(model, props.route.params);
+      };
+      screenComponentsCache.set(component, screenComponent);
+    }
+
+    return <Stack.Screen {...actualProps} component={screenComponent} />;
   }
 
   const Component = scope.resolveComponent(props.tag);
@@ -196,7 +211,9 @@ const ElmRoot = (props) => {
     return (
       <NavigationContainer ref={navigationRef}>
         <EventNodeContext.Provider value={sendToAppRef.current}>
-          {listToChildren(doc.body)}
+          <ModelContext.Provider value={model}>
+            {listToChildren(doc.body)}
+          </ModelContext.Provider>
         </EventNodeContext.Provider>
       </NavigationContainer>
     );
@@ -224,6 +241,7 @@ function _Json_unwrap_nested(value) {
 const ELM_NODE_COMPONENT_PROP_SET = { tag: 1, factList: 1, kidList: 1 };
 function _VirtualDom_factsToReactProps(inputProps, eventNode) {
   var factList = inputProps.factList;
+  var initPanResponder;
 
   for (
     var props = {};
@@ -267,8 +285,7 @@ function _VirtualDom_factsToReactProps(inputProps, eventNode) {
         }
       } else if (key === "__panResponder") {
         const v = _Json_unwrap(value);
-        const panResponder = React.useRef(v(eventNode)).current;
-        props = Object.assign(props, panResponder.panHandlers);
+        initPanResponder = v(eventNode);
       } else {
         const v = _Json_unwrap(value);
         if (typeof v === "function" && typeof v.f === "function") {
@@ -277,9 +294,13 @@ function _VirtualDom_factsToReactProps(inputProps, eventNode) {
           props[key] = v;
         }
       }
-
       continue;
     }
+  }
+
+  if (eventNode) {
+    const panResponder = React.useRef(initPanResponder).current;
+    if (panResponder) props = Object.assign(props, panResponder.panHandlers);
   }
 
   // Components like TouchableWithoutFeedback works by cloning its child and applying responder props to it.

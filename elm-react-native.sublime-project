@@ -7,6 +7,11 @@
   "build_systems": [
     {
       "working_dir": "$project_path",
+      "name": "Build All Demos",
+      "shell_cmd": "./build.sh demo/All.elm"
+    },
+    {
+      "working_dir": "$project_path",
       "name": "Build demo/ButtonExample.elm",
       "shell_cmd": "./build.sh demo/ButtonExample.elm"
     }

@@ -3,6 +3,7 @@ module ReactNative.Properties exposing
     , component
     , disabled
     , encode
+    , initialParams
     , name
     , onstyle
     , options
@@ -38,6 +39,11 @@ options =
     property "options" << encode
 
 
+initialParams : a -> Attribute msg
+initialParams =
+    property "initialParams" << encode
+
+
 source : a -> Attribute msg
 source =
     property "source" << encode
@@ -52,7 +58,7 @@ refreshing =
     property "refreshing" << Encode.bool
 
 
-component : (a -> Html msg) -> Attribute msg
+component : (a -> b -> Html msg) -> Attribute msg
 component =
     property "component" << encode
 

@@ -1,4 +1,4 @@
-module StackNavigator exposing (..)
+module StackNavigatorExample exposing (..)
 
 import Browser
 import Browser.Navigation as N
@@ -10,16 +10,7 @@ import ReactNative exposing (button, safeAreaView, text, view, virtualizedList)
 import ReactNative.Events exposing (onClick, onPress, onRefresh)
 import ReactNative.Navigation as Nav
 import ReactNative.Navigation.Stack as Stack
-import ReactNative.Properties
-    exposing
-        ( component
-        , name
-        , onstyle
-        , options
-        , property
-        , style
-        , title
-        )
+import ReactNative.Properties exposing (component, name, options, property, style, title)
 import ReactNative.StyleSheet as StyleSheet
 
 
@@ -33,33 +24,40 @@ type Msg
     | GotoDetailsAgain
 
 
+init : N.Key -> ( Model, Cmd Msg )
+init key =
+    ( { key = key }, Cmd.none )
+
+
 main : Program () Model Msg
 main =
     Browser.application
-        { init = \() _ key -> ( { key = key }, Cmd.none )
+        { init = \() _ key -> init key
         , view =
             \model ->
                 { title = ""
                 , body = [ root model ]
                 }
-        , update =
-            \msg model ->
-                case msg of
-                    NoOp ->
-                        ( model, Cmd.none )
-
-                    GotoDetails ->
-                        ( model, Nav.navigate model.key "Details" )
-
-                    GotoDetailsAgain ->
-                        ( model, Nav.push model.key "Details" )
+        , update = update
         , subscriptions = \_ -> Sub.none
         , onUrlChange = \_ -> NoOp
         , onUrlRequest = \_ -> NoOp
         }
 
 
-homeScreen () =
+update msg model =
+    case msg of
+        NoOp ->
+            ( model, Cmd.none )
+
+        GotoDetails ->
+            ( model, Nav.navigate model.key "Details" )
+
+        GotoDetailsAgain ->
+            ( model, Nav.push model.key "Details" )
+
+
+homeScreen _ _ =
     view
         [ style { flex = 1, alignItems = "center", justifyContent = "center" } ]
         [ text [] "Home Screen"
@@ -71,7 +69,7 @@ homeScreen () =
         ]
 
 
-detailsScreen () =
+detailsScreen _ _ =
     view
         [ style { flex = 1, alignItems = "center", justifyContent = "center" } ]
         [ text [] "Details Screen"

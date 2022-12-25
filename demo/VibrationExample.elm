@@ -21,9 +21,9 @@ type alias Model =
     {}
 
 
-initialModel : Model
-initialModel =
-    {}
+init : () -> ( Model, Cmd Msg )
+init () =
+    ( {}, Cmd.none )
 
 
 
@@ -126,7 +126,7 @@ root model =
 main : Program () Model Msg
 main =
     Browser.document
-        { init = \_ -> ( initialModel, Cmd.none )
+        { init = init
         , view = \model -> { title = "", body = [ root model ] }
         , update = update
         , subscriptions = \_ -> Sub.none
