@@ -3,6 +3,7 @@ module ReactNative.Properties exposing
     , component
     , disabled
     , encode
+    , getId
     , initialParams
     , name
     , onstyle
@@ -61,6 +62,11 @@ refreshing =
 component : (a -> b -> Html msg) -> Attribute msg
 component =
     property "component" << encode
+
+
+getId : (p -> Html msg) -> Attribute msg
+getId =
+    property "getId" << encode
 
 
 name =

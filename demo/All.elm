@@ -12,7 +12,7 @@ import ReactNative exposing (button, pressable, safeAreaView, text, view)
 import ReactNative.Events exposing (onPress)
 import ReactNative.Navigation as Nav
 import ReactNative.Navigation.Stack as Stack
-import ReactNative.Properties exposing (component, initialParams, name, options, style, title)
+import ReactNative.Properties exposing (component, getId, initialParams, name, options, style, title)
 import ReactNative.StyleSheet as StyleSheet
 import StackNavigatorExample
 import VibrationExample
@@ -296,6 +296,7 @@ root model =
         , Stack.screen
             [ name "ExampleDetails"
             , component detailsScreen
+            , getId (\{ params } -> params.exampleId)
             , options
                 { title =
                     case model.detail of
