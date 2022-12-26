@@ -33,6 +33,7 @@ import {
   Animated,
   Easing,
   PanResponder,
+  AppState,
 } from "react-native";
 import {
   NavigationContainer,

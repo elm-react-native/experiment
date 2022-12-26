@@ -1,6 +1,7 @@
 module All exposing (..)
 
 import AnimationExample
+import AppStateExample
 import Browser
 import Browser.Navigation as N
 import ButtonExample
@@ -78,6 +79,7 @@ type ExampleModel
     | StackNavigatorExample StackNavigatorExample.Model
     | VibrationExample VibrationExample.Model
     | VirtualListExample VirtualListExample.Model
+    | AppStateExample AppStateExample.Model
 
 
 type alias ExampleInfo =
@@ -103,6 +105,7 @@ init key =
             , { id = "StackNavigatorExample", title = "StackNavigator Example", key = key }
             , { id = "VibrationExample", title = "Vibration Example", key = key }
             , { id = "VirtualListExample", title = "VirtualList Example", key = key }
+            , { id = "AppStateExample", title = "AppState Example", key = key }
             ]
       , detail = Nothing
       }
@@ -122,6 +125,7 @@ type ExampleMsg
     | StackNavigatorExampleMsg StackNavigatorExample.Msg
     | VibrationExampleMsg VibrationExample.Msg
     | VirtualListExampleMsg VirtualListExample.Msg
+    | AppStateExampleMsg AppStateExample.Msg
 
 
 type ExampleListMsg
@@ -172,8 +176,11 @@ initExample info =
         "VibrationExample" ->
             fromExampleCmd VibrationExample VibrationExampleMsg <| VibrationExample.init ()
 
-        _ ->
+        "VirtualListExample" ->
             fromExampleCmd VirtualListExample VirtualListExampleMsg <| VirtualListExample.init ()
+
+        _ ->
+            fromExampleCmd AppStateExample AppStateExampleMsg <| AppStateExample.init ()
 
 
 updateExample : ExampleMsg -> ( ExampleInfo, ExampleModel ) -> ( ExampleModel, Cmd ExampleMsg )
@@ -235,6 +242,14 @@ updateExample msg ( info, model ) =
             case model of
                 VirtualListExample exampleModel ->
                     fromExampleCmd VirtualListExample VirtualListExampleMsg <| VirtualListExample.update m exampleModel
+
+                _ ->
+                    ( model, Cmd.none )
+
+        AppStateExampleMsg m ->
+            case model of
+                AppStateExample exampleModel ->
+                    fromExampleCmd AppStateExample AppStateExampleMsg <| AppStateExample.update m exampleModel
 
                 _ ->
                     ( model, Cmd.none )
@@ -344,6 +359,9 @@ detailsRoot model =
         VirtualListExample m ->
             Html.map (ExampleMsg << VirtualListExampleMsg) <| VirtualListExample.root m
 
+        AppStateExample m ->
+            Html.map (ExampleMsg << AppStateExampleMsg) <| AppStateExample.root m
+
 
 exampleItem info =
     button
@@ -372,7 +390,18 @@ main =
                 , body = [ root model ]
                 }
         , update = update
-        , subscriptions = \_ -> Sub.none
+        , subscriptions =
+            \model ->
+                case model.detail of
+                    Just ( exampleInfo, _ ) ->
+                        if exampleInfo.id == "AppStateExample" then
+                            Sub.map (ExampleMsg << AppStateExampleMsg) AppStateExample.subs
+
+                        else
+                            Sub.none
+
+                    _ ->
+                        Sub.none
         , onUrlChange = \_ -> NoOp
         , onUrlRequest = \_ -> NoOp
         }
