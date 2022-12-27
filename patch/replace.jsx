@@ -318,13 +318,12 @@ var _Browser_on = F3(function(node, eventName, sendToSelf)
   return _Scheduler_spawn(_Scheduler_binding(function(callback)
   {
     function handler(event) { _Scheduler_rawSpawn(sendToSelf(event)); }
+    let eventSubs;
     if (eventName === "appStateChange") {
-      AppState.addEventListener("change", handler);
+      eventSubs = AppState.addEventListener("change", handler);
     }
     return function() {
-      if (eventName === "appStateChange") {
-        AppState.removeEventListener("change", handler);
-      }
+      if (eventSubs) eventSubs.remove();
     };
   }));
 });
