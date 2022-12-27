@@ -151,7 +151,7 @@ updateList msg model =
                     initExample info
             in
             ( { model | detail = Just ( info, exampleModel ) }
-            , Cmd.batch [ Nav.push info.key "ExampleDetails" { exampleId = info.id }, Cmd.map ExampleMsg exampleCmd ]
+            , Cmd.batch [ Nav.push info.key "ExampleDetails" { exampleId = info.id, exampleTitle = info.title }, Cmd.map ExampleMsg exampleCmd ]
             )
 
 
@@ -327,15 +327,7 @@ root model =
             [ name "ExampleDetails"
             , component detailsScreen
             , getId (\{ params } -> params.exampleId)
-            , options
-                { title =
-                    case model.detail of
-                        Just ( exampleInfo, _ ) ->
-                            exampleInfo.title
-
-                        _ ->
-                            ""
-                }
+            , options (\{ route } -> { title = route.params.exampleTitle })
             ]
             []
         ]

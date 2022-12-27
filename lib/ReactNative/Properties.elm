@@ -68,7 +68,7 @@ component =
     property "component" << encode
 
 
-getId : (p -> Html msg) -> Attribute msg
+getId : (p -> String) -> Attribute msg
 getId =
     property "getId" << encode
 

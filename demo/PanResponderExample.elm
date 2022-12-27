@@ -78,7 +78,7 @@ styles =
 
 root : Model -> Html Msg
 root model =
-    view
+    safeAreaView
         [ style styles.container ]
         [ Animated.view
             [ style styles.box
