@@ -7,6 +7,7 @@ import Browser.Navigation as N
 import ButtonExample
 import Html exposing (Html)
 import Json.Decode as Decode
+import ModalExample
 import PanResponderExample
 import PlatformColorExample
 import ReactNative exposing (button, pressable, safeAreaView, text, view)
@@ -80,6 +81,7 @@ type ExampleModel
     | VibrationExample VibrationExample.Model
     | VirtualListExample VirtualListExample.Model
     | AppStateExample AppStateExample.Model
+    | ModalExample ModalExample.Model
 
 
 type alias ExampleInfo =
@@ -106,6 +108,7 @@ init key =
             , { id = "VibrationExample", title = "Vibration Example", key = key }
             , { id = "VirtualListExample", title = "VirtualList Example", key = key }
             , { id = "AppStateExample", title = "AppState Example", key = key }
+            , { id = "ModalExample", title = "Modal Example", key = key }
             ]
       , detail = Nothing
       }
@@ -126,6 +129,7 @@ type ExampleMsg
     | VibrationExampleMsg VibrationExample.Msg
     | VirtualListExampleMsg VirtualListExample.Msg
     | AppStateExampleMsg AppStateExample.Msg
+    | ModalExampleMsg ModalExample.Msg
 
 
 type ExampleListMsg
@@ -179,8 +183,11 @@ initExample info =
         "VirtualListExample" ->
             fromExampleCmd VirtualListExample VirtualListExampleMsg <| VirtualListExample.init ()
 
-        _ ->
+        "AppStateExample" ->
             fromExampleCmd AppStateExample AppStateExampleMsg <| AppStateExample.init ()
+
+        _ ->
+            fromExampleCmd ModalExample ModalExampleMsg <| ModalExample.init ()
 
 
 updateExample : ExampleMsg -> ( ExampleInfo, ExampleModel ) -> ( ExampleModel, Cmd ExampleMsg )
@@ -250,6 +257,14 @@ updateExample msg ( info, model ) =
             case model of
                 AppStateExample exampleModel ->
                     fromExampleCmd AppStateExample AppStateExampleMsg <| AppStateExample.update m exampleModel
+
+                _ ->
+                    ( model, Cmd.none )
+
+        ModalExampleMsg m ->
+            case model of
+                ModalExample exampleModel ->
+                    fromExampleCmd ModalExample ModalExampleMsg <| ModalExample.update m exampleModel
 
                 _ ->
                     ( model, Cmd.none )
@@ -361,6 +376,9 @@ detailsRoot model =
 
         AppStateExample m ->
             Html.map (ExampleMsg << AppStateExampleMsg) <| AppStateExample.root m
+
+        ModalExample m ->
+            Html.map (ExampleMsg << ModalExampleMsg) <| ModalExample.root m
 
 
 exampleItem info =

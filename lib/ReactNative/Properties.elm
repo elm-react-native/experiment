@@ -1,5 +1,6 @@
 module ReactNative.Properties exposing
-    ( color
+    ( animationType
+    , color
     , component
     , disabled
     , encode
@@ -8,11 +9,14 @@ module ReactNative.Properties exposing
     , name
     , onstyle
     , options
+    , presentationStyle
     , property
     , refreshing
     , source
     , style
     , title
+    , transparent
+    , visible
     )
 
 import Html exposing (Attribute, Html)
@@ -83,3 +87,19 @@ color =
 
 disabled =
     property "disabled" << Encode.bool
+
+
+animationType =
+    property "animationType" << Encode.string
+
+
+transparent =
+    property "transparent" << Encode.bool
+
+
+visible =
+    property "visible" << Encode.bool
+
+
+presentationStyle =
+    property "presentationStyle" << Encode.string
