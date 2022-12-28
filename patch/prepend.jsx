@@ -326,6 +326,11 @@ function _VirtualDom_factsToReactProps(inputProps, eventNode) {
       } else if (key === "__panResponder") {
         const v = _Json_unwrap(value);
         initPanResponder = v(eventNode);
+      } else if (key === "refreshControl") {
+        const v = _Json_unwrap(value);
+        props[key] = (
+          <RefreshControl {..._VirtualDom_factsToReactProps(v, eventNode)} />
+        );
       } else {
         const v = _Json_unwrap(value);
         if (typeof v === "function" && typeof v.f === "function") {

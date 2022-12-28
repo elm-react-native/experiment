@@ -8,6 +8,10 @@ var _VirtualDom_nodeNS = F2(function(namespace, tag)
       // delay to navigator component
       return {tag, factList, kidList};
     }
+    else if (tag === "RefreshControl")
+    {
+      return {tag, factList, kidList}
+    }
     else if (tag === "Stack.Navigator")
     {
       return <NavigatorComponent tag={tag} factList={factList} kidList={kidList} />;
@@ -341,3 +345,9 @@ var _Browser_on = F3(function(node, eventName, sendToSelf)
     };
   }));
 });
+
+function _Browser_makeAnimator(model, draw)
+{
+  draw(model);
+  return draw;
+}

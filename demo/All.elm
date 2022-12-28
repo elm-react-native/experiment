@@ -17,6 +17,7 @@ import ReactNative.Navigation.Listeners as Listeners
 import ReactNative.Navigation.Stack as Stack
 import ReactNative.Properties exposing (component, getId, initialParams, name, options, style, title)
 import ReactNative.StyleSheet as StyleSheet
+import RefreshControlExample
 import StackNavigatorExample
 import VibrationExample
 import VirtualListExample
@@ -83,6 +84,7 @@ type ExampleModel
     | VirtualListExample VirtualListExample.Model
     | AppStateExample AppStateExample.Model
     | ModalExample ModalExample.Model
+    | RefreshControlExample RefreshControlExample.Model
 
 
 type alias ExampleInfo =
@@ -110,6 +112,7 @@ init key =
             , { id = "VirtualListExample", title = "VirtualList Example", key = key }
             , { id = "AppStateExample", title = "AppState Example", key = key }
             , { id = "ModalExample", title = "Modal Example", key = key }
+            , { id = "RefreshControlExample", title = "RefreshControl Example", key = key }
             ]
       , detail = Nothing
       }
@@ -131,6 +134,7 @@ type ExampleMsg
     | VirtualListExampleMsg VirtualListExample.Msg
     | AppStateExampleMsg AppStateExample.Msg
     | ModalExampleMsg ModalExample.Msg
+    | RefreshControlExampleMsg RefreshControlExample.Msg
 
 
 type ExampleListMsg
@@ -191,8 +195,11 @@ initExample info =
         "AppStateExample" ->
             fromExampleCmd AppStateExample AppStateExampleMsg <| AppStateExample.init ()
 
-        _ ->
+        "ModalExample" ->
             fromExampleCmd ModalExample ModalExampleMsg <| ModalExample.init ()
+
+        _ ->
+            fromExampleCmd RefreshControlExample RefreshControlExampleMsg <| RefreshControlExample.init ()
 
 
 updateExample : ExampleMsg -> ( ExampleInfo, ExampleModel ) -> ( ExampleModel, Cmd ExampleMsg )
@@ -270,6 +277,14 @@ updateExample msg ( info, model ) =
             case model of
                 ModalExample exampleModel ->
                     fromExampleCmd ModalExample ModalExampleMsg <| ModalExample.update m exampleModel
+
+                _ ->
+                    ( model, Cmd.none )
+
+        RefreshControlExampleMsg m ->
+            case model of
+                RefreshControlExample exampleModel ->
+                    fromExampleCmd RefreshControlExample RefreshControlExampleMsg <| RefreshControlExample.update m exampleModel
 
                 _ ->
                     ( model, Cmd.none )
@@ -377,6 +392,9 @@ detailsRoot model =
 
         ModalExample m ->
             Html.map (ExampleMsg << ModalExampleMsg) <| ModalExample.root m
+
+        RefreshControlExample m ->
+            Html.map (ExampleMsg << RefreshControlExampleMsg) <| RefreshControlExample.root m
 
 
 exampleItem info =

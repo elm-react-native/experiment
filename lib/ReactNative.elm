@@ -28,8 +28,8 @@ module ReactNative exposing
     )
 
 import Html exposing (node)
-import Html.Attributes exposing (property)
 import Json.Encode as Encode
+import ReactNative.Properties exposing (property)
 
 
 {-| <https://lefkowitz.me/visual-guide-to-react-native-textinput-keyboardtype-options/>
@@ -58,8 +58,8 @@ view =
     node "View"
 
 
-refreshControl b props =
-    node "RefreshControl" (property "refreshing" b :: props)
+refreshControl props =
+    node "RefreshControl" props []
 
 
 activityIndicator =

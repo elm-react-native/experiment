@@ -2,6 +2,7 @@ module ReactNative.Properties exposing
     ( animationType
     , color
     , component
+    , contentContainerStyle
     , disabled
     , encode
     , getId
@@ -11,6 +12,7 @@ module ReactNative.Properties exposing
     , options
     , presentationStyle
     , property
+    , refreshCtrl
     , refreshing
     , source
     , style
@@ -37,6 +39,11 @@ encode a =
 style : a -> Attribute msg
 style =
     property "style" << encode
+
+
+contentContainerStyle : a -> Attribute msg
+contentContainerStyle =
+    property "contentContainerStyle" << encode
 
 
 options : a -> Attribute msg
@@ -66,6 +73,11 @@ refreshing =
 component : (a -> b -> Html msg) -> Attribute msg
 component =
     property "component" << encode
+
+
+refreshCtrl : Html msg -> Attribute msg
+refreshCtrl =
+    property "refreshControl" << encode
 
 
 getId : (p -> String) -> Attribute msg
