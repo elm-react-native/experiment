@@ -1,6 +1,7 @@
-module ReactNative.Navigation.Stack exposing (navigator, screen)
+module ReactNative.Navigation.Stack exposing (listeners, navigator, screen, screenListeners)
 
-import Html exposing (node)
+import Html exposing (Attribute, Html, node)
+import ReactNative.Properties exposing (encode, property)
 
 
 navigator =
@@ -9,3 +10,11 @@ navigator =
 
 screen =
     node "Stack.Screen"
+
+
+listeners =
+    property "listeners" << encode
+
+
+screenListeners =
+    property "screenListeners" << encode

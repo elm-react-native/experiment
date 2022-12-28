@@ -13,6 +13,7 @@ import PlatformColorExample
 import ReactNative exposing (button, pressable, safeAreaView, text, view)
 import ReactNative.Events exposing (onPress)
 import ReactNative.Navigation as Nav
+import ReactNative.Navigation.Listeners as Listeners
 import ReactNative.Navigation.Stack as Stack
 import ReactNative.Properties exposing (component, getId, initialParams, name, options, style, title)
 import ReactNative.StyleSheet as StyleSheet
@@ -134,6 +135,7 @@ type ExampleMsg
 
 type ExampleListMsg
     = GotoExample ExampleInfo
+    | FocusListScreen
 
 
 type Msg
@@ -153,6 +155,9 @@ updateList msg model =
             ( { model | detail = Just ( info, exampleModel ) }
             , Cmd.batch [ Nav.push info.key "ExampleDetails" { exampleId = info.id, exampleTitle = info.title }, Cmd.map ExampleMsg exampleCmd ]
             )
+
+        FocusListScreen ->
+            ( { model | detail = Nothing }, Cmd.none )
 
 
 initExample : ExampleInfo -> ( ExampleModel, Cmd ExampleMsg )
@@ -321,6 +326,7 @@ root model =
             [ name "List"
             , component listScreen
             , options { title = "Examples" }
+            , Stack.listeners [ Listeners.focus <| Decode.succeed <| ExampleListMsg FocusListScreen ]
             ]
             []
         , Stack.screen

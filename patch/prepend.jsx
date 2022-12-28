@@ -112,32 +112,6 @@ const listToChildren = (list) => {
   else return children;
 };
 
-const screenComponentsCache = new Map();
-const _VirtualDom_elmNodeWithoutEvent = (props) => {
-  if (props.tag === "Stack.Screen") {
-    const { component, ...actualProps } = _VirtualDom_factsToReactProps(
-      props,
-      null
-    );
-
-    let screenComponent = screenComponentsCache.get(component);
-    if (!screenComponent) {
-      screenComponent = (props) => {
-        const model = React.useContext(ModelContext);
-        return component(model, props.route.params);
-      };
-      screenComponentsCache.set(component, screenComponent);
-    }
-
-    return <Stack.Screen {...actualProps} component={screenComponent} />;
-  }
-
-  const Component = scope.resolveComponent(props.tag);
-  const actualProps = _VirtualDom_factsToReactProps(props, null);
-  const children = listToChildren(props.kidList);
-  return <Component {...actualProps}>{children}</Component>;
-};
-
 const ElmNodeComponent = (props) => {
   const eventNode = React.useContext(EventNodeContext);
   const actualProps = _VirtualDom_factsToReactProps(props, eventNode);
@@ -145,6 +119,71 @@ const ElmNodeComponent = (props) => {
 
   const children = listToChildren(props.kidList);
   return <Component {...actualProps}>{children}</Component>;
+};
+
+const screenListenersMakeCallback = (listeners, eventNode) => {
+  // WHILE_CONS
+  for (var ls = listeners, result = {}; ls.b; ls = ls.b) {
+    const entry = ls.a;
+    if (entry.$ === "a0") {
+      result[entry.n] = _VirtualDom_makeCallback(eventNode, entry.o);
+    }
+  }
+  return result;
+};
+
+const createScreenElement = (props, screenComponentsCache, eventNode, key) => {
+  const { component, ...actualProps } = _VirtualDom_factsToReactProps(
+    props,
+    null
+  );
+  if (actualProps.listeners) {
+    actualProps.listeners = screenListenersMakeCallback(
+      actualProps.listeners,
+      eventNode
+    );
+  }
+
+  let screenComponent = screenComponentsCache.get(component);
+  if (!screenComponent) {
+    screenComponent = (props) => {
+      const model = React.useContext(ModelContext);
+      return component(model, props.route.params);
+    };
+    screenComponentsCache.set(component, screenComponent);
+  }
+
+  return (
+    <Stack.Screen {...actualProps} component={screenComponent} key={key} />
+  );
+};
+
+const NavigatorComponent = (props) => {
+  const eventNode = React.useContext(EventNodeContext);
+  const actualProps = _VirtualDom_factsToReactProps(props, eventNode);
+  if (actualProps.screenListeners) {
+    actualProps.screenListeners = screenListenersMakeCallback(
+      actualProps.screenListeners,
+      eventNode
+    );
+  }
+
+  const Component = scope.resolveComponent(props.tag);
+  const screenComponentsCacheRef = React.useRef(new Map());
+
+  let screens = [];
+  for (let kids = props.kidList; kids.b; kids = kids.b) {
+    const ps = kids.a;
+    screens.push(
+      createScreenElement(
+        ps,
+        screenComponentsCacheRef.current,
+        eventNode,
+        screens.length
+      )
+    );
+  }
+  return <Component {...actualProps}>{screens}</Component>;
 };
 
 const ElmThunkComponent = (props) => {

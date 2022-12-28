@@ -5,7 +5,12 @@ var _VirtualDom_nodeNS = F2(function(namespace, tag)
   {
     if (/\.Screen$/.test(tag))
     {
-      return _VirtualDom_elmNodeWithoutEvent({tag, factList, kidList});
+      // delay to navigator component
+      return {tag, factList, kidList};
+    }
+    else if (tag === "Stack.Navigator")
+    {
+      return <NavigatorComponent tag={tag} factList={factList} kidList={kidList} />;
     }
     return <ElmNodeComponent tag={tag} factList={factList} kidList={kidList} />;
   });
@@ -28,6 +33,15 @@ var _VirtualDom_keyedNodeNS = F2(function(namespace, tag)
 {
   return F2(function(factList, kidList)
   {
+    if (/\.Screen$/.test(tag))
+    {
+      // delay to navigator component
+      return {tag, factList, kidList};
+    }
+    else if (tag === "Stack.Navigator")
+    {
+      return <NavigatorComponent tag={tag} factList={factList} kidList={kidList} />;
+    }
     return <ElmKeyedNodeComponent tag={tag} factList={factList} kidList={kidList} />;
   });
 });
