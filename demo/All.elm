@@ -5,6 +5,7 @@ import AppStateExample
 import Browser
 import Browser.Navigation as N
 import ButtonExample
+import EasingExample
 import Html exposing (Html)
 import Json.Decode as Decode
 import ModalExample
@@ -85,6 +86,7 @@ type ExampleModel
     | AppStateExample AppStateExample.Model
     | ModalExample ModalExample.Model
     | RefreshControlExample RefreshControlExample.Model
+    | EasingExample EasingExample.Model
 
 
 type alias ExampleInfo =
@@ -113,6 +115,7 @@ init key =
             , { id = "AppStateExample", title = "AppState Example", key = key }
             , { id = "ModalExample", title = "Modal Example", key = key }
             , { id = "RefreshControlExample", title = "RefreshControl Example", key = key }
+            , { id = "EasingExample", title = "Easing Example", key = key }
             ]
       , detail = Nothing
       }
@@ -135,6 +138,7 @@ type ExampleMsg
     | AppStateExampleMsg AppStateExample.Msg
     | ModalExampleMsg ModalExample.Msg
     | RefreshControlExampleMsg RefreshControlExample.Msg
+    | EasingExampleMsg EasingExample.Msg
 
 
 type ExampleListMsg
@@ -198,8 +202,11 @@ initExample info =
         "ModalExample" ->
             fromExampleCmd ModalExample ModalExampleMsg <| ModalExample.init ()
 
-        _ ->
+        "RefreshControlExample" ->
             fromExampleCmd RefreshControlExample RefreshControlExampleMsg <| RefreshControlExample.init ()
+
+        _ ->
+            fromExampleCmd EasingExample EasingExampleMsg <| EasingExample.init ()
 
 
 updateExample : ExampleMsg -> ( ExampleInfo, ExampleModel ) -> ( ExampleModel, Cmd ExampleMsg )
@@ -285,6 +292,14 @@ updateExample msg ( info, model ) =
             case model of
                 RefreshControlExample exampleModel ->
                     fromExampleCmd RefreshControlExample RefreshControlExampleMsg <| RefreshControlExample.update m exampleModel
+
+                _ ->
+                    ( model, Cmd.none )
+
+        EasingExampleMsg m ->
+            case model of
+                EasingExample exampleModel ->
+                    fromExampleCmd EasingExample EasingExampleMsg <| EasingExample.update m exampleModel
 
                 _ ->
                     ( model, Cmd.none )
@@ -395,6 +410,9 @@ detailsRoot model =
 
         RefreshControlExample m ->
             Html.map (ExampleMsg << RefreshControlExampleMsg) <| RefreshControlExample.root m
+
+        EasingExample m ->
+            Html.map (ExampleMsg << EasingExampleMsg) <| EasingExample.root m
 
 
 exampleItem info =

@@ -6,7 +6,9 @@ module ReactNative.Properties exposing
     , disabled
     , encode
     , getId
+    , hidden
     , initialParams
+    , keyExtractor
     , name
     , onstyle
     , options
@@ -14,6 +16,9 @@ module ReactNative.Properties exposing
     , property
     , refreshCtrl
     , refreshing
+    , renderItem
+    , renderSectionHeader
+    , sections
     , source
     , style
     , title
@@ -39,6 +44,26 @@ encode a =
 style : a -> Attribute msg
 style =
     property "style" << encode
+
+
+sections : a -> Attribute msg
+sections =
+    property "sections" << encode
+
+
+keyExtractor : (a -> String) -> Attribute msg
+keyExtractor =
+    property "keyExtractor" << encode
+
+
+renderItem : (a -> Html msg) -> Attribute msg
+renderItem =
+    property "renderItem" << encode
+
+
+renderSectionHeader : (a -> Html msg) -> Attribute msg
+renderSectionHeader =
+    property "renderSectionHeader" << encode
 
 
 contentContainerStyle : a -> Attribute msg
@@ -68,6 +93,10 @@ onstyle =
 
 refreshing =
     property "refreshing" << Encode.bool
+
+
+hidden =
+    property "hidden" << Encode.bool
 
 
 component : (a -> b -> Html msg) -> Attribute msg

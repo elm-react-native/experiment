@@ -121,6 +121,21 @@ const ElmNodeComponent = (props) => {
   return <Component {...actualProps}>{children}</Component>;
 };
 
+const SectionListComponent = (props) => {
+  const eventNode = React.useContext(EventNodeContext);
+  const actualProps = _VirtualDom_factsToReactProps(props, eventNode);
+  if (actualProps.sections) {
+    const { sections, ...rest } = actualProps;
+    const sections2 = _List_toArray(sections).map((sec) => ({
+      ...sec,
+      data: _List_toArray(sec.data),
+    }));
+    return <SectionList {...rest} sections={sections2}></SectionList>;
+  }
+
+  return <SectionList {...actualProps}></SectionList>;
+};
+
 const screenListenersMakeCallback = (listeners, eventNode) => {
   // WHILE_CONS
   for (var ls = listeners, result = {}; ls.b; ls = ls.b) {

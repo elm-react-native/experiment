@@ -6,7 +6,10 @@ module ReactNative.Animated exposing
     , event
     , event2
     , getLayout
+    , interpolate
     , mapping
+    , reset
+    , setValue
     , spring
     , start
     , timing
@@ -67,8 +70,13 @@ view =
 --    a
 
 
-reset : Value -> Value
-reset =
+interpolate : cfg -> Value -> Value
+interpolate cfg v =
+    v
+
+
+setValue : Float -> Value -> Value
+setValue f =
     identity
 
 
@@ -94,6 +102,11 @@ type alias AnimationResult =
 start : Value -> Task Never AnimationResult
 start v =
     Task.succeed { finished = False }
+
+
+reset : Value -> Task Never ()
+reset v =
+    Task.succeed ()
 
 
 stop : Value -> Task Never ()

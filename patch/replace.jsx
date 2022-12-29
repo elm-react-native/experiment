@@ -16,6 +16,10 @@ var _VirtualDom_nodeNS = F2(function(namespace, tag)
     {
       return <NavigatorComponent tag={tag} factList={factList} kidList={kidList} />;
     }
+    else if (tag === "SectionList")
+    {
+      return <SectionListComponent factList={factList} kidList={kidList} />;
+    }
     return <ElmNodeComponent tag={tag} factList={factList} kidList={kidList} />;
   });
 });
@@ -193,6 +197,22 @@ var $author$project$ReactNative$Animated$start = function (v) {
   });
 };
 
+var $author$project$ReactNative$Animated$reset = function (v) {
+  return _Scheduler_binding(function(callback) {
+    v.reset();
+    callback(_Scheduler_succeed(_Utils_Tuple0));
+  });
+};
+
+var $author$project$ReactNative$Animated$interpolate = F2(
+  function (cfg, v) {
+    return v.interpolate({
+      ...cfg,
+      inputRange: _List_toArray(cfg.inputRange),
+      outputRange: _List_toArray(cfg.outputRange),
+    });
+  });
+
 var $author$project$ReactNative$Animated$stop = function (v) {
   return _Scheduler_binding(function(callback) {
     v.stop();
@@ -351,3 +371,28 @@ function _Browser_makeAnimator(model, draw)
   draw(model);
   return draw;
 }
+var $author$project$ReactNative$Animated$setValue = function (f) {
+  return function(v) {
+    v.setValue(f);
+    return v;
+  }
+};
+
+var $author$project$ReactNative$Easing$bezier = F2(
+  function (p1, p2) {
+    return Easing.bezier(p1.a, p1.b, p2.a, p2.b);
+  });
+
+var $author$project$ReactNative$Easing$elastic = function (n) {
+  return Easing.elastic(n);
+};
+
+var $author$project$ReactNative$Easing$inOut = function (f) {
+  return Easing.inOut(f);
+};
+var $author$project$ReactNative$Easing$in_ = function (f) {
+  return Easing.in(f);
+};
+var $author$project$ReactNative$Easing$out = function (f) {
+  return Easing.out(f);
+};

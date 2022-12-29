@@ -136,6 +136,12 @@ const variableReplacer = (elm, js) => {
 const replacers = [
   variableReplacer("Easing$bounce", "Easing.bounce"),
   variableReplacer("Easing$ease", "Easing.ease"),
+  variableReplacer("Easing$sin", "Easing.sin"),
+  variableReplacer("Easing$exp", "Easing.exp"),
+  variableReplacer("Easing$circle", "Easing.circle"),
+  variableReplacer("Easing$quad", "Easing.quad"),
+  variableReplacer("Easing$cubic", "Easing.cubic"),
+  variableReplacer("Easing$linear", "Easing.linear"),
   variableReplacer("Platform$os", "Platform.OS"),
   variableReplacer("Platform$version", "Platform.Version"),
   variableReplacer("Platform$color", "PlatformColor"),
