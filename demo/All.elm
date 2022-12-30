@@ -23,6 +23,7 @@ import ReactNative.StyleSheet as StyleSheet
 import RefreshControlExample
 import StackNavigatorExample
 import StatusBarExample
+import TransformsExample
 import VibrationExample
 import VirtualListExample
 
@@ -93,6 +94,7 @@ type ExampleModel
     | StatusBarExample StatusBarExample.Model
     | DimensionsExample DimensionsExample.Model
     | KeyboardExample KeyboardExample.Model
+    | TransformsExample TransformsExample.Model
 
 
 type alias ExampleInfo =
@@ -125,6 +127,7 @@ init key =
             , { id = "StatusBarExample", title = "StatusBar Example", key = key }
             , { id = "DimensionsExample", title = "Dimensions Example", key = key }
             , { id = "KeyboardExample", title = "Keyboard Example", key = key }
+            , { id = "TransformsExample", title = "Transforms Example", key = key }
             ]
       , detail = Nothing
       }
@@ -151,6 +154,7 @@ type ExampleMsg
     | StatusBarExampleMsg StatusBarExample.Msg
     | DimensionsExampleMsg DimensionsExample.Msg
     | KeyboardExampleMsg KeyboardExample.Msg
+    | TransformsExampleMsg TransformsExample.Msg
 
 
 type ExampleListMsg
@@ -226,8 +230,11 @@ initExample info =
         "DimensionsExample" ->
             fromExampleCmd DimensionsExample DimensionsExampleMsg <| DimensionsExample.init ()
 
-        _ ->
+        "KeyboardExample" ->
             fromExampleCmd KeyboardExample KeyboardExampleMsg <| KeyboardExample.init ()
+
+        _ ->
+            fromExampleCmd TransformsExample TransformsExampleMsg <| TransformsExample.init ()
 
 
 updateExample : ExampleMsg -> ( ExampleInfo, ExampleModel ) -> ( ExampleModel, Cmd ExampleMsg )
@@ -345,6 +352,14 @@ updateExample msg ( info, model ) =
             case model of
                 KeyboardExample exampleModel ->
                     fromExampleCmd KeyboardExample KeyboardExampleMsg <| KeyboardExample.update m exampleModel
+
+                _ ->
+                    ( model, Cmd.none )
+
+        TransformsExampleMsg m ->
+            case model of
+                TransformsExample exampleModel ->
+                    fromExampleCmd TransformsExample TransformsExampleMsg <| TransformsExample.update m exampleModel
 
                 _ ->
                     ( model, Cmd.none )
@@ -467,6 +482,9 @@ detailsRoot model =
 
         KeyboardExample m ->
             Html.map (ExampleMsg << KeyboardExampleMsg) <| KeyboardExample.root m
+
+        TransformsExample m ->
+            Html.map (ExampleMsg << TransformsExampleMsg) <| TransformsExample.root m
 
 
 exampleItem info =

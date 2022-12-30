@@ -431,3 +431,16 @@ var $author$project$ReactNative$Keyboard$on = F2(
       event,
       decoder);
   });
+
+var $author$project$ReactNative$Transforms$transform = function (trans) {
+  return $author$project$ReactNative$Properties$style(
+    {
+      transform: _Json_unwrap(A2(
+        $elm$json$Json$Encode$list,
+        function (_v0) {
+          var fs = _v0.a;
+          return $elm$json$Json$Encode$object(fs);
+        },
+        trans))
+    });
+};
