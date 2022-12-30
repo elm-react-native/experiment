@@ -112,9 +112,9 @@ function _Browser_application(impl)
   });
 }
 
-var $author$project$ReactNative$Alert$alert = function (message) {
+var $author$project$ReactNative$Alert$alert = function (title) {
   return A2($elm$core$Task$perform, $elm$core$Basics$never, _Scheduler_binding(function() {
-    Alert.alert(message);
+    Alert.alert(title);
   }));
 };
 

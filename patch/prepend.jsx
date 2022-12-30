@@ -89,9 +89,9 @@ const ElmMapComponent = (props) => {
 const ElmKeyedNodeComponent = (props) => {
   const eventNode = React.useContext(EventNodeContext);
   const actualProps = _VirtualDom_factsToReactProps(props.factList, eventNode);
-  const children = _List_toArray(props.kidList).map((kid, i) => (
-    <React.Fragment key={kid.a}>{kid.b}</React.Fragment>
-  ));
+  const children = _List_toArray(props.kidList).map(
+    (kid, i) => kid.b && <React.Fragment key={kid.a}>{kid.b}</React.Fragment>
+  );
   const Component = scope.resolveComponent(props.tag);
   return <Component {...actualProps}>{children}</Component>;
 };
@@ -101,7 +101,9 @@ const listToElementArray = (list) => {
 
   const items = _List_toArray(list);
   return items.length > 1
-    ? items.map((item, i) => <React.Fragment key={i}>{item}</React.Fragment>)
+    ? items.map(
+        (item, i) => item && <React.Fragment key={i}>{item}</React.Fragment>
+      )
     : items;
 };
 

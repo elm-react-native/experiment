@@ -28,7 +28,7 @@ type alias Options msg =
 
 
 alert : String -> Cmd msg
-alert message =
+alert title =
     Cmd.none
 
 
@@ -37,6 +37,11 @@ prompt a b c =
     Cmd.none
 
 
+customizeAlert : String -> Maybe String -> List (AlertButton msg) -> Options msg -> Cmd msg
+customizeAlert title message buttons options =
+    Cmd.none
+
+
 customizePrompt : String -> Maybe String -> List (AlertButton msg) -> Maybe String -> KeyboardType -> Options msg -> Cmd msg
-customizePrompt a b c d e f =
+customizePrompt title message buttons tipe defaultValue keyboardType =
     Cmd.none

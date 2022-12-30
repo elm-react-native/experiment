@@ -11,15 +11,16 @@ import Json.Decode as Decode
 import ModalExample
 import PanResponderExample
 import PlatformColorExample
-import ReactNative exposing (button, pressable, safeAreaView, text, view)
+import ReactNative exposing (button, pressable, safeAreaView, statusBar, text, view)
 import ReactNative.Events exposing (onPress)
 import ReactNative.Navigation as Nav
 import ReactNative.Navigation.Listeners as Listeners
 import ReactNative.Navigation.Stack as Stack
-import ReactNative.Properties exposing (component, getId, initialParams, name, options, style, title)
+import ReactNative.Properties exposing (barStyle, component, getId, initialParams, name, options, style, title)
 import ReactNative.StyleSheet as StyleSheet
 import RefreshControlExample
 import StackNavigatorExample
+import StatusBarExample
 import VibrationExample
 import VirtualListExample
 
@@ -87,6 +88,7 @@ type ExampleModel
     | ModalExample ModalExample.Model
     | RefreshControlExample RefreshControlExample.Model
     | EasingExample EasingExample.Model
+    | StatusBarExample StatusBarExample.Model
 
 
 type alias ExampleInfo =
@@ -116,6 +118,7 @@ init key =
             , { id = "ModalExample", title = "Modal Example", key = key }
             , { id = "RefreshControlExample", title = "RefreshControl Example", key = key }
             , { id = "EasingExample", title = "Easing Example", key = key }
+            , { id = "StatusBarExample", title = "StatusBar Example", key = key }
             ]
       , detail = Nothing
       }
@@ -139,6 +142,7 @@ type ExampleMsg
     | ModalExampleMsg ModalExample.Msg
     | RefreshControlExampleMsg RefreshControlExample.Msg
     | EasingExampleMsg EasingExample.Msg
+    | StatusBarExampleMsg StatusBarExample.Msg
 
 
 type ExampleListMsg
@@ -205,8 +209,11 @@ initExample info =
         "RefreshControlExample" ->
             fromExampleCmd RefreshControlExample RefreshControlExampleMsg <| RefreshControlExample.init ()
 
-        _ ->
+        "EasingExample" ->
             fromExampleCmd EasingExample EasingExampleMsg <| EasingExample.init ()
+
+        _ ->
+            fromExampleCmd StatusBarExample StatusBarExampleMsg <| StatusBarExample.init ()
 
 
 updateExample : ExampleMsg -> ( ExampleInfo, ExampleModel ) -> ( ExampleModel, Cmd ExampleMsg )
@@ -300,6 +307,14 @@ updateExample msg ( info, model ) =
             case model of
                 EasingExample exampleModel ->
                     fromExampleCmd EasingExample EasingExampleMsg <| EasingExample.update m exampleModel
+
+                _ ->
+                    ( model, Cmd.none )
+
+        StatusBarExampleMsg m ->
+            case model of
+                StatusBarExample exampleModel ->
+                    fromExampleCmd StatusBarExample StatusBarExampleMsg <| StatusBarExample.update m exampleModel
 
                 _ ->
                     ( model, Cmd.none )
@@ -414,6 +429,9 @@ detailsRoot model =
         EasingExample m ->
             Html.map (ExampleMsg << EasingExampleMsg) <| EasingExample.root m
 
+        StatusBarExample m ->
+            Html.map (ExampleMsg << StatusBarExampleMsg) <| StatusBarExample.root m
+
 
 exampleItem info =
     button
@@ -439,7 +457,10 @@ main =
         , view =
             \model ->
                 { title = ""
-                , body = [ root model ]
+                , body =
+                    [ root model
+                    , statusBar [ barStyle "dark-content" ] []
+                    ]
                 }
         , update = update
         , subscriptions =

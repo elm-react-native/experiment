@@ -134,6 +134,7 @@ const variableReplacer = (elm, js) => {
 };
 
 const replacers = [
+  variableReplacer("null", "null"),
   variableReplacer("Easing$bounce", "Easing.bounce"),
   variableReplacer("Easing$ease", "Easing.ease"),
   variableReplacer("Easing$sin", "Easing.sin"),

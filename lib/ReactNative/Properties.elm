@@ -1,5 +1,8 @@
 module ReactNative.Properties exposing
-    ( animationType
+    ( animated
+    , animationType
+    , backgroundColor
+    , barStyle
     , color
     , component
     , contentContainerStyle
@@ -19,6 +22,7 @@ module ReactNative.Properties exposing
     , renderItem
     , renderSectionHeader
     , sections
+    , showHideTransition
     , source
     , style
     , title
@@ -138,9 +142,25 @@ transparent =
     property "transparent" << Encode.bool
 
 
+animated =
+    property "animated" << Encode.bool
+
+
+showHideTransition =
+    property "showHideTransition" << Encode.string
+
+
 visible =
     property "visible" << Encode.bool
 
 
 presentationStyle =
     property "presentationStyle" << Encode.string
+
+
+backgroundColor =
+    property "backgroundColor" << Encode.string
+
+
+barStyle =
+    property "barStyle" << Encode.string

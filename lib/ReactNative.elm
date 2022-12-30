@@ -4,11 +4,13 @@ module ReactNative exposing
     , button
     , drawerLayoutAndroid
     , flatList
+    , fragment
     , image
     , imageBackground
     , inputAccessoryView
     , keyboardAvoidingView
     , modal
+    , null
     , pressable
     , refreshControl
     , require
@@ -149,3 +151,11 @@ safeAreaView =
 require : String -> String
 require =
     identity
+
+
+fragment =
+    node "Fragment"
+
+
+null =
+    fragment [] []
