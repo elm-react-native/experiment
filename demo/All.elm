@@ -25,6 +25,7 @@ import ReactNative.StyleSheet as StyleSheet
 import RefreshControlExample
 import StackNavigatorExample
 import StatusBarExample
+import SwitchExample
 import TransformsExample
 import VibrationExample
 import VirtualListExample
@@ -99,6 +100,7 @@ type ExampleModel
     | TransformsExample TransformsExample.Model
     | AlertExample AlertExample.Model
     | ImageExample ImageExample.Model
+    | SwitchExample SwitchExample.Model
 
 
 type alias ExampleInfo =
@@ -134,6 +136,7 @@ init key =
             , { id = "TransformsExample", title = "Transforms Example", key = key }
             , { id = "AlertExample", title = "Alert Example", key = key }
             , { id = "ImageExample", title = "Image Example", key = key }
+            , { id = "SwitchExample", title = "Switch Example", key = key }
             ]
       , detail = Nothing
       }
@@ -163,6 +166,7 @@ type ExampleMsg
     | TransformsExampleMsg TransformsExample.Msg
     | AlertExampleMsg AlertExample.Msg
     | ImageExampleMsg ImageExample.Msg
+    | SwitchExampleMsg SwitchExample.Msg
 
 
 type ExampleListMsg
@@ -247,8 +251,11 @@ initExample info =
         "AlertExample" ->
             fromExampleCmd AlertExample AlertExampleMsg <| AlertExample.init ()
 
-        _ ->
+        "ImageExample" ->
             fromExampleCmd ImageExample ImageExampleMsg <| ImageExample.init ()
+
+        _ ->
+            fromExampleCmd SwitchExample SwitchExampleMsg <| SwitchExample.init ()
 
 
 updateExample : ExampleMsg -> ( ExampleInfo, ExampleModel ) -> ( ExampleModel, Cmd ExampleMsg )
@@ -394,6 +401,14 @@ updateExample msg ( info, model ) =
                 _ ->
                     ( model, Cmd.none )
 
+        SwitchExampleMsg m ->
+            case model of
+                SwitchExample exampleModel ->
+                    fromExampleCmd SwitchExample SwitchExampleMsg <| SwitchExample.update m exampleModel
+
+                _ ->
+                    ( model, Cmd.none )
+
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -521,6 +536,9 @@ detailsRoot model =
 
         ImageExample m ->
             Html.map (ExampleMsg << ImageExampleMsg) <| ImageExample.root m
+
+        SwitchExample m ->
+            Html.map (ExampleMsg << SwitchExampleMsg) <| SwitchExample.root m
 
 
 exampleItem info =

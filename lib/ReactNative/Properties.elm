@@ -3,6 +3,7 @@ module ReactNative.Properties exposing
     , animationType
     , backgroundColor
     , barStyle
+    , boolValue
     , color
     , component
     , contentContainerStyle
@@ -11,6 +12,7 @@ module ReactNative.Properties exposing
     , getId
     , hidden
     , initialParams
+    , ios_backgroundColor
     , keyExtractor
     , name
     , onstyle
@@ -27,7 +29,9 @@ module ReactNative.Properties exposing
     , showHideTransition
     , source
     , style
+    , thumbColor
     , title
+    , trackColor
     , transparent
     , visible
     )
@@ -75,6 +79,11 @@ renderSectionHeader =
 contentContainerStyle : a -> Attribute msg
 contentContainerStyle =
     property "contentContainerStyle" << encode
+
+
+boolValue : Bool -> Attribute msg
+boolValue =
+    property "value" << Encode.bool
 
 
 options : a -> Attribute msg
@@ -174,3 +183,20 @@ backgroundColor =
 
 barStyle =
     property "barStyle" << Encode.string
+
+
+trackColor : String -> String -> Attribute msg
+trackColor false true =
+    property "trackColor" <|
+        encode
+            { false = false
+            , true = true
+            }
+
+
+thumbColor =
+    property "thumbColor" << Encode.string
+
+
+ios_backgroundColor =
+    property "ios_backgroundColor" << Encode.string

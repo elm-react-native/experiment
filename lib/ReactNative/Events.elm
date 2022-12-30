@@ -1,6 +1,8 @@
-module ReactNative.Events exposing (onClick, onPress, onRefresh, onRequestClose, onSubmitEditing)
+module ReactNative.Events exposing (onClick, onPress, onRefresh, onRequestClose, onSubmitEditing, onValueChange)
 
+import Html exposing (Attribute)
 import Html.Events exposing (on)
+import Json.Decode as Decode
 
 
 onPress =
@@ -21,3 +23,8 @@ onRequestClose =
 
 onSubmitEditing =
     on "submitEditing"
+
+
+onValueChange : (Bool -> msg) -> Attribute msg
+onValueChange tagger =
+    on "valueChange" (Decode.map tagger Decode.bool)
