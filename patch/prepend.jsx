@@ -35,6 +35,7 @@ import {
   PanResponder,
   AppState,
   Dimensions,
+  Keyboard,
 } from "react-native";
 import {
   NavigationContainer,

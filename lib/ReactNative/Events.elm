@@ -1,4 +1,4 @@
-module ReactNative.Events exposing (onClick, onPress, onRefresh, onRequestClose)
+module ReactNative.Events exposing (onClick, onPress, onRefresh, onRequestClose, onSubmitEditing)
 
 import Html.Events exposing (on)
 
@@ -17,3 +17,7 @@ onRefresh =
 
 onRequestClose =
     on "requestClose"
+
+
+onSubmitEditing =
+    on "submitEditing"

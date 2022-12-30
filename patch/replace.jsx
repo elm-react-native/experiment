@@ -367,6 +367,8 @@ var _Browser_on = F3(function(node, eventName, sendToSelf)
       eventSubs = AppState.addEventListener("change", handler);
     } else if (eventName === "dimensionChange") {
       eventSubs = Dimensions.addEventListener("change", handler);
+    } else if (/^keyboard(Will|Did)(Show|Hide|ChangeFrame)$/.test(eventName)) {
+      eventSubs = Keyboard.addListener(eventName, handler);
     }
     return function() {
       if (eventSubs) eventSubs.remove();
@@ -410,3 +412,22 @@ var $author$project$ReactNative$Dimensions$get = function (dim) {
      callback(_Scheduler_succeed(Dimensions.get(dim)));
    });
 };
+
+var $author$project$ReactNative$Keyboard$dismiss = function () {
+   return _Scheduler_binding(function(callback) {
+     const eventSubs = Keyboard.addListener("keyboardDidHide", () => {
+      eventSubs.remove();
+      callback(_Scheduler_succeed(_Utils_Tuple0));
+     });
+     Keyboard.dismiss();
+   });
+}();
+
+
+var $author$project$ReactNative$Keyboard$on = F2(
+  function (event, decoder) {
+    return A3($elm$browser$Browser$Events$on,
+      $elm$browser$Browser$Events$Document,
+      event,
+      decoder);
+  });

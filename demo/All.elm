@@ -9,6 +9,7 @@ import DimensionsExample
 import EasingExample
 import Html exposing (Html)
 import Json.Decode as Decode
+import KeyboardExample
 import ModalExample
 import PanResponderExample
 import PlatformColorExample
@@ -91,6 +92,7 @@ type ExampleModel
     | EasingExample EasingExample.Model
     | StatusBarExample StatusBarExample.Model
     | DimensionsExample DimensionsExample.Model
+    | KeyboardExample KeyboardExample.Model
 
 
 type alias ExampleInfo =
@@ -122,6 +124,7 @@ init key =
             , { id = "EasingExample", title = "Easing Example", key = key }
             , { id = "StatusBarExample", title = "StatusBar Example", key = key }
             , { id = "DimensionsExample", title = "Dimensions Example", key = key }
+            , { id = "KeyboardExample", title = "Keyboard Example", key = key }
             ]
       , detail = Nothing
       }
@@ -147,6 +150,7 @@ type ExampleMsg
     | EasingExampleMsg EasingExample.Msg
     | StatusBarExampleMsg StatusBarExample.Msg
     | DimensionsExampleMsg DimensionsExample.Msg
+    | KeyboardExampleMsg KeyboardExample.Msg
 
 
 type ExampleListMsg
@@ -219,8 +223,11 @@ initExample info =
         "StatusBarExample" ->
             fromExampleCmd StatusBarExample StatusBarExampleMsg <| StatusBarExample.init ()
 
-        _ ->
+        "DimensionsExample" ->
             fromExampleCmd DimensionsExample DimensionsExampleMsg <| DimensionsExample.init ()
+
+        _ ->
+            fromExampleCmd KeyboardExample KeyboardExampleMsg <| KeyboardExample.init ()
 
 
 updateExample : ExampleMsg -> ( ExampleInfo, ExampleModel ) -> ( ExampleModel, Cmd ExampleMsg )
@@ -330,6 +337,14 @@ updateExample msg ( info, model ) =
             case model of
                 DimensionsExample exampleModel ->
                     fromExampleCmd DimensionsExample DimensionsExampleMsg <| DimensionsExample.update m exampleModel
+
+                _ ->
+                    ( model, Cmd.none )
+
+        KeyboardExampleMsg m ->
+            case model of
+                KeyboardExample exampleModel ->
+                    fromExampleCmd KeyboardExample KeyboardExampleMsg <| KeyboardExample.update m exampleModel
 
                 _ ->
                     ( model, Cmd.none )
@@ -450,6 +465,9 @@ detailsRoot model =
         DimensionsExample m ->
             Html.map (ExampleMsg << DimensionsExampleMsg) <| DimensionsExample.root m
 
+        KeyboardExample m ->
+            Html.map (ExampleMsg << KeyboardExampleMsg) <| KeyboardExample.root m
+
 
 exampleItem info =
     button
@@ -485,11 +503,15 @@ main =
             \model ->
                 case model.detail of
                     Just ( exampleInfo, _ ) ->
-                        if exampleInfo.id == "AppStateExample" then
-                            Sub.map (ExampleMsg << AppStateExampleMsg) AppStateExample.subs
+                        case exampleInfo.id of
+                            "AppStateExample" ->
+                                Sub.map (ExampleMsg << AppStateExampleMsg) AppStateExample.subs
 
-                        else
-                            Sub.none
+                            "KeyboardExample" ->
+                                Sub.map (ExampleMsg << KeyboardExampleMsg) KeyboardExample.subs
+
+                            _ ->
+                                Sub.none
 
                     _ ->
                         Sub.none

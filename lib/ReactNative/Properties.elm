@@ -15,6 +15,7 @@ module ReactNative.Properties exposing
     , name
     , onstyle
     , options
+    , placeholder
     , presentationStyle
     , property
     , refreshCtrl
@@ -148,6 +149,10 @@ animated =
 
 showHideTransition =
     property "showHideTransition" << Encode.string
+
+
+placeholder =
+    property "placeholder" << Encode.string
 
 
 visible =
