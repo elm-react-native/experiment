@@ -2,7 +2,7 @@ module PlatformColorExample exposing (..)
 
 import Browser
 import Html exposing (Html)
-import ReactNative exposing (text, view)
+import ReactNative exposing (str, text, view)
 import ReactNative.Platform as Platform
 import ReactNative.Properties exposing (style)
 import ReactNative.StyleSheet as StyleSheet
@@ -66,7 +66,7 @@ styles =
 root : Model -> Html Msg
 root model =
     view [ style styles.container ]
-        [ text [ style styles.label ] "I am a special label color!" ]
+        [ text [ style styles.label ] [ str "I am a special label color!" ] ]
 
 
 main : Program () Model Msg

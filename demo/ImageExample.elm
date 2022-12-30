@@ -2,7 +2,7 @@ module ImageExample exposing (..)
 
 import Browser
 import Html exposing (Html)
-import ReactNative exposing (image, imageBackground, require, text, view)
+import ReactNative exposing (image, imageBackground, require, str, text, view)
 import ReactNative.Properties exposing (resizeMode, source, style)
 import ReactNative.StyleSheet as StyleSheet
 
@@ -81,7 +81,7 @@ root model =
             , source { uri = "https://reactjs.org/logo-og.png" }
             , resizeMode "cover"
             ]
-            [ text [ style styles.text ] "Inside"
+            [ text [ style styles.text ] [ str "Inside" ]
             , image
                 [ style styles.tinyLogo
                 , source <| require "./assets/icon.png"

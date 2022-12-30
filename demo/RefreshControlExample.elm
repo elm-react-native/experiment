@@ -5,7 +5,7 @@ import Html exposing (Html)
 import Html.Lazy exposing (lazy)
 import Json.Decode as Decode
 import Process
-import ReactNative exposing (refreshControl, safeAreaView, scrollView, text, view)
+import ReactNative exposing (refreshControl, safeAreaView, scrollView, str, text, view)
 import ReactNative.Events exposing (onRefresh)
 import ReactNative.Properties exposing (contentContainerStyle, refreshCtrl, refreshing, style, title)
 import ReactNative.StyleSheet as StyleSheet
@@ -83,7 +83,7 @@ root model =
                     , refreshing model.refreshing
                     ]
             ]
-            [ text [] "Pull down to see RefreshControl indicator" ]
+            [ text [] [ str "Pull down to see RefreshControl indicator" ] ]
         ]
 
 

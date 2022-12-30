@@ -3,7 +3,7 @@ module StatusBarExample exposing (..)
 import Browser
 import Html exposing (Html)
 import Json.Decode as Decode
-import ReactNative exposing (button, null, safeAreaView, statusBar, text, view)
+import ReactNative exposing (button, null, safeAreaView, statusBar, str, text, view)
 import ReactNative.Events exposing (onPress)
 import ReactNative.Platform as Platform
 import ReactNative.Properties exposing (animated, backgroundColor, barStyle, hidden, showHideTransition, style, title)
@@ -120,18 +120,17 @@ root model =
             ]
             []
         , text [ style styles.textStyle ]
-            (if model.hidden then
-                "Hidden"
+            [ str <|
+                if model.hidden then
+                    "Hidden"
 
-             else
-                "Visible"
-            )
-        , text [ style styles.textStyle ] <|
-            "StatusBar Style:\n"
-                ++ model.statusBarStyle
-        , text [ style styles.textStyle ] <|
-            "StatusBar Transition:\n"
-                ++ model.statusBarTransition
+                else
+                    "Visible"
+            ]
+        , text [ style styles.textStyle ]
+            [ str <| "StatusBar Style:\n" ++ model.statusBarStyle ]
+        , text [ style styles.textStyle ]
+            [ str <| "StatusBar Transition:\n" ++ model.statusBarTransition ]
         , view [ style styles.buttonsContainer ]
             [ button [ title "Toggle StatusBar", onPress <| Decode.succeed ChangeStatusBarVisibility ] []
             , button [ title "Change StatusBar Style", onPress <| Decode.succeed ChangeStatusBarStyle ] []

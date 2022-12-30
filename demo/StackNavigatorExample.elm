@@ -6,7 +6,7 @@ import Debug
 import Html exposing (node)
 import Json.Decode as Decode
 import Json.Encode as Encode
-import ReactNative exposing (button, safeAreaView, text, view, virtualizedList)
+import ReactNative exposing (button, safeAreaView, str, text, view, virtualizedList)
 import ReactNative.Events exposing (onClick, onPress, onRefresh)
 import ReactNative.Navigation as Nav
 import ReactNative.Navigation.Stack as Stack
@@ -60,7 +60,7 @@ update msg model =
 homeScreen _ _ =
     view
         [ style { flex = 1, alignItems = "center", justifyContent = "center" } ]
-        [ text [] "Home Screen"
+        [ text [] [ str "Home Screen" ]
         , button
             [ title "Go to Details"
             , onPress (Decode.succeed GotoDetails)
@@ -72,7 +72,7 @@ homeScreen _ _ =
 detailsScreen _ _ =
     view
         [ style { flex = 1, alignItems = "center", justifyContent = "center" } ]
-        [ text [] "Details Screen"
+        [ text [] [ str "Details Screen" ]
         , button
             [ title "Go to Details... again"
             , onPress (Decode.succeed GotoDetailsAgain)

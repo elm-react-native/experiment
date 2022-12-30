@@ -2,7 +2,7 @@ module AppStateExample exposing (..)
 
 import Browser
 import Html exposing (Html)
-import ReactNative exposing (text, view)
+import ReactNative exposing (str, text, view)
 import ReactNative.AppState as AppState exposing (AppState(..))
 import ReactNative.Properties exposing (style)
 import ReactNative.StyleSheet as StyleSheet
@@ -77,7 +77,7 @@ showAppState state =
 root : Model -> Html Msg
 root model =
     view [ style styles.container ]
-        [ text [] ("Current state is: " ++ showAppState model.appState)
+        [ text [] [ str <| "Current state is: " ++ showAppState model.appState ]
         ]
 
 

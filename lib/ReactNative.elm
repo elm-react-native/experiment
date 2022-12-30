@@ -18,6 +18,7 @@ module ReactNative exposing
     , scrollView
     , sectionList
     , statusBar
+    , str
     , switch
     , text
     , textInput
@@ -52,8 +53,12 @@ type KeyboardType
     | VisiblePassword
 
 
-text props str =
-    node "Text" props [ Html.text str ]
+str =
+    Html.text
+
+
+text =
+    node "Text"
 
 
 view =

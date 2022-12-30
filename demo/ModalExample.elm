@@ -4,7 +4,7 @@ import Browser
 import Html exposing (Html)
 import Json.Decode as Decode
 import Json.Encode as Encode
-import ReactNative exposing (button, image, modal, pressable, require, safeAreaView, text, view)
+import ReactNative exposing (button, image, modal, pressable, require, safeAreaView, str, text, view)
 import ReactNative.Alert as Alert exposing (alert)
 import ReactNative.Events exposing (onClick, onPress, onRefresh, onRequestClose)
 import ReactNative.Properties exposing (animationType, color, disabled, presentationStyle, source, style, title, transparent, visible)
@@ -119,13 +119,13 @@ root model =
                 [ style styles.centeredView ]
                 [ view
                     [ style styles.modalView ]
-                    [ text [ style styles.modalText ] "Hello World!"
+                    [ text [ style styles.modalText ] [ str "Hello World!" ]
                     , pressable
                         [ style styles.button
                         , style styles.buttonClose
                         , onPress (Decode.succeed CloseModal)
                         ]
-                        [ text [ style styles.textStyle ] "Hide Modal" ]
+                        [ text [ style styles.textStyle ] [ str "Hide Modal" ] ]
                     ]
                 ]
             ]
@@ -134,7 +134,7 @@ root model =
             , style styles.buttonOpen
             , onPress (Decode.succeed ShowModal)
             ]
-            [ text [ style styles.textStyle ] "Show Modal" ]
+            [ text [ style styles.textStyle ] [ str "Show Modal" ] ]
         ]
 
 

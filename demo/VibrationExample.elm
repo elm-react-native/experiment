@@ -5,7 +5,7 @@ import Browser.Navigation as Nav
 import Html exposing (Html)
 import Json.Decode as Decode
 import Json.Encode as Encode
-import ReactNative exposing (button, safeAreaView, text, view)
+import ReactNative exposing (button, safeAreaView, str, text, view)
 import ReactNative.Events exposing (onPress)
 import ReactNative.Platform as Platform
 import ReactNative.Properties exposing (style, title)
@@ -103,7 +103,7 @@ root : Model -> Html Msg
 root model =
     safeAreaView
         [ style styles.container ]
-        [ text [ style styles.header, style styles.paragraph ] "Vibration API"
+        [ text [ style styles.header, style styles.paragraph ] [ str "Vibration API" ]
         , view []
             [ button
                 [ title "Vibrate once"
@@ -112,7 +112,7 @@ root model =
                 []
             ]
         , separator
-        , text [ style styles.paragraph ] <| "Pattern: " ++ patternDesc
+        , text [ style styles.paragraph ] [ str <| "Pattern: " ++ patternDesc ]
         , button
             [ title "Vibrate with pattern until cancelled"
             , onPress <| Decode.succeed <| VibrateWithPattern [ 1000, 2000, 3000 ]

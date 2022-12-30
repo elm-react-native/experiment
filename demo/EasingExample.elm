@@ -3,7 +3,7 @@ module EasingExample exposing (..)
 import Browser
 import Html exposing (Html)
 import Json.Decode as Decode
-import ReactNative exposing (safeAreaView, sectionList, statusBar, text, touchableOpacity, view)
+import ReactNative exposing (safeAreaView, sectionList, statusBar, str, text, touchableOpacity, view)
 import ReactNative.Animated as Animated
 import ReactNative.Easing as Easing
 import ReactNative.Events exposing (onPress)
@@ -163,7 +163,7 @@ root : Model -> Html Msg
 root model =
     safeAreaView [ style styles.container ]
         [ statusBar [ hidden True ] []
-        , text [ style styles.title ] "Press rows below to preview the Easing!"
+        , text [ style styles.title ] [ str "Press rows below to preview the Easing!" ]
         , view [ style styles.boxContainer ]
             [ Animated.view
                 [ style styles.box
@@ -181,9 +181,9 @@ root model =
                         [ style styles.listRow
                         , onPress <| Decode.succeed <| StartAnimate item.easing
                         ]
-                        [ text [] item.title ]
+                        [ text [] [ str item.title ] ]
                 )
-            , renderSectionHeader (\{ section } -> text [ style styles.listHeader ] section.title)
+            , renderSectionHeader (\{ section } -> text [ style styles.listHeader ] [ str section.title ])
             ]
             []
         ]

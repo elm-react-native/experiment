@@ -3,7 +3,7 @@ module DimensionsExample exposing (..)
 import Browser
 import Html exposing (Html)
 import Json.Decode as Decode
-import ReactNative exposing (fragment, text, view)
+import ReactNative exposing (fragment, str, text, view)
 import ReactNative.Dimensions as Dimensions
     exposing
         ( DimensionsValue
@@ -75,11 +75,11 @@ displayMetricsView : String -> DisplayMetrics -> Html msg
 displayMetricsView title metrics =
     fragment
         []
-        [ text [ style styles.header ] title
-        , text [] <| "width - " ++ String.fromFloat metrics.width
-        , text [] <| "height - " ++ String.fromFloat metrics.height
-        , text [] <| "scale - " ++ String.fromFloat metrics.scale
-        , text [] <| "font Scale - " ++ String.fromFloat metrics.fontScale
+        [ text [ style styles.header ] [ str title ]
+        , text [] [ str <| "width - " ++ String.fromFloat metrics.width ]
+        , text [] [ str <| "height - " ++ String.fromFloat metrics.height ]
+        , text [] [ str <| "scale - " ++ String.fromFloat metrics.scale ]
+        , text [] [ str <| "font Scale - " ++ String.fromFloat metrics.fontScale ]
         ]
 
 

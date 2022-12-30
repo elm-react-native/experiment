@@ -3,7 +3,7 @@ module KeyboardExample exposing (..)
 import Browser
 import Html exposing (Html)
 import Json.Decode as Decode
-import ReactNative exposing (text, textInput, view)
+import ReactNative exposing (str, text, textInput, view)
 import ReactNative.Events exposing (onSubmitEditing)
 import ReactNative.Keyboard as Keyboard
 import ReactNative.Properties exposing (placeholder, style)
@@ -82,7 +82,7 @@ root model =
             , onSubmitEditing <| Decode.succeed SubmitEditing
             ]
             []
-        , text [ style styles.status ] model.keyboardStatus
+        , text [ style styles.status ] [ str model.keyboardStatus ]
         ]
 
 
