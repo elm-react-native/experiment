@@ -16,7 +16,7 @@ import KeyboardExample
 import ModalExample
 import PanResponderExample
 import PlatformColorExample
-import ReactNative exposing (button, pressable, safeAreaView, scrollView, statusBar, text, view)
+import ReactNative exposing (button, pressable, safeAreaView, scrollView, statusBar, str, text, touchableOpacity, view)
 import ReactNative.Events exposing (onPress)
 import ReactNative.Navigation as Nav
 import ReactNative.Navigation.Listeners as Listeners
@@ -485,13 +485,10 @@ styles =
     StyleSheet.create
         { list =
             { display = "flex"
-            , flexDirection = "column"
-            , alignItems = "left"
-            , paddingTop = 20
+            , alignItems = "flex-start"
             }
         , item =
-            { marginTop = 10
-            }
+            { margin = 10 }
         }
 
 
@@ -596,12 +593,13 @@ detailsRoot model =
 
 
 exampleItem info =
-    button
-        [ title info.title
-        , style styles.item
-        , onPress (Decode.succeed <| ExampleListMsg <| GotoExample info)
+    view
+        [ style styles.item ]
+        [ touchableOpacity
+            [ onPress (Decode.succeed <| ExampleListMsg <| GotoExample info)
+            ]
+            [ text [] [ str info.title ] ]
         ]
-        []
 
 
 listScreen model _ =
