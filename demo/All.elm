@@ -1,5 +1,6 @@
 module All exposing (..)
 
+import AlertExample
 import AnimationExample
 import AppStateExample
 import Browser
@@ -95,6 +96,7 @@ type ExampleModel
     | DimensionsExample DimensionsExample.Model
     | KeyboardExample KeyboardExample.Model
     | TransformsExample TransformsExample.Model
+    | AlertExample AlertExample.Model
 
 
 type alias ExampleInfo =
@@ -128,6 +130,7 @@ init key =
             , { id = "DimensionsExample", title = "Dimensions Example", key = key }
             , { id = "KeyboardExample", title = "Keyboard Example", key = key }
             , { id = "TransformsExample", title = "Transforms Example", key = key }
+            , { id = "AlertExample", title = "Alert Example", key = key }
             ]
       , detail = Nothing
       }
@@ -155,6 +158,7 @@ type ExampleMsg
     | DimensionsExampleMsg DimensionsExample.Msg
     | KeyboardExampleMsg KeyboardExample.Msg
     | TransformsExampleMsg TransformsExample.Msg
+    | AlertExampleMsg AlertExample.Msg
 
 
 type ExampleListMsg
@@ -233,8 +237,11 @@ initExample info =
         "KeyboardExample" ->
             fromExampleCmd KeyboardExample KeyboardExampleMsg <| KeyboardExample.init ()
 
-        _ ->
+        "TransformsExample" ->
             fromExampleCmd TransformsExample TransformsExampleMsg <| TransformsExample.init ()
+
+        _ ->
+            fromExampleCmd AlertExample AlertExampleMsg <| AlertExample.init ()
 
 
 updateExample : ExampleMsg -> ( ExampleInfo, ExampleModel ) -> ( ExampleModel, Cmd ExampleMsg )
@@ -364,6 +371,14 @@ updateExample msg ( info, model ) =
                 _ ->
                     ( model, Cmd.none )
 
+        AlertExampleMsg m ->
+            case model of
+                AlertExample exampleModel ->
+                    fromExampleCmd AlertExample AlertExampleMsg <| AlertExample.update m exampleModel
+
+                _ ->
+                    ( model, Cmd.none )
+
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -485,6 +500,9 @@ detailsRoot model =
 
         TransformsExample m ->
             Html.map (ExampleMsg << TransformsExampleMsg) <| TransformsExample.root m
+
+        AlertExample m ->
+            Html.map (ExampleMsg << AlertExampleMsg) <| AlertExample.root m
 
 
 exampleItem info =

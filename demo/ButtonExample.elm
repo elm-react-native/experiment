@@ -7,7 +7,7 @@ import Json.Decode as Decode
 import Json.Encode as Encode
 import Process
 import ReactNative exposing (button, image, pressable, require, safeAreaView, text, view)
-import ReactNative.Alert as Alert
+import ReactNative.Alert as Alert exposing (alert)
 import ReactNative.Events exposing (onClick, onPress, onRefresh)
 import ReactNative.Properties exposing (color, disabled, source, style, title)
 import ReactNative.StyleSheet as StyleSheet
@@ -59,16 +59,16 @@ update msg model =
                 _ =
                     Debug.log "PressSimpleButton" msg
             in
-            ( model, Alert.alert "Simple Button pressed" )
+            ( model, Alert.show (always NoOp) <| alert "Simple Button pressed" )
 
         PressLeftButton ->
-            ( model, Alert.alert "Left button pressed" )
+            ( model, Alert.show (always NoOp) <| alert "Left button pressed" )
 
         PressRightButton ->
-            ( model, Alert.alert "Right button pressed" )
+            ( model, Alert.show (always NoOp) <| alert "Right button pressed" )
 
         PressAdjustedColorButton ->
-            ( model, Alert.alert "Button with adjusted color pressed" )
+            ( model, Alert.show (always NoOp) <| alert "Button with adjusted color pressed" )
 
 
 

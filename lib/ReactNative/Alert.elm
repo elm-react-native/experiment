@@ -1,47 +1,110 @@
-module ReactNative.Alert exposing (alert)
+module ReactNative.Alert exposing
+    ( AlertButton
+    , Options
+    , PromptOption
+    , alert
+    , prompt
+    , show
+    , tshow
+    , withButtons
+    , withMessage
+    , withOptions
+    , withPrompt
+    )
 
-import Json.Decode as Decode exposing (Decoder)
 import Process
 import ReactNative exposing (KeyboardType)
 import Task exposing (Task)
 
 
 type alias AlertButton msg =
-    { text : String, onPress : Decoder msg, style : AlertButtonStyle }
+    { text : String
+    , onPress : Maybe msg
+    , style : String
+    }
 
 
-type AlertButtonStyle
-    = DefaultStyle
-    | Cancel
-    | Destructive
+type Options msg
+    = Options
+        { cancelable : Bool
+        , userInterfaceStyle : String
+        , onDismiss : Maybe msg
+        }
 
 
-type AlertType
-    = DefaultType
-    | PlainText
-    | SecureText
-    | LoginPassword
+type alias PromptOption =
+    { type_ : String
+    , defaultValue : String
+    , keyboardType : String
+    }
 
 
-type alias Options msg =
-    { cancelable : Bool, userInterfaceStyle : String, onDismiss : Decoder msg }
+type Alert msg
+    = Alert
+        { title : String
+        , message : Maybe String
+        , buttons : List (AlertButton msg)
+        , options : Maybe (Options msg)
+        , prompt : Maybe PromptOption
+        }
 
 
-alert : String -> Cmd msg
+alert : String -> Alert msg
 alert title =
-    Cmd.none
+    Alert
+        { title = title
+        , message = Nothing
+        , buttons = []
+        , options = Nothing
+        , prompt = Nothing
+        }
 
 
-prompt : String -> Maybe String -> Decoder msg -> Cmd msg
-prompt a b c =
-    Cmd.none
+prompt : PromptOption -> String -> Alert msg
+prompt pt title =
+    Alert
+        { title = title
+        , message = Nothing
+        , buttons = []
+        , options = Nothing
+        , prompt = Just pt
+        }
 
 
-customizeAlert : String -> Maybe String -> List (AlertButton msg) -> Options msg -> Cmd msg
-customizeAlert title message buttons options =
-    Cmd.none
+withMessage : String -> Alert msg -> Alert msg
+withMessage message (Alert a) =
+    Alert { a | message = Just message }
 
 
-customizePrompt : String -> Maybe String -> List (AlertButton msg) -> Maybe String -> KeyboardType -> Options msg -> Cmd msg
-customizePrompt title message buttons tipe defaultValue keyboardType =
-    Cmd.none
+withButtons : List (AlertButton msg) -> Alert msg -> Alert msg
+withButtons buttons (Alert a) =
+    Alert { a | buttons = buttons }
+
+
+withOptions : Bool -> String -> Maybe msg -> Alert msg -> Alert msg
+withOptions cancelable userInterfaceStyle onDismiss (Alert a) =
+    Alert
+        { a
+            | options =
+                Just <|
+                    Options
+                        { cancelable = cancelable
+                        , userInterfaceStyle = userInterfaceStyle
+                        , onDismiss = onDismiss
+                        }
+        }
+
+
+withPrompt : PromptOption -> Alert msg -> Alert msg
+withPrompt pt (Alert a) =
+    Alert { a | prompt = Just pt }
+
+
+tshow : Alert msg -> Task Never (Maybe msg)
+tshow a =
+    Task.succeed Nothing
+
+
+show : (Maybe msg -> msg1) -> Alert msg -> Cmd msg1
+show f =
+    tshow >> Task.perform f

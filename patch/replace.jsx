@@ -112,10 +112,45 @@ function _Browser_application(impl)
   });
 }
 
-var $author$project$ReactNative$Alert$alert = function (title) {
-  return A2($elm$core$Task$perform, $elm$core$Basics$never, _Scheduler_binding(function() {
-    Alert.alert(title);
-  }));
+var $author$project$ReactNative$Alert$tshow = function (a) {
+  return _Scheduler_binding(function(callback) {
+    const args = _Json_unwrap(a);
+
+    let buttons = undefined;
+    for (let iter = args.buttons; iter.b; iter = iter.b) { // WHILE_CONS
+      const btn = {
+        ...iter.a,
+        onPress: () => {
+          callback(_Scheduler_succeed(iter.a.onPress));
+        },
+      };
+
+      buttons = buttons || []
+      buttons.push(btn);
+    }
+
+    const options = args.options.a && {
+      ...args.options.a.a,
+      onDismiss: () => {
+        callback(_Scheduler_succeed(args.options.a.a.onDismiss))
+      }
+    };
+
+    if (args.prompt.a) {
+      Alert.prompt(args.title,
+                   args.message.a,
+                   buttons,
+                   args.prompt.a.type_,
+                   args.prompt.a.defaultValue,
+                   args.prompt.a.keyboardType,
+                   options);
+    } else {
+      Alert.alert(args.title,
+                  args.message.a,
+                  buttons,
+                  options);
+    }
+  });
 };
 
 var _Browser_go = F2(function(key, n)
