@@ -3,6 +3,9 @@ module ReactNative.Alert exposing
     , Options
     , PromptOption
     , alert
+    , cancelButton
+    , destructiveButton
+    , okButton
     , prompt
     , show
     , tshow
@@ -24,12 +27,11 @@ type alias AlertButton msg =
     }
 
 
-type Options msg
-    = Options
-        { cancelable : Bool
-        , userInterfaceStyle : String
-        , onDismiss : Maybe msg
-        }
+type alias Options msg =
+    { cancelable : Bool
+    , userInterfaceStyle : String
+    , onDismiss : Maybe msg
+    }
 
 
 type alias PromptOption =
@@ -81,17 +83,33 @@ withButtons buttons (Alert a) =
     Alert { a | buttons = buttons }
 
 
+button : String -> String -> Maybe msg -> AlertButton msg
+button style text onPress =
+    { style = style, text = text, onPress = onPress }
+
+
+cancelButton =
+    button "cancel"
+
+
+okButton =
+    button "default"
+
+
+destructiveButton =
+    button "destructive"
+
+
 withOptions : Bool -> String -> Maybe msg -> Alert msg -> Alert msg
 withOptions cancelable userInterfaceStyle onDismiss (Alert a) =
     Alert
         { a
             | options =
-                Just <|
-                    Options
-                        { cancelable = cancelable
-                        , userInterfaceStyle = userInterfaceStyle
-                        , onDismiss = onDismiss
-                        }
+                Just
+                    { cancelable = cancelable
+                    , userInterfaceStyle = userInterfaceStyle
+                    , onDismiss = onDismiss
+                    }
         }
 
 

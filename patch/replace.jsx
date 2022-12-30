@@ -130,9 +130,9 @@ var $author$project$ReactNative$Alert$tshow = function (a) {
     }
 
     const options = args.options.a && {
-      ...args.options.a.a,
+      ...args.options.a,
       onDismiss: () => {
-        callback(_Scheduler_succeed(args.options.a.a.onDismiss))
+        callback(_Scheduler_succeed(args.options.a.onDismiss))
       }
     };
 

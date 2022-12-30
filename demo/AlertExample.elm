@@ -4,7 +4,7 @@ import Browser
 import Html exposing (Html)
 import Json.Decode as Decode exposing (Decoder)
 import ReactNative exposing (button, view)
-import ReactNative.Alert as Alert exposing (alert, withButtons, withMessage, withOptions)
+import ReactNative.Alert as Alert exposing (alert, cancelButton, destructiveButton, okButton, withButtons, withMessage, withOptions)
 import ReactNative.Events exposing (onPress)
 import ReactNative.Properties exposing (style, title)
 import ReactNative.StyleSheet as StyleSheet
@@ -31,8 +31,12 @@ init _ =
 type Msg
     = NoOp
     | ShowAlert
+    | TwoButtonAlert
+    | ThreeButtonAlert
     | DismissAlert
     | CancelPressed
+    | OkPressed
+    | AskMeLaterPressed
 
 
 showAlert =
@@ -45,23 +49,51 @@ update msg model =
         NoOp ->
             ( model, Cmd.none )
 
+        TwoButtonAlert ->
+            ( model
+            , alert "Alert Title"
+                |> withMessage "My Alert Msg"
+                |> withButtons
+                    [ cancelButton "Cancel" <| Just CancelPressed
+                    , okButton "OK" <| Just OkPressed
+                    ]
+                |> showAlert
+            )
+
+        ThreeButtonAlert ->
+            ( model
+            , alert "Alert Title"
+                |> withMessage "My Alert Msg"
+                |> withButtons
+                    [ destructiveButton "Ask me later" <| Just AskMeLaterPressed
+                    , cancelButton "Cancel" <| Just CancelPressed
+                    , okButton "OK" <| Just OkPressed
+                    ]
+                |> showAlert
+            )
+
         ShowAlert ->
             ( model
             , alert "Alert title"
                 |> withMessage "My Alert Msg"
-                |> withButtons
-                    [ { text = "Cancel"
-                      , onPress = Just CancelPressed
-                      , style = "cancel"
-                      }
-                    ]
+                |> withButtons [ cancelButton "Cancel" <| Just CancelPressed ]
                 |> withOptions True "light" (Just DismissAlert)
                 |> showAlert
+            )
+
+        AskMeLaterPressed ->
+            ( model
+            , showAlert <| alert "Ask me later pressed"
             )
 
         CancelPressed ->
             ( model
             , showAlert <| alert "Cancel Pressed"
+            )
+
+        OkPressed ->
+            ( model
+            , showAlert <| alert "OK Pressed"
             )
 
         DismissAlert ->
@@ -87,7 +119,9 @@ styles =
 root : Model -> Html Msg
 root model =
     view [ style styles.container ]
-        [ button [ title "Show alert", onPress <| Decode.succeed ShowAlert ] []
+        [ button [ title "2-Button Alert", onPress <| Decode.succeed TwoButtonAlert ] []
+        , button [ title "3-Button Alert", onPress <| Decode.succeed ThreeButtonAlert ] []
+        , button [ title "Show alert", onPress <| Decode.succeed ShowAlert ] []
         ]
 
 
