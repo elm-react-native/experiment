@@ -4,7 +4,7 @@ import Browser
 import Debug
 import Json.Decode as Decode
 import Json.Encode as Encode
-import ReactNative exposing (safeAreaView, text, view, virtualizedList)
+import ReactNative exposing (safeAreaView, str, text, view, virtualizedList)
 import ReactNative.Events exposing (onClick, onPress, onRefresh)
 import ReactNative.Properties exposing (encode, property, style)
 import ReactNative.StyleSheet as StyleSheet
@@ -56,7 +56,7 @@ styles =
 itemView title =
     view
         [ style styles.item ]
-        [ text [ style styles.title ] title ]
+        [ text [ style styles.title ] [ str title ] ]
 
 
 root model =
