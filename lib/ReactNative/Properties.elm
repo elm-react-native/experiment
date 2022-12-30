@@ -8,12 +8,15 @@ module ReactNative.Properties exposing
     , component
     , contentContainerStyle
     , disabled
+    , editable
     , encode
     , getId
     , hidden
     , initialParams
     , ios_backgroundColor
     , keyExtractor
+    , maxLength
+    , multiline
     , name
     , numberOfLines
     , onstyle
@@ -29,6 +32,7 @@ module ReactNative.Properties exposing
     , sections
     , showHideTransition
     , source
+    , stringValue
     , style
     , thumbColor
     , title
@@ -82,13 +86,24 @@ contentContainerStyle =
     property "contentContainerStyle" << encode
 
 
-boolValue : Bool -> Attribute msg
 boolValue =
     property "value" << Encode.bool
 
 
+stringValue =
+    property "value" << Encode.string
+
+
 numberOfLines =
     property "numberOfLines" << Encode.int
+
+
+maxLength =
+    property "maxLength" << Encode.int
+
+
+multiline =
+    property "multiline" << Encode.bool
 
 
 options : a -> Attribute msg
@@ -160,6 +175,10 @@ animationType =
 
 transparent =
     property "transparent" << Encode.bool
+
+
+editable =
+    property "editable" << Encode.bool
 
 
 animated =

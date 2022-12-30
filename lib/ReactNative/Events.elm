@@ -1,4 +1,4 @@
-module ReactNative.Events exposing (onClick, onPress, onRefresh, onRequestClose, onSubmitEditing, onValueChange)
+module ReactNative.Events exposing (onBoolValueChange, onChangeText, onClick, onPress, onRefresh, onRequestClose, onSubmitEditing)
 
 import Html exposing (Attribute)
 import Html.Events exposing (on)
@@ -25,6 +25,11 @@ onSubmitEditing =
     on "submitEditing"
 
 
-onValueChange : (Bool -> msg) -> Attribute msg
-onValueChange tagger =
+onBoolValueChange : (Bool -> msg) -> Attribute msg
+onBoolValueChange tagger =
     on "valueChange" (Decode.map tagger Decode.bool)
+
+
+onChangeText : (String -> msg) -> Attribute msg
+onChangeText tagger =
+    on "changeText" (Decode.map tagger Decode.string)

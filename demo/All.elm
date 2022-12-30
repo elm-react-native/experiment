@@ -27,6 +27,7 @@ import StackNavigatorExample
 import StatusBarExample
 import SwitchExample
 import TextExample
+import TextInputExample
 import TransformsExample
 import VibrationExample
 import VirtualListExample
@@ -103,6 +104,7 @@ type ExampleModel
     | ImageExample ImageExample.Model
     | SwitchExample SwitchExample.Model
     | TextExample TextExample.Model
+    | TextInputExample TextInputExample.Model
 
 
 type alias ExampleInfo =
@@ -140,6 +142,7 @@ init key =
             , { id = "ImageExample", title = "Image Example", key = key }
             , { id = "SwitchExample", title = "Switch Example", key = key }
             , { id = "TextExample", title = "Text Example", key = key }
+            , { id = "TextInputExample", title = "TextInput Example", key = key }
             ]
       , detail = Nothing
       }
@@ -171,6 +174,7 @@ type ExampleMsg
     | ImageExampleMsg ImageExample.Msg
     | SwitchExampleMsg SwitchExample.Msg
     | TextExampleMsg TextExample.Msg
+    | TextInputExampleMsg TextInputExample.Msg
 
 
 type ExampleListMsg
@@ -261,8 +265,11 @@ initExample info =
         "SwitchExample" ->
             fromExampleCmd SwitchExample SwitchExampleMsg <| SwitchExample.init ()
 
-        _ ->
+        "TextExample" ->
             fromExampleCmd TextExample TextExampleMsg <| TextExample.init ()
+
+        _ ->
+            fromExampleCmd TextInputExample TextInputExampleMsg <| TextInputExample.init ()
 
 
 updateExample : ExampleMsg -> ( ExampleInfo, ExampleModel ) -> ( ExampleModel, Cmd ExampleMsg )
@@ -424,6 +431,14 @@ updateExample msg ( info, model ) =
                 _ ->
                     ( model, Cmd.none )
 
+        TextInputExampleMsg m ->
+            case model of
+                TextInputExample exampleModel ->
+                    fromExampleCmd TextInputExample TextInputExampleMsg <| TextInputExample.update m exampleModel
+
+                _ ->
+                    ( model, Cmd.none )
+
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -557,6 +572,9 @@ detailsRoot model =
 
         TextExample m ->
             Html.map (ExampleMsg << TextExampleMsg) <| TextExample.root m
+
+        TextInputExample m ->
+            Html.map (ExampleMsg << TextInputExampleMsg) <| TextInputExample.root m
 
 
 exampleItem info =

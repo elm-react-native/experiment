@@ -3,7 +3,7 @@ module SwitchExample exposing (..)
 import Browser
 import Html exposing (Html)
 import ReactNative exposing (switch, view)
-import ReactNative.Events exposing (onValueChange)
+import ReactNative.Events exposing (onBoolValueChange)
 import ReactNative.Properties exposing (boolValue, ios_backgroundColor, style, thumbColor, trackColor)
 import ReactNative.StyleSheet as StyleSheet
 
@@ -66,7 +66,7 @@ root model =
                 else
                     "#f4f3f4"
             , ios_backgroundColor "#3e3e3e"
-            , onValueChange SetIsEnabled
+            , onBoolValueChange SetIsEnabled
             , boolValue model.isEnabled
             ]
             []
