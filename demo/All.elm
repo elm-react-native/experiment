@@ -26,6 +26,7 @@ import RefreshControlExample
 import StackNavigatorExample
 import StatusBarExample
 import SwitchExample
+import TextExample
 import TransformsExample
 import VibrationExample
 import VirtualListExample
@@ -101,6 +102,7 @@ type ExampleModel
     | AlertExample AlertExample.Model
     | ImageExample ImageExample.Model
     | SwitchExample SwitchExample.Model
+    | TextExample TextExample.Model
 
 
 type alias ExampleInfo =
@@ -137,6 +139,7 @@ init key =
             , { id = "AlertExample", title = "Alert Example", key = key }
             , { id = "ImageExample", title = "Image Example", key = key }
             , { id = "SwitchExample", title = "Switch Example", key = key }
+            , { id = "TextExample", title = "Text Example", key = key }
             ]
       , detail = Nothing
       }
@@ -167,6 +170,7 @@ type ExampleMsg
     | AlertExampleMsg AlertExample.Msg
     | ImageExampleMsg ImageExample.Msg
     | SwitchExampleMsg SwitchExample.Msg
+    | TextExampleMsg TextExample.Msg
 
 
 type ExampleListMsg
@@ -254,8 +258,11 @@ initExample info =
         "ImageExample" ->
             fromExampleCmd ImageExample ImageExampleMsg <| ImageExample.init ()
 
-        _ ->
+        "SwitchExample" ->
             fromExampleCmd SwitchExample SwitchExampleMsg <| SwitchExample.init ()
+
+        _ ->
+            fromExampleCmd TextExample TextExampleMsg <| TextExample.init ()
 
 
 updateExample : ExampleMsg -> ( ExampleInfo, ExampleModel ) -> ( ExampleModel, Cmd ExampleMsg )
@@ -409,6 +416,14 @@ updateExample msg ( info, model ) =
                 _ ->
                     ( model, Cmd.none )
 
+        TextExampleMsg m ->
+            case model of
+                TextExample exampleModel ->
+                    fromExampleCmd TextExample TextExampleMsg <| TextExample.update m exampleModel
+
+                _ ->
+                    ( model, Cmd.none )
+
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -539,6 +554,9 @@ detailsRoot model =
 
         SwitchExample m ->
             Html.map (ExampleMsg << SwitchExampleMsg) <| SwitchExample.root m
+
+        TextExample m ->
+            Html.map (ExampleMsg << TextExampleMsg) <| TextExample.root m
 
 
 exampleItem info =

@@ -15,6 +15,7 @@ module ReactNative.Properties exposing
     , ios_backgroundColor
     , keyExtractor
     , name
+    , numberOfLines
     , onstyle
     , options
     , placeholder
@@ -84,6 +85,10 @@ contentContainerStyle =
 boolValue : Bool -> Attribute msg
 boolValue =
     property "value" << Encode.bool
+
+
+numberOfLines =
+    property "numberOfLines" << Encode.int
 
 
 options : a -> Attribute msg
