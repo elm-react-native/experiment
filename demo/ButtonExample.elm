@@ -105,7 +105,6 @@ separator =
 root model =
     safeAreaView [ style styles.container ]
         [ view [] [ text [ style styles.title ] "The title and onPress handler are required. It is recommended to set accessibilityLabel to help make your app usable by everyone." ]
-        , image [ source <| require "./assets/icon.png" ] []
         , button [ title "Press me", onPress <| Decode.succeed PressSimpleButton ] []
         , separator
         , view []

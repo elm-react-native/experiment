@@ -22,6 +22,7 @@ module ReactNative.Properties exposing
     , refreshing
     , renderItem
     , renderSectionHeader
+    , resizeMode
     , sections
     , showHideTransition
     , source
@@ -133,6 +134,10 @@ color =
 
 disabled =
     property "disabled" << Encode.bool
+
+
+resizeMode =
+    property "resizeMode" << Encode.string
 
 
 animationType =

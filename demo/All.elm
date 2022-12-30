@@ -9,17 +9,18 @@ import ButtonExample
 import DimensionsExample
 import EasingExample
 import Html exposing (Html)
+import ImageExample
 import Json.Decode as Decode
 import KeyboardExample
 import ModalExample
 import PanResponderExample
 import PlatformColorExample
-import ReactNative exposing (button, pressable, safeAreaView, statusBar, text, view)
+import ReactNative exposing (button, pressable, safeAreaView, scrollView, statusBar, text, view)
 import ReactNative.Events exposing (onPress)
 import ReactNative.Navigation as Nav
 import ReactNative.Navigation.Listeners as Listeners
 import ReactNative.Navigation.Stack as Stack
-import ReactNative.Properties exposing (barStyle, component, getId, initialParams, name, options, style, title)
+import ReactNative.Properties exposing (barStyle, component, contentContainerStyle, getId, initialParams, name, options, style, title)
 import ReactNative.StyleSheet as StyleSheet
 import RefreshControlExample
 import StackNavigatorExample
@@ -97,6 +98,7 @@ type ExampleModel
     | KeyboardExample KeyboardExample.Model
     | TransformsExample TransformsExample.Model
     | AlertExample AlertExample.Model
+    | ImageExample ImageExample.Model
 
 
 type alias ExampleInfo =
@@ -131,6 +133,7 @@ init key =
             , { id = "KeyboardExample", title = "Keyboard Example", key = key }
             , { id = "TransformsExample", title = "Transforms Example", key = key }
             , { id = "AlertExample", title = "Alert Example", key = key }
+            , { id = "ImageExample", title = "Image Example", key = key }
             ]
       , detail = Nothing
       }
@@ -159,6 +162,7 @@ type ExampleMsg
     | KeyboardExampleMsg KeyboardExample.Msg
     | TransformsExampleMsg TransformsExample.Msg
     | AlertExampleMsg AlertExample.Msg
+    | ImageExampleMsg ImageExample.Msg
 
 
 type ExampleListMsg
@@ -240,8 +244,11 @@ initExample info =
         "TransformsExample" ->
             fromExampleCmd TransformsExample TransformsExampleMsg <| TransformsExample.init ()
 
-        _ ->
+        "AlertExample" ->
             fromExampleCmd AlertExample AlertExampleMsg <| AlertExample.init ()
+
+        _ ->
+            fromExampleCmd ImageExample ImageExampleMsg <| ImageExample.init ()
 
 
 updateExample : ExampleMsg -> ( ExampleInfo, ExampleModel ) -> ( ExampleModel, Cmd ExampleMsg )
@@ -379,6 +386,14 @@ updateExample msg ( info, model ) =
                 _ ->
                     ( model, Cmd.none )
 
+        ImageExampleMsg m ->
+            case model of
+                ImageExample exampleModel ->
+                    fromExampleCmd ImageExample ImageExampleMsg <| ImageExample.update m exampleModel
+
+                _ ->
+                    ( model, Cmd.none )
+
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -504,6 +519,9 @@ detailsRoot model =
         AlertExample m ->
             Html.map (ExampleMsg << AlertExampleMsg) <| AlertExample.root m
 
+        ImageExample m ->
+            Html.map (ExampleMsg << ImageExampleMsg) <| ImageExample.root m
+
 
 exampleItem info =
     button
@@ -516,8 +534,8 @@ exampleItem info =
 
 listScreen model _ =
     safeAreaView []
-        [ view
-            [ style styles.list ]
+        [ scrollView
+            [ contentContainerStyle styles.list ]
             (List.map exampleItem model.list)
         ]
 
