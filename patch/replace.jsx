@@ -350,6 +350,12 @@ var $author$project$ReactNative$AppState$onChange = function (func) {
     'appStateChange',
     A2($elm$json$Json$Decode$map, func, $author$project$ReactNative$AppState$decoder));
 };
+var $author$project$ReactNative$Dimensions$onChange = function (decoder) {
+  return A3($elm$browser$Browser$Events$on,
+    $elm$browser$Browser$Events$Document,
+    'dimensionChange',
+    decoder);
+};
 
 var _Browser_on = F3(function(node, eventName, sendToSelf)
 {
@@ -359,6 +365,8 @@ var _Browser_on = F3(function(node, eventName, sendToSelf)
     let eventSubs;
     if (eventName === "appStateChange") {
       eventSubs = AppState.addEventListener("change", handler);
+    } else if (eventName === "dimensionChange") {
+      eventSubs = Dimensions.addEventListener("change", handler);
     }
     return function() {
       if (eventSubs) eventSubs.remove();
@@ -395,4 +403,10 @@ var $author$project$ReactNative$Easing$in_ = function (f) {
 };
 var $author$project$ReactNative$Easing$out = function (f) {
   return Easing.out(f);
+};
+
+var $author$project$ReactNative$Dimensions$get = function (dim) {
+   return _Scheduler_binding(function(callback) {
+     callback(_Scheduler_succeed(Dimensions.get(dim)));
+   });
 };

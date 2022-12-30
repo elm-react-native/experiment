@@ -5,6 +5,7 @@ import AppStateExample
 import Browser
 import Browser.Navigation as N
 import ButtonExample
+import DimensionsExample
 import EasingExample
 import Html exposing (Html)
 import Json.Decode as Decode
@@ -89,6 +90,7 @@ type ExampleModel
     | RefreshControlExample RefreshControlExample.Model
     | EasingExample EasingExample.Model
     | StatusBarExample StatusBarExample.Model
+    | DimensionsExample DimensionsExample.Model
 
 
 type alias ExampleInfo =
@@ -119,6 +121,7 @@ init key =
             , { id = "RefreshControlExample", title = "RefreshControl Example", key = key }
             , { id = "EasingExample", title = "Easing Example", key = key }
             , { id = "StatusBarExample", title = "StatusBar Example", key = key }
+            , { id = "DimensionsExample", title = "Dimensions Example", key = key }
             ]
       , detail = Nothing
       }
@@ -143,6 +146,7 @@ type ExampleMsg
     | RefreshControlExampleMsg RefreshControlExample.Msg
     | EasingExampleMsg EasingExample.Msg
     | StatusBarExampleMsg StatusBarExample.Msg
+    | DimensionsExampleMsg DimensionsExample.Msg
 
 
 type ExampleListMsg
@@ -212,8 +216,11 @@ initExample info =
         "EasingExample" ->
             fromExampleCmd EasingExample EasingExampleMsg <| EasingExample.init ()
 
-        _ ->
+        "StatusBarExample" ->
             fromExampleCmd StatusBarExample StatusBarExampleMsg <| StatusBarExample.init ()
+
+        _ ->
+            fromExampleCmd DimensionsExample DimensionsExampleMsg <| DimensionsExample.init ()
 
 
 updateExample : ExampleMsg -> ( ExampleInfo, ExampleModel ) -> ( ExampleModel, Cmd ExampleMsg )
@@ -315,6 +322,14 @@ updateExample msg ( info, model ) =
             case model of
                 StatusBarExample exampleModel ->
                     fromExampleCmd StatusBarExample StatusBarExampleMsg <| StatusBarExample.update m exampleModel
+
+                _ ->
+                    ( model, Cmd.none )
+
+        DimensionsExampleMsg m ->
+            case model of
+                DimensionsExample exampleModel ->
+                    fromExampleCmd DimensionsExample DimensionsExampleMsg <| DimensionsExample.update m exampleModel
 
                 _ ->
                     ( model, Cmd.none )
@@ -431,6 +446,9 @@ detailsRoot model =
 
         StatusBarExample m ->
             Html.map (ExampleMsg << StatusBarExampleMsg) <| StatusBarExample.root m
+
+        DimensionsExample m ->
+            Html.map (ExampleMsg << DimensionsExampleMsg) <| DimensionsExample.root m
 
 
 exampleItem info =

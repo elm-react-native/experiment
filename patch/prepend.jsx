@@ -34,6 +34,7 @@ import {
   Easing,
   PanResponder,
   AppState,
+  Dimensions,
 } from "react-native";
 import {
   NavigationContainer,
@@ -71,6 +72,7 @@ const allComponents = {
   SafeAreaView,
   "Stack.Navigator": Stack.Navigator,
   "Animated.View": Animated.View,
+  Fragment: React.Fragment,
 };
 
 const EventNodeContext = React.createContext();
