@@ -224,6 +224,12 @@ var $author$project$ReactNative$Animated$spring = F2(
     return Animated.spring(v, cfg);
   });
 
+var $author$project$ReactNative$Animated$decay = F2(
+  function (cfg, v) {
+    if (typeof cfg.useNativeDrivder === 'undefined') cfg.useNativeDriver = false;
+    return Animated.decay(v, cfg);
+  });
+
 var $author$project$ReactNative$Animated$start = function (v) {
   return _Scheduler_binding(function(callback) {
     v.start((res) => {

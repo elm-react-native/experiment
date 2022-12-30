@@ -95,6 +95,11 @@ spring cfg v =
     v
 
 
+decay : cfg -> Value -> Value
+decay cfg v =
+    v
+
+
 type alias AnimationResult =
     { finished : Bool }
 
