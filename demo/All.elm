@@ -11,6 +11,7 @@ import EasingExample
 import Html exposing (Html)
 import ImageExample
 import Json.Decode as Decode
+import KeyboardAvoidingViewExample
 import KeyboardExample
 import ModalExample
 import PanResponderExample
@@ -105,6 +106,7 @@ type ExampleModel
     | SwitchExample SwitchExample.Model
     | TextExample TextExample.Model
     | TextInputExample TextInputExample.Model
+    | KeyboardAvoidingViewExample KeyboardAvoidingViewExample.Model
 
 
 type alias ExampleInfo =
@@ -143,6 +145,7 @@ init key =
             , { id = "SwitchExample", title = "Switch Example", key = key }
             , { id = "TextExample", title = "Text Example", key = key }
             , { id = "TextInputExample", title = "TextInput Example", key = key }
+            , { id = "KeyboardAvoidingViewExample", title = "KeyboardAvoidingView Example", key = key }
             ]
       , detail = Nothing
       }
@@ -175,6 +178,7 @@ type ExampleMsg
     | SwitchExampleMsg SwitchExample.Msg
     | TextExampleMsg TextExample.Msg
     | TextInputExampleMsg TextInputExample.Msg
+    | KeyboardAvoidingViewExampleMsg KeyboardAvoidingViewExample.Msg
 
 
 type ExampleListMsg
@@ -268,8 +272,11 @@ initExample info =
         "TextExample" ->
             fromExampleCmd TextExample TextExampleMsg <| TextExample.init ()
 
-        _ ->
+        "TextInputExample" ->
             fromExampleCmd TextInputExample TextInputExampleMsg <| TextInputExample.init ()
+
+        _ ->
+            fromExampleCmd KeyboardAvoidingViewExample KeyboardAvoidingViewExampleMsg <| KeyboardAvoidingViewExample.init ()
 
 
 updateExample : ExampleMsg -> ( ExampleInfo, ExampleModel ) -> ( ExampleModel, Cmd ExampleMsg )
@@ -439,6 +446,14 @@ updateExample msg ( info, model ) =
                 _ ->
                     ( model, Cmd.none )
 
+        KeyboardAvoidingViewExampleMsg m ->
+            case model of
+                KeyboardAvoidingViewExample exampleModel ->
+                    fromExampleCmd KeyboardAvoidingViewExample KeyboardAvoidingViewExampleMsg <| KeyboardAvoidingViewExample.update m exampleModel
+
+                _ ->
+                    ( model, Cmd.none )
+
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -575,6 +590,9 @@ detailsRoot model =
 
         TextInputExample m ->
             Html.map (ExampleMsg << TextInputExampleMsg) <| TextInputExample.root m
+
+        KeyboardAvoidingViewExample m ->
+            Html.map (ExampleMsg << KeyboardAvoidingViewExampleMsg) <| KeyboardAvoidingViewExample.root m
 
 
 exampleItem info =

@@ -3,6 +3,7 @@ module ReactNative.Properties exposing
     , animationType
     , backgroundColor
     , barStyle
+    , behavior
     , boolValue
     , color
     , component
@@ -151,6 +152,10 @@ getId =
 
 name =
     property "name" << Encode.string
+
+
+behavior =
+    property "behavior" << Encode.string
 
 
 title =
