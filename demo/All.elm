@@ -3,6 +3,7 @@ module All exposing (..)
 import AlertExample
 import AnimationExample
 import AppStateExample
+import AppearanceExample
 import Browser
 import Browser.Navigation as N
 import ButtonExample
@@ -759,6 +760,32 @@ exampleApps =
         , root = PressableExample.root
         , subs = PressableExample.subs
         }
+    , toGeneralExampleApp
+        AppearanceExample
+        (\model ->
+            case model of
+                AppearanceExample m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        AppearanceExampleMsg
+        (\msg ->
+            case msg of
+                AppearanceExampleMsg m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        { id = "AppearanceExample"
+        , title = "Appearance"
+        , init = \_ -> AppearanceExample.init ()
+        , update = AppearanceExample.update
+        , root = AppearanceExample.root
+        , subs = AppearanceExample.subs
+        }
     ]
 
 
@@ -804,6 +831,7 @@ type ExampleModel
     | SectionListExample SectionListExample.Model
     | FlatListExample FlatListExample.Model
     | PressableExample PressableExample.Model
+    | AppearanceExample AppearanceExample.Model
 
 
 type alias ExampleInfo =
@@ -866,6 +894,7 @@ type ExampleMsg
     | SectionListExampleMsg SectionListExample.Msg
     | FlatListExampleMsg FlatListExample.Msg
     | PressableExampleMsg PressableExample.Msg
+    | AppearanceExampleMsg AppearanceExample.Msg
 
 
 type ExampleListMsg

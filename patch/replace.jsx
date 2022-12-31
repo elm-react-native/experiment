@@ -407,6 +407,14 @@ var $author$project$ReactNative$AppState$onChange = function (func) {
     'appStateChange',
     A2($elm$json$Json$Decode$map, func, $author$project$ReactNative$AppState$decoder));
 };
+
+var $author$project$ReactNative$Appearance$onChange = function (tagger) {
+  return A3($elm$browser$Browser$Events$on,
+    $elm$browser$Browser$Events$Document,
+    'appearanceChange',
+    A2($elm$json$Json$Decode$map, tagger, $author$project$ReactNative$Appearance$colorSchemeDecoder));
+};
+
 var $author$project$ReactNative$Dimensions$onChange = function (decoder) {
   return A3($elm$browser$Browser$Events$on,
     $elm$browser$Browser$Events$Document,
@@ -426,6 +434,8 @@ var _Browser_on = F3(function(node, eventName, sendToSelf)
       eventSubs = Dimensions.addEventListener("change", handler);
     } else if (/^keyboard(Will|Did)(Show|Hide|ChangeFrame)$/.test(eventName)) {
       eventSubs = Keyboard.addListener(eventName, handler);
+    } else if (eventName === "appearanceChange") {
+      eventSubs = Appearance.addChangeListener(handler);
     }
     return function() {
       if (eventSubs) eventSubs.remove();
@@ -469,6 +479,18 @@ var $author$project$ReactNative$Dimensions$get = function (dim) {
      callback(_Scheduler_succeed(Dimensions.get(dim)));
    });
 };
+
+var $author$project$ReactNative$Appearance$getColorScheme = function () {
+  return _Scheduler_binding(function(callback) {
+    const result = _Json_runHelp($author$project$ReactNative$Appearance$colorSchemeDecoder, Appearance.getColorScheme())
+    if (!$elm$core$Result$isOk(result)) {
+      callback(_Scheduler_succeed($author$project$ReactNative$Appearance$NotIndicated));
+      return;
+    }
+
+    callback(_Scheduler_succeed(result.a));
+  });
+}();
 
 var $author$project$ReactNative$Keyboard$dismiss = function () {
    return _Scheduler_binding(function(callback) {
