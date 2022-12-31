@@ -153,6 +153,7 @@ const replacers = [
   variableReplacer("Platform$select", "Platform.select"),
   variableReplacer("StyleSheet$hairlineWidth", "StyleSheet.hairlineWidth"),
   variableReplacer("StyleSheet$create", "StyleSheet.create"),
+  variableReplacer("StatusBar$currentHeight", "StatusBar.currentHeight"),
 ];
 
 const output = source

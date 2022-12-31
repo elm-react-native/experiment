@@ -26,6 +26,7 @@ import ReactNative.Navigation.Stack as Stack
 import ReactNative.Properties exposing (barStyle, component, contentContainerStyle, getId, initialParams, name, options, style, title)
 import ReactNative.StyleSheet as StyleSheet
 import RefreshControlExample
+import ScrollViewExample
 import StackNavigatorExample
 import StatusBarExample
 import SwitchExample
@@ -651,6 +652,32 @@ exampleApps =
         , root = VirtualListExample.root
         , subs = VirtualListExample.subs
         }
+    , toGeneralExampleApp
+        ScrollViewExample
+        (\model ->
+            case model of
+                ScrollViewExample m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        ScrollViewExampleMsg
+        (\msg ->
+            case msg of
+                ScrollViewExampleMsg m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        { id = "ScrollViewExample"
+        , title = "ScrollView"
+        , init = \_ -> ScrollViewExample.init ()
+        , update = ScrollViewExample.update
+        , root = ScrollViewExample.root
+        , subs = ScrollViewExample.subs
+        }
     ]
 
 
@@ -692,6 +719,7 @@ type ExampleModel
     | TextExample TextExample.Model
     | TextInputExample TextInputExample.Model
     | KeyboardAvoidingViewExample KeyboardAvoidingViewExample.Model
+    | ScrollViewExample ScrollViewExample.Model
 
 
 type alias ExampleInfo =
@@ -750,6 +778,7 @@ type ExampleMsg
     | TextExampleMsg TextExample.Msg
     | TextInputExampleMsg TextInputExample.Msg
     | KeyboardAvoidingViewExampleMsg KeyboardAvoidingViewExample.Msg
+    | ScrollViewExampleMsg ScrollViewExample.Msg
 
 
 type ExampleListMsg
