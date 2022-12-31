@@ -96,6 +96,7 @@ root model =
                     text [ style styles.header ]
                         [ str section.title ]
             , renderSectionFooter = \_ -> null
+            , getItemLayout = Nothing
             }
             [ stickySectionHeadersEnabled False ]
         ]

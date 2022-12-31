@@ -183,6 +183,7 @@ root model =
                         [ text [] [ str item.title ] ]
             , renderSectionHeader = \{ section } -> text [ style styles.listHeader ] [ str section.title ]
             , renderSectionFooter = \_ -> null
+            , getItemLayout = Nothing
             }
             [ style styles.list ]
         ]

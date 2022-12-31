@@ -32,8 +32,10 @@ module ReactNative exposing
 
 import Html exposing (node)
 import Json.Encode as Encode
+import ReactNative.FlatList as FlatList
 import ReactNative.Properties exposing (property)
 import ReactNative.SectionList as SectionList
+import ReactNative.VirtualizedList as VirtualizedList
 
 
 {-| <https://lefkowitz.me/visual-guide-to-react-native-textinput-keyboardtype-options/>
@@ -78,10 +80,6 @@ button =
     node "Button"
 
 
-flatList =
-    node "FlatList"
-
-
 image =
     node "Image"
 
@@ -110,6 +108,14 @@ sectionList =
     SectionList.sectionList
 
 
+flatList =
+    FlatList.flatList
+
+
+virtualizedList =
+    VirtualizedList.virtualizedList
+
+
 statusBar =
     node "StatusBar"
 
@@ -132,10 +138,6 @@ touchableOpacity =
 
 touchableWithoutFeedback =
     node "TouchableWithoutFeedback"
-
-
-virtualizedList =
-    node "VirtualizedList"
 
 
 drawerLayoutAndroid =

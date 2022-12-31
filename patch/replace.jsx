@@ -20,6 +20,10 @@ var _VirtualDom_nodeNS = F2(function(namespace, tag)
     {
       return <SectionListComponent factList={factList} kidList={kidList} />;
     }
+    else if (tag === "FlatList")
+    {
+      return <FlatListComponent factList={factList} kidList={kidList} />;
+    }
     return <ElmNodeComponent tag={tag} factList={factList} kidList={kidList} />;
   });
 });
@@ -49,6 +53,14 @@ var _VirtualDom_keyedNodeNS = F2(function(namespace, tag)
     else if (tag === "Stack.Navigator")
     {
       return <NavigatorComponent tag={tag} factList={factList} kidList={kidList} />;
+    }
+    else if (tag === "SectionList")
+    {
+      return <SectionListComponent factList={factList} kidList={kidList} />;
+    }
+    else if (tag === "FlatList")
+    {
+      return <FlatListComponent factList={factList} kidList={kidList} />;
     }
     return <ElmKeyedNodeComponent tag={tag} factList={factList} kidList={kidList} />;
   });

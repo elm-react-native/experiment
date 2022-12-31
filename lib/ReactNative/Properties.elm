@@ -1,5 +1,6 @@
 module ReactNative.Properties exposing
-    ( animated
+    ( ItemLayout
+    , animated
     , animationType
     , backgroundColor
     , barStyle
@@ -8,26 +9,40 @@ module ReactNative.Properties exposing
     , color
     , component
     , contentContainerStyle
+    , data
     , disabled
     , editable
     , encode
     , getId
+    , getItem
+    , getItemCount
+    , getItemLayout
     , hidden
+    , horizontal
+    , initialNumToRender
     , initialParams
+    , initialScrollIndex
+    , inverted
     , ios_backgroundColor
     , keyExtractor
+    , listKey
     , maxLength
+    , maxToRenderPerBatch
     , multiline
     , name
     , numberOfLines
     , onstyle
     , options
+    , persistentScrollbar
     , placeholder
     , presentationStyle
+    , progressViewOffset
     , property
     , refreshCtrl
     , refreshing
+    , removeClippedSubviews
     , renderItem
+    , renderScrollComponent
     , renderSectionFooter
     , renderSectionHeader
     , resizeMode
@@ -42,6 +57,7 @@ module ReactNative.Properties exposing
     , trackColor
     , transparent
     , visible
+    , windowSize
     )
 
 import Html exposing (Attribute, Html)
@@ -79,6 +95,11 @@ renderItem =
     property "renderItem" << encode
 
 
+renderScrollComponent : (a -> Html msg) -> Attribute msg
+renderScrollComponent =
+    property "renderScrollComponent" << encode
+
+
 renderSectionHeader : (a -> Html msg) -> Attribute msg
 renderSectionHeader =
     property "renderSectionHeader" << encode
@@ -106,12 +127,28 @@ extraData =
     property "extraData" << encode
 
 
+data =
+    property "data" << encode
+
+
 stickySectionHeadersEnabled =
     property "stickySectionHeadersEnabled" << Encode.bool
 
 
+removeClippedSubviews =
+    property "removeClippedSubviews" << Encode.bool
+
+
+persistentScrollbar =
+    property "persistentScrollbar" << Encode.bool
+
+
 numberOfLines =
     property "numberOfLines" << Encode.int
+
+
+progressViewOffset =
+    property "progressViewOffset" << Encode.float
 
 
 maxLength =
@@ -217,6 +254,34 @@ visible =
     property "visible" << Encode.bool
 
 
+horizontal =
+    property "horizontal" << Encode.bool
+
+
+inverted =
+    property "inverted" << Encode.bool
+
+
+initialNumToRender =
+    property "initialNumToRender" << Encode.int
+
+
+initialScrollIndex =
+    property "initialScrollIndex" << Encode.int
+
+
+windowSize =
+    property "windowSize" << Encode.int
+
+
+maxToRenderPerBatch =
+    property "maxToRenderPerBatch" << Encode.int
+
+
+listKey =
+    property "listKey" << Encode.string
+
+
 presentationStyle =
     property "presentationStyle" << Encode.string
 
@@ -244,3 +309,23 @@ thumbColor =
 
 ios_backgroundColor =
     property "ios_backgroundColor" << Encode.string
+
+
+getItem : (data -> item) -> Attribute msg
+getItem fn =
+    property "getItem" <| encode fn
+
+
+getItemCount : (data -> Int) -> Attribute msg
+getItemCount fn =
+    property "getItemCount" <| encode fn
+
+
+type alias ItemLayout =
+    -- length: ITEM_HEIGHT, offset: ITEM_HEIGHT*index
+    { length : Float, offset : Float, index : Int }
+
+
+getItemLayout : (data -> Int -> ItemLayout) -> Attribute msg
+getItemLayout fn =
+    property "getItemLayout" <| encode fn

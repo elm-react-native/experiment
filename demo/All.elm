@@ -9,6 +9,7 @@ import ButtonExample
 import Dict exposing (Dict)
 import DimensionsExample
 import EasingExample
+import FlatListExample
 import Html exposing (Html)
 import Html.Lazy exposing (lazy)
 import ImageExample
@@ -35,7 +36,7 @@ import TextExample
 import TextInputExample
 import TransformsExample
 import VibrationExample
-import VirtualListExample
+import VirtualizedListExample
 
 
 type alias ExampleApp model msg =
@@ -628,30 +629,30 @@ exampleApps =
         , subs = VibrationExample.subs
         }
     , toGeneralExampleApp
-        VirtualListExample
+        VirtualizedListExample
         (\model ->
             case model of
-                VirtualListExample m ->
+                VirtualizedListExample m ->
                     Just m
 
                 _ ->
                     Nothing
         )
-        VirtualListExampleMsg
+        VirtualizedListExampleMsg
         (\msg ->
             case msg of
-                VirtualListExampleMsg m ->
+                VirtualizedListExampleMsg m ->
                     Just m
 
                 _ ->
                     Nothing
         )
-        { id = "VirtualListExample"
-        , title = "VirtualList"
-        , init = \_ -> VirtualListExample.init ()
-        , update = VirtualListExample.update
-        , root = VirtualListExample.root
-        , subs = VirtualListExample.subs
+        { id = "VirtualizedListExample"
+        , title = "VirtualizedList"
+        , init = \_ -> VirtualizedListExample.init ()
+        , update = VirtualizedListExample.update
+        , root = VirtualizedListExample.root
+        , subs = VirtualizedListExample.subs
         }
     , toGeneralExampleApp
         ScrollViewExample
@@ -705,6 +706,32 @@ exampleApps =
         , root = SectionListExample.root
         , subs = SectionListExample.subs
         }
+    , toGeneralExampleApp
+        FlatListExample
+        (\model ->
+            case model of
+                FlatListExample m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        FlatListExampleMsg
+        (\msg ->
+            case msg of
+                FlatListExampleMsg m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        { id = "FlatListExample"
+        , title = "FlatList"
+        , init = \_ -> FlatListExample.init ()
+        , update = FlatListExample.update
+        , root = FlatListExample.root
+        , subs = FlatListExample.subs
+        }
     ]
 
 
@@ -731,7 +758,7 @@ type ExampleModel
     | PlatformColorExample PlatformColorExample.Model
     | StackNavigatorExample StackNavigatorExample.Model
     | VibrationExample VibrationExample.Model
-    | VirtualListExample VirtualListExample.Model
+    | VirtualizedListExample VirtualizedListExample.Model
     | AppStateExample AppStateExample.Model
     | ModalExample ModalExample.Model
     | RefreshControlExample RefreshControlExample.Model
@@ -748,6 +775,7 @@ type ExampleModel
     | KeyboardAvoidingViewExample KeyboardAvoidingViewExample.Model
     | ScrollViewExample ScrollViewExample.Model
     | SectionListExample SectionListExample.Model
+    | FlatListExample FlatListExample.Model
 
 
 type alias ExampleInfo =
@@ -791,7 +819,7 @@ type ExampleMsg
     | PlatformColorExampleMsg PlatformColorExample.Msg
     | StackNavigatorExampleMsg StackNavigatorExample.Msg
     | VibrationExampleMsg VibrationExample.Msg
-    | VirtualListExampleMsg VirtualListExample.Msg
+    | VirtualizedListExampleMsg VirtualizedListExample.Msg
     | AppStateExampleMsg AppStateExample.Msg
     | ModalExampleMsg ModalExample.Msg
     | RefreshControlExampleMsg RefreshControlExample.Msg
@@ -808,6 +836,7 @@ type ExampleMsg
     | KeyboardAvoidingViewExampleMsg KeyboardAvoidingViewExample.Msg
     | ScrollViewExampleMsg ScrollViewExample.Msg
     | SectionListExampleMsg SectionListExample.Msg
+    | FlatListExampleMsg FlatListExample.Msg
 
 
 type ExampleListMsg

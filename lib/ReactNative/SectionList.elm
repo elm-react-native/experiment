@@ -1,14 +1,7 @@
 module ReactNative.SectionList exposing (Section, SectionListProps, sectionList)
 
 import Html exposing (Attribute, Html, node)
-import ReactNative.Properties
-    exposing
-        ( keyExtractor
-        , renderItem
-        , renderSectionFooter
-        , renderSectionHeader
-        , sections
-        )
+import ReactNative.Properties exposing (ItemLayout, getItemLayout, keyExtractor, renderItem, renderSectionFooter, renderSectionHeader, sections)
 
 
 type alias Section section item =
@@ -21,6 +14,7 @@ type alias SectionListProps section item msg withItem withSection =
     , renderItem : { withItem | item : item } -> Html msg
     , renderSectionHeader : { withSection | section : Section section item } -> Html msg
     , renderSectionFooter : { withSection | section : Section section item } -> Html msg
+    , getItemLayout : Maybe (List (Section section item) -> Int -> ItemLayout)
     }
 
 
@@ -33,6 +27,13 @@ sectionList options props =
          , renderSectionHeader options.renderSectionHeader
          , renderSectionFooter options.renderSectionFooter
          ]
+            ++ (case options.getItemLayout of
+                    Just fn ->
+                        [ getItemLayout fn ]
+
+                    _ ->
+                        []
+               )
             ++ props
         )
         []

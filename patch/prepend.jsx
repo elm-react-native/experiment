@@ -382,3 +382,14 @@ function _VirtualDom_factsToReactProps(inputProps, eventNode) {
 
   return props;
 }
+
+const FlatListComponent = (props) => {
+  const eventNode = React.useContext(EventNodeContext);
+  const actualProps = _VirtualDom_factsToReactProps(props, eventNode);
+  const { data, ...rest } = actualProps;
+  const data2 = React.useMemo(
+    () => _List_toArray(data || _list_Nil),
+    [data]
+  );
+  return <FlatList {...rest} data={data2}></FlatList>;
+};
