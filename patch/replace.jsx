@@ -559,3 +559,17 @@ var $author$project$ReactNative$pressable = F2(
   function (props, children) {
     return A3($elm$html$Html$node, 'Pressable', props, _List_Cons(children, _List_Nil));
   });
+
+var $author$project$ReactNative$PixelRatio$get = function (_v0) {
+  return PixelRatio.get();
+};
+var $author$project$ReactNative$PixelRatio$getFontScale = function (_v0) {
+  return PixelRatio.getFontScale();
+};
+var $author$project$ReactNative$PixelRatio$getPixelSizeForLayoutSize = function (layoutSize) {
+  return PixelRatio.getPixelSizeForLayoutSize(layoutSize);
+};
+var $author$project$ReactNative$PixelRatio$roundToNearestPixel = function (layoutSize) {
+  console.log("layoutSize", PixelRatio.roundToNearestPixel(layoutSize));
+  return PixelRatio.roundToNearestPixel(layoutSize);
+};

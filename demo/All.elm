@@ -20,6 +20,7 @@ import KeyboardExample
 import LinkingExample
 import ModalExample
 import PanResponderExample
+import PixelRatioExample
 import PlatformColorExample
 import PressableExample
 import ReactNative exposing (button, image, materialIcon, null, pressable, require, safeAreaView, scrollView, statusBar, str, text, touchableOpacity, view)
@@ -813,6 +814,32 @@ exampleApps =
         , root = LinkingExample.root
         , subs = LinkingExample.subs
         }
+    , toGeneralExampleApp
+        PixelRatioExample
+        (\model ->
+            case model of
+                PixelRatioExample m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        PixelRatioExampleMsg
+        (\msg ->
+            case msg of
+                PixelRatioExampleMsg m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        { id = "PixelRatioExample"
+        , title = "PixelRatio"
+        , init = \_ -> PixelRatioExample.init ()
+        , update = PixelRatioExample.update
+        , root = PixelRatioExample.root
+        , subs = PixelRatioExample.subs
+        }
     ]
 
 
@@ -860,6 +887,7 @@ type ExampleModel
     | PressableExample PressableExample.Model
     | AppearanceExample AppearanceExample.Model
     | LinkingExample LinkingExample.Model
+    | PixelRatioExample PixelRatioExample.Model
 
 
 type alias ExampleInfo =
@@ -924,6 +952,7 @@ type ExampleMsg
     | PressableExampleMsg PressableExample.Msg
     | AppearanceExampleMsg AppearanceExample.Msg
     | LinkingExampleMsg LinkingExample.Msg
+    | PixelRatioExampleMsg PixelRatioExample.Msg
 
 
 type ExampleListMsg
