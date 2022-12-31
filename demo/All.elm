@@ -17,6 +17,7 @@ import ImageExample
 import Json.Decode as Decode
 import KeyboardAvoidingViewExample
 import KeyboardExample
+import LinkingExample
 import ModalExample
 import PanResponderExample
 import PlatformColorExample
@@ -786,6 +787,32 @@ exampleApps =
         , root = AppearanceExample.root
         , subs = AppearanceExample.subs
         }
+    , toGeneralExampleApp
+        LinkingExample
+        (\model ->
+            case model of
+                LinkingExample m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        LinkingExampleMsg
+        (\msg ->
+            case msg of
+                LinkingExampleMsg m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        { id = "LinkingExample"
+        , title = "Linking"
+        , init = \_ -> LinkingExample.init ()
+        , update = LinkingExample.update
+        , root = LinkingExample.root
+        , subs = LinkingExample.subs
+        }
     ]
 
 
@@ -832,6 +859,7 @@ type ExampleModel
     | FlatListExample FlatListExample.Model
     | PressableExample PressableExample.Model
     | AppearanceExample AppearanceExample.Model
+    | LinkingExample LinkingExample.Model
 
 
 type alias ExampleInfo =
@@ -895,6 +923,7 @@ type ExampleMsg
     | FlatListExampleMsg FlatListExample.Msg
     | PressableExampleMsg PressableExample.Msg
     | AppearanceExampleMsg AppearanceExample.Msg
+    | LinkingExampleMsg LinkingExample.Msg
 
 
 type ExampleListMsg

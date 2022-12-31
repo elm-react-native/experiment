@@ -408,6 +408,37 @@ var $author$project$ReactNative$AppState$onChange = function (func) {
     A2($elm$json$Json$Decode$map, func, $author$project$ReactNative$AppState$decoder));
 };
 
+var $author$project$ReactNative$Linking$canOpenURL = function (url) {
+  return _Scheduler_binding(function(callback) {
+    Linking.canOpenURL(url).then((supported) => callback(_Scheduler_succeed(supported)));
+  });
+};
+
+var $author$project$ReactNative$Linking$openURL = function (url) {
+  return _Scheduler_binding(function(callback) {
+    Linking.openURL(url).then(() => callback(_Scheduler_succeed(_Utils_Tuple0)));
+  });
+};
+var $author$project$ReactNative$Linking$openSettings = function () {
+  return _Scheduler_binding(function(callback) {
+    Linking.openSettings().then(() => callback(_Scheduler_succeed(_Utils_Tuple0)));
+  });
+}();
+
+var $author$project$ReactNative$Linking$getInitialURL = function () {
+  return _Scheduler_binding(function(callback) {
+    Linking.getInitialURL().then((url) => callback(_Scheduler_succeed(url)));
+  });
+}();
+
+var $author$project$ReactNative$Linking$sendIntent = F2(
+  function (action, extras) {
+    return _Scheduler_binding(function(callback) {
+      console.log("extras", _Json_unwrap(extras));
+      Linking.sendIntent(action, _Json_unwrap(extras)).then(() => callback(_Scheduler_succeed(_Utils_Tuple0)));
+    });
+  });
+
 var $author$project$ReactNative$Appearance$onChange = function (tagger) {
   return A3($elm$browser$Browser$Events$on,
     $elm$browser$Browser$Events$Document,

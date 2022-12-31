@@ -37,6 +37,7 @@ import {
   Dimensions,
   Keyboard,
   Appearance,
+  Linking,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
