@@ -22,6 +22,7 @@ import ModalExample
 import PanResponderExample
 import PixelRatioExample
 import PlatformColorExample
+import PlatformExample
 import PressableExample
 import ReactNative exposing (button, image, materialIcon, null, pressable, require, safeAreaView, scrollView, statusBar, str, text, touchableOpacity, view)
 import ReactNative.Events exposing (onPress)
@@ -840,6 +841,32 @@ exampleApps =
         , root = PixelRatioExample.root
         , subs = PixelRatioExample.subs
         }
+    , toGeneralExampleApp
+        PlatformExample
+        (\model ->
+            case model of
+                PlatformExample m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        PlatformExampleMsg
+        (\msg ->
+            case msg of
+                PlatformExampleMsg m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        { id = "PlatformExample"
+        , title = "Platform"
+        , init = \_ -> PlatformExample.init ()
+        , update = PlatformExample.update
+        , root = PlatformExample.root
+        , subs = PlatformExample.subs
+        }
     ]
 
 
@@ -888,6 +915,7 @@ type ExampleModel
     | AppearanceExample AppearanceExample.Model
     | LinkingExample LinkingExample.Model
     | PixelRatioExample PixelRatioExample.Model
+    | PlatformExample PlatformExample.Model
 
 
 type alias ExampleInfo =
@@ -953,6 +981,7 @@ type ExampleMsg
     | AppearanceExampleMsg AppearanceExample.Msg
     | LinkingExampleMsg LinkingExample.Msg
     | PixelRatioExampleMsg PixelRatioExample.Msg
+    | PlatformExampleMsg PlatformExample.Msg
 
 
 type ExampleListMsg

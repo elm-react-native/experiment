@@ -127,7 +127,7 @@ if (process.argv.indexOf("--mobile")) {
 source.push(appendjsx);
 
 const variableReplacer = (elm, js) => {
-  const elmVar = `$author$project$ReactNative$${elm}`.replaceAll("$", "\\$");
+  const elmVar = `$author$project$ReactNative$${elm}\\b`.replaceAll("$", "\\$");
   const toRemove = new RegExp(`var ${elmVar} = .*;$`, "");
   const toReplace = new RegExp(elmVar, "g");
   return (line) => line.replace(toRemove, "").replace(toReplace, js);
@@ -146,14 +146,16 @@ const replacers = [
   variableReplacer("Easing$linear", "Easing.linear"),
   variableReplacer("Platform$os", "Platform.OS"),
   variableReplacer("Platform$version", "Platform.Version"),
+  variableReplacer("Platform$osVersion", "Platform.osVersion"),
+  variableReplacer("Platform$systemName", "Platform.systemName"),
   variableReplacer("Platform$color", "PlatformColor"),
   variableReplacer("Platform$isPad", "Platform.isPad"),
   variableReplacer("Platform$isTV", "Platform.isTV"),
-  variableReplacer("Platform$isTesting", "Platform.isTesting"),
   variableReplacer("Platform$select", "Platform.select"),
   variableReplacer("StyleSheet$hairlineWidth", "StyleSheet.hairlineWidth"),
   variableReplacer("StyleSheet$create", "StyleSheet.create"),
   variableReplacer("StatusBar$currentHeight", "StatusBar.currentHeight"),
+  variableReplacer("Platform$interfaceIdiom", "Platform.interfaceIdiom"),
 ];
 
 const output = source

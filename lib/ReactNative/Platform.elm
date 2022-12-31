@@ -1,4 +1,16 @@
-module ReactNative.Platform exposing (color, isPad, isTV, isTesting, os, select, version)
+module ReactNative.Platform exposing
+    ( color
+    , constants
+    , isPad
+    , isTV
+    , isTesting
+    , os
+    , select
+    , version
+    )
+
+import Json.Decode as Decode exposing (Decoder)
+import Json.Encode as Encode
 
 
 os =
@@ -10,8 +22,9 @@ select =
     identity
 
 
+version : Float
 version =
-    {}
+    0
 
 
 isTV =
@@ -24,6 +37,15 @@ isPad =
 
 isTesting =
     False
+
+
+constants : String
+constants =
+    let
+        x =
+            ""
+    in
+    x
 
 
 color : String -> String

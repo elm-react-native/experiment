@@ -573,3 +573,9 @@ var $author$project$ReactNative$PixelRatio$roundToNearestPixel = function (layou
   console.log("layoutSize", PixelRatio.roundToNearestPixel(layoutSize));
   return PixelRatio.roundToNearestPixel(layoutSize);
 };
+var $author$project$ReactNative$Platform$constants = function (decoder) {
+  return A2($elm$json$Json$Decode$decodeValue, decoder, _Json_wrap(Platform.constants));
+};
+var $author$project$ReactNative$Platform$constants = function () {
+  return JSON.stringify(Platform.constants);
+}();
