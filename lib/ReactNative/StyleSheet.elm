@@ -1,4 +1,4 @@
-module ReactNative.StyleSheet exposing (absoluteFill, compose, create, hairlineWidth)
+module ReactNative.StyleSheet exposing (absoluteFill, compose, compose3, create, hairlineWidth)
 
 
 create : a -> a
@@ -17,3 +17,8 @@ absoluteFill =
 compose : a -> b -> b
 compose a b =
     b
+
+
+compose3 : a -> b -> c -> c
+compose3 a b c =
+    c

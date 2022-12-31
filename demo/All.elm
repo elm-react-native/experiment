@@ -962,7 +962,8 @@ styles =
         , item =
             { height = 44
             , width = "100%"
-            , fontWeight = "bold"
+            , flexDirection = "row"
+            , alignItems = "center"
             }
         , firstItem =
             { borderTopLeftRadius = 10
@@ -972,26 +973,16 @@ styles =
             { borderBottomLeftRadius = 10
             , borderBottomRightRadius = 10
             }
-        , itemContent =
-            { flexDirection = "row"
-            , alignItems = "center"
-            , height = 44
-            }
         , itemRight =
-            \i ->
-                { borderTopWidth = borderWidth
-                , borderTopColor =
-                    if i == 0 then
-                        "transparent"
-
-                    else
-                        borderColor
-                , height = "100%"
-                , flexGrow = 1
-                , flexDirection = "row"
-                , justifyContent = "space-between"
-                , alignItems = "center"
-                }
+            { borderTopWidth = borderWidth
+            , borderTopColor = borderColor
+            , height = "100%"
+            , flexGrow = 1
+            , flexDirection = "row"
+            , justifyContent = "space-between"
+            , alignItems = "center"
+            }
+        , firstItemRight = { borderTopColor = "transparent" }
         }
 
 
@@ -1053,32 +1044,37 @@ arrowRight =
 
 exampleItem len i info =
     pressable
-        [ onPress (Decode.succeed <| ExampleListMsg <| GotoExample info)
-        , if i == 0 then
-            style <| StyleSheet.compose styles.item styles.firstItem
-
-          else if i == len - 1 then
-            style <| StyleSheet.compose styles.item styles.lastItem
-
-          else
-            style styles.item
-        , style
-            (\{ pressed } ->
-                { backgroundColor =
-                    if pressed then
-                        borderColor
-
-                    else
-                        "white"
-                }
-            )
-        ]
-        (\_ ->
+        [ onPress (Decode.succeed <| ExampleListMsg <| GotoExample info) ]
+        (\{ pressed } ->
             view
-                [ style styles.itemContent ]
+                [ if len == 1 then
+                    style <| StyleSheet.compose3 styles.item styles.firstItem styles.lastItem
+
+                  else if i == 0 then
+                    style <| StyleSheet.compose styles.item styles.firstItem
+
+                  else if i == len - 1 then
+                    style <| StyleSheet.compose styles.item styles.lastItem
+
+                  else
+                    style styles.item
+                , style
+                    { backgroundColor =
+                        if pressed then
+                            borderColor
+
+                        else
+                            "white"
+                    }
+                ]
                 [ exampleIcon
                 , view
-                    [ style <| styles.itemRight i ]
+                    [ if i == 0 then
+                        style <| StyleSheet.compose styles.itemRight styles.firstItemRight
+
+                      else
+                        style styles.itemRight
+                    ]
                     [ text [] [ str info.title ]
                     , arrowRight
                     ]
