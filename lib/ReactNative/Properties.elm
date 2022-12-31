@@ -28,11 +28,13 @@ module ReactNative.Properties exposing
     , refreshCtrl
     , refreshing
     , renderItem
+    , renderSectionFooter
     , renderSectionHeader
     , resizeMode
     , sections
     , showHideTransition
     , source
+    , stickySectionHeadersEnabled
     , stringValue
     , style
     , thumbColor
@@ -67,7 +69,7 @@ sections =
     property "sections" << encode
 
 
-keyExtractor : (a -> String) -> Attribute msg
+keyExtractor : (a -> Int -> String) -> Attribute msg
 keyExtractor =
     property "keyExtractor" << encode
 
@@ -82,6 +84,11 @@ renderSectionHeader =
     property "renderSectionHeader" << encode
 
 
+renderSectionFooter : (a -> Html msg) -> Attribute msg
+renderSectionFooter =
+    property "renderSectionFooter" << encode
+
+
 contentContainerStyle : a -> Attribute msg
 contentContainerStyle =
     property "contentContainerStyle" << encode
@@ -93,6 +100,14 @@ boolValue =
 
 stringValue =
     property "value" << Encode.string
+
+
+extraData =
+    property "extraData" << encode
+
+
+stickySectionHeadersEnabled =
+    property "stickySectionHeadersEnabled" << Encode.bool
 
 
 numberOfLines =

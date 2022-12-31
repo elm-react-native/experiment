@@ -33,6 +33,7 @@ module ReactNative exposing
 import Html exposing (node)
 import Json.Encode as Encode
 import ReactNative.Properties exposing (property)
+import ReactNative.SectionList as SectionList
 
 
 {-| <https://lefkowitz.me/visual-guide-to-react-native-textinput-keyboardtype-options/>
@@ -106,7 +107,7 @@ scrollView =
 
 
 sectionList =
-    node "SectionList"
+    SectionList.sectionList
 
 
 statusBar =

@@ -27,6 +27,7 @@ import ReactNative.Properties exposing (barStyle, component, contentContainerSty
 import ReactNative.StyleSheet as StyleSheet
 import RefreshControlExample
 import ScrollViewExample
+import SectionListExample
 import StackNavigatorExample
 import StatusBarExample
 import SwitchExample
@@ -678,6 +679,32 @@ exampleApps =
         , root = ScrollViewExample.root
         , subs = ScrollViewExample.subs
         }
+    , toGeneralExampleApp
+        SectionListExample
+        (\model ->
+            case model of
+                SectionListExample m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        SectionListExampleMsg
+        (\msg ->
+            case msg of
+                SectionListExampleMsg m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        { id = "SectionListExample"
+        , title = "SectionList"
+        , init = \_ -> SectionListExample.init ()
+        , update = SectionListExample.update
+        , root = SectionListExample.root
+        , subs = SectionListExample.subs
+        }
     ]
 
 
@@ -720,6 +747,7 @@ type ExampleModel
     | TextInputExample TextInputExample.Model
     | KeyboardAvoidingViewExample KeyboardAvoidingViewExample.Model
     | ScrollViewExample ScrollViewExample.Model
+    | SectionListExample SectionListExample.Model
 
 
 type alias ExampleInfo =
@@ -779,6 +807,7 @@ type ExampleMsg
     | TextInputExampleMsg TextInputExample.Msg
     | KeyboardAvoidingViewExampleMsg KeyboardAvoidingViewExample.Msg
     | ScrollViewExampleMsg ScrollViewExample.Msg
+    | SectionListExampleMsg SectionListExample.Msg
 
 
 type ExampleListMsg

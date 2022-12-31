@@ -3,7 +3,7 @@ module EasingExample exposing (..)
 import Browser
 import Html exposing (Html)
 import Json.Decode as Decode
-import ReactNative exposing (safeAreaView, sectionList, statusBar, str, text, touchableOpacity, view)
+import ReactNative exposing (null, safeAreaView, sectionList, statusBar, str, text, touchableOpacity, view)
 import ReactNative.Animated as Animated
 import ReactNative.Easing as Easing
 import ReactNative.Events exposing (onPress)
@@ -172,20 +172,19 @@ root model =
                 []
             ]
         , sectionList
-            [ style styles.list
-            , sections model
-            , keyExtractor (\{ title } -> title)
-            , renderItem
-                (\{ item } ->
+            { sections = model
+            , keyExtractor = \{ title } _ -> title
+            , renderItem =
+                \{ item } ->
                     touchableOpacity
                         [ style styles.listRow
                         , onPress <| Decode.succeed <| StartAnimate item.easing
                         ]
                         [ text [] [ str item.title ] ]
-                )
-            , renderSectionHeader (\{ section } -> text [ style styles.listHeader ] [ str section.title ])
-            ]
-            []
+            , renderSectionHeader = \{ section } -> text [ style styles.listHeader ] [ str section.title ]
+            , renderSectionFooter = \_ -> null
+            }
+            [ style styles.list ]
         ]
 
 
