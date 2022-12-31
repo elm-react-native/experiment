@@ -335,9 +335,15 @@ function _VirtualDom_factsToReactProps(inputProps, eventNode) {
       } else if (key === "style") {
         const v = _Json_unwrap(value);
         if (typeof v === "function") {
-          props.style = (...args) => {
-            return _List_toArray(v(...args)).map(_Json_unwrap_nested);
-          };
+          const st = props.style;
+          if (st) {
+            props.style = (...args) => [st, v(...args)];
+          } else {
+            props.style = (...args) => [v(...args)];
+          }
+        } else if (typeof props.style === "function") {
+          const st = props.style;
+          props.style = (...args) => [...st(...args), v];
         } else if (props.style) {
           props.style = StyleSheet.compose(props.style, _Json_unwrap(value));
         } else {
@@ -387,9 +393,6 @@ const FlatListComponent = (props) => {
   const eventNode = React.useContext(EventNodeContext);
   const actualProps = _VirtualDom_factsToReactProps(props, eventNode);
   const { data, ...rest } = actualProps;
-  const data2 = React.useMemo(
-    () => _List_toArray(data || _list_Nil),
-    [data]
-  );
+  const data2 = React.useMemo(() => _List_toArray(data || _list_Nil), [data]);
   return <FlatList {...rest} data={data2}></FlatList>;
 };

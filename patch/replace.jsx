@@ -496,3 +496,8 @@ var $author$project$ReactNative$Transforms$transform = function (trans) {
         trans))
     });
 };
+
+var $author$project$ReactNative$pressable = F2(
+  function (props, children) {
+    return A3($elm$html$Html$node, 'Pressable', props, _List_Cons(state => listToChildren(children(state)), _List_Nil));
+  });

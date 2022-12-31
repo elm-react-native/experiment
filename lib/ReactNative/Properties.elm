@@ -1,5 +1,9 @@
 module ReactNative.Properties exposing
     ( ItemLayout
+    , RippleConfig
+    , activeOpacity
+    , android_disableSound
+    , android_ripple
     , animated
     , animationType
     , backgroundColor
@@ -10,6 +14,7 @@ module ReactNative.Properties exposing
     , component
     , contentContainerStyle
     , data
+    , delayLongPress
     , disabled
     , editable
     , encode
@@ -56,6 +61,8 @@ module ReactNative.Properties exposing
     , title
     , trackColor
     , transparent
+    , underlayColor
+    , unstable_pressDelay
     , visible
     , windowSize
     )
@@ -151,12 +158,41 @@ progressViewOffset =
     property "progressViewOffset" << Encode.float
 
 
+activeOpacity =
+    property "activeOpacity" << Encode.float
+
+
+delayLongPress =
+    property "delayLongPress" << Encode.int
+
+
+unstable_pressDelay =
+    property "unstable_pressDelay" << Encode.int
+
+
+type alias RippleConfig =
+    { color : String
+    , borderless : Bool
+    , radius : Float
+    , foreground : Bool
+    }
+
+
+android_ripple : RippleConfig -> Attribute msg
+android_ripple =
+    property "android_ripple" << encode
+
+
 maxLength =
     property "maxLength" << Encode.int
 
 
 multiline =
     property "multiline" << Encode.bool
+
+
+android_disableSound =
+    property "android_disableSound" << Encode.bool
 
 
 options : a -> Attribute msg
@@ -311,6 +347,10 @@ ios_backgroundColor =
     property "ios_backgroundColor" << Encode.string
 
 
+underlayColor =
+    property "underlayColor" << Encode.string
+
+
 getItem : (data -> item) -> Attribute msg
 getItem fn =
     property "getItem" <| encode fn
@@ -329,3 +369,17 @@ type alias ItemLayout =
 getItemLayout : (data -> Int -> ItemLayout) -> Attribute msg
 getItemLayout fn =
     property "getItemLayout" <| encode fn
+
+
+type alias Rect =
+    { top : Maybe Float, left : Maybe Float, right : Maybe Float, bottom : Maybe Float }
+
+
+hitSlop : Rect -> Attribute msg
+hitSlop =
+    property "hitSlop" << encode
+
+
+pressRetentionOffset : Rect -> Attribute msg
+pressRetentionOffset =
+    property "pressRetentionOffset" << encode

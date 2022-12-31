@@ -1,4 +1,15 @@
-module ReactNative.Events exposing (onBoolValueChange, onChangeText, onClick, onPress, onRefresh, onRequestClose, onSubmitEditing)
+module ReactNative.Events exposing
+    ( onBoolValueChange
+    , onChangeText
+    , onClick
+    , onLongPress
+    , onPress
+    , onPressIn
+    , onPressOut
+    , onRefresh
+    , onRequestClose
+    , onSubmitEditing
+    )
 
 import Html exposing (Attribute)
 import Html.Events exposing (on)
@@ -7,6 +18,18 @@ import Json.Decode as Decode
 
 onPress =
     on "press"
+
+
+onPressIn =
+    on "pressIn"
+
+
+onPressOut =
+    on "pressOut"
+
+
+onLongPress =
+    on "longPress"
 
 
 onClick =

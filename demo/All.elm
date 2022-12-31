@@ -19,6 +19,7 @@ import KeyboardExample
 import ModalExample
 import PanResponderExample
 import PlatformColorExample
+import PressableExample
 import ReactNative exposing (button, null, pressable, safeAreaView, scrollView, statusBar, str, text, touchableOpacity, view)
 import ReactNative.Events exposing (onPress)
 import ReactNative.Navigation as Nav
@@ -732,6 +733,32 @@ exampleApps =
         , root = FlatListExample.root
         , subs = FlatListExample.subs
         }
+    , toGeneralExampleApp
+        PressableExample
+        (\model ->
+            case model of
+                PressableExample m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        PressableExampleMsg
+        (\msg ->
+            case msg of
+                PressableExampleMsg m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        { id = "PressableExample"
+        , title = "Pressable"
+        , init = \_ -> PressableExample.init ()
+        , update = PressableExample.update
+        , root = PressableExample.root
+        , subs = PressableExample.subs
+        }
     ]
 
 
@@ -776,6 +803,7 @@ type ExampleModel
     | ScrollViewExample ScrollViewExample.Model
     | SectionListExample SectionListExample.Model
     | FlatListExample FlatListExample.Model
+    | PressableExample PressableExample.Model
 
 
 type alias ExampleInfo =
@@ -837,6 +865,7 @@ type ExampleMsg
     | ScrollViewExampleMsg ScrollViewExample.Msg
     | SectionListExampleMsg SectionListExample.Msg
     | FlatListExampleMsg FlatListExample.Msg
+    | PressableExampleMsg PressableExample.Msg
 
 
 type ExampleListMsg

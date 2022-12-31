@@ -125,7 +125,7 @@ root model =
                         , style styles.buttonClose
                         , onPress (Decode.succeed CloseModal)
                         ]
-                        [ text [ style styles.textStyle ] [ str "Hide Modal" ] ]
+                        (\_ -> [ text [ style styles.textStyle ] [ str "Hide Modal" ] ])
                     ]
                 ]
             ]
@@ -134,7 +134,7 @@ root model =
             , style styles.buttonOpen
             , onPress (Decode.succeed ShowModal)
             ]
-            [ text [ style styles.textStyle ] [ str "Show Modal" ] ]
+            (\_ -> [ text [ style styles.textStyle ] [ str "Show Modal" ] ])
         ]
 
 

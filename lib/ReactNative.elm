@@ -30,7 +30,7 @@ module ReactNative exposing
     , virtualizedList
     )
 
-import Html exposing (node)
+import Html exposing (Attribute, Html, node)
 import Json.Encode as Encode
 import ReactNative.FlatList as FlatList
 import ReactNative.Properties exposing (property)
@@ -96,8 +96,9 @@ modal =
     node "Modal"
 
 
-pressable =
-    node "Pressable"
+pressable : List (Attribute msg) -> ({ state | pressed : Bool } -> List (Html msg)) -> Html msg
+pressable props children =
+    node "Pressable" props []
 
 
 scrollView =
