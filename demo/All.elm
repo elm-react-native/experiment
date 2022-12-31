@@ -9,6 +9,7 @@ import ButtonExample
 import DimensionsExample
 import EasingExample
 import Html exposing (Html)
+import Html.Lazy exposing (lazy)
 import ImageExample
 import Json.Decode as Decode
 import KeyboardAvoidingViewExample
@@ -125,27 +126,27 @@ type alias Model =
 init : N.Key -> ( Model, Cmd Msg )
 init key =
     ( { list =
-            [ { id = "AnimationExample", title = "Animation Example", key = key }
-            , { id = "ButtonExample", title = "Button Example", key = key }
-            , { id = "PanResponderExample", title = "PanResponder Example", key = key }
-            , { id = "PlatformColorExample", title = "PlatformColor Example", key = key }
-            , { id = "StackNavigatorExample", title = "StackNavigator Example", key = key }
-            , { id = "VibrationExample", title = "Vibration Example", key = key }
-            , { id = "VirtualListExample", title = "VirtualList Example", key = key }
-            , { id = "AppStateExample", title = "AppState Example", key = key }
-            , { id = "ModalExample", title = "Modal Example", key = key }
-            , { id = "RefreshControlExample", title = "RefreshControl Example", key = key }
-            , { id = "EasingExample", title = "Easing Example", key = key }
-            , { id = "StatusBarExample", title = "StatusBar Example", key = key }
-            , { id = "DimensionsExample", title = "Dimensions Example", key = key }
-            , { id = "KeyboardExample", title = "Keyboard Example", key = key }
-            , { id = "TransformsExample", title = "Transforms Example", key = key }
-            , { id = "AlertExample", title = "Alert Example", key = key }
-            , { id = "ImageExample", title = "Image Example", key = key }
-            , { id = "SwitchExample", title = "Switch Example", key = key }
-            , { id = "TextExample", title = "Text Example", key = key }
-            , { id = "TextInputExample", title = "TextInput Example", key = key }
-            , { id = "KeyboardAvoidingViewExample", title = "KeyboardAvoidingView Example", key = key }
+            [ { id = "AnimationExample", title = "Animation", key = key }
+            , { id = "ButtonExample", title = "Button", key = key }
+            , { id = "PanResponderExample", title = "PanResponder", key = key }
+            , { id = "PlatformColorExample", title = "PlatformColor", key = key }
+            , { id = "StackNavigatorExample", title = "StackNavigator", key = key }
+            , { id = "VibrationExample", title = "Vibration", key = key }
+            , { id = "VirtualListExample", title = "VirtualList", key = key }
+            , { id = "AppStateExample", title = "AppState", key = key }
+            , { id = "ModalExample", title = "Modal", key = key }
+            , { id = "RefreshControlExample", title = "RefreshControl", key = key }
+            , { id = "EasingExample", title = "Easing", key = key }
+            , { id = "StatusBarExample", title = "StatusBar", key = key }
+            , { id = "DimensionsExample", title = "Dimensions", key = key }
+            , { id = "KeyboardExample", title = "Keyboard", key = key }
+            , { id = "TransformsExample", title = "Transforms", key = key }
+            , { id = "AlertExample", title = "Alert", key = key }
+            , { id = "ImageExample", title = "Image", key = key }
+            , { id = "SwitchExample", title = "Switch", key = key }
+            , { id = "TextExample", title = "Text", key = key }
+            , { id = "TextInputExample", title = "TextInput", key = key }
+            , { id = "KeyboardAvoidingViewExample", title = "KeyboardAvoidingView", key = key }
             ]
       , detail = Nothing
       }
@@ -482,13 +483,36 @@ update msg model =
 
 
 styles =
+    let
+        borderColor =
+            "gray"
+
+        borderWidth =
+            StyleSheet.hairlineWidth
+    in
     StyleSheet.create
-        { list =
+        { container =
             { display = "flex"
-            , alignItems = "flex-start"
+            , alignItems = "center"
+            , padding = 20
+            }
+        , list =
+            { display = "flex"
+            , alignItems = "center"
+            , backgroundColor = "white"
+            , width = "100%"
+            , borderRadius = 10
+            , borderWidth = borderWidth
+            , borderColor = borderColor
             }
         , item =
-            { margin = 10 }
+            { padding = 15
+            , borderTopWidth = borderWidth
+            , width = "100%"
+            , borderTopColor = borderColor
+            , fontWeight = "bold"
+            }
+        , firstItem = { borderTopWidth = 0 }
         }
 
 
@@ -592,22 +616,35 @@ detailsRoot model =
             Html.map (ExampleMsg << KeyboardAvoidingViewExampleMsg) <| KeyboardAvoidingViewExample.root m
 
 
-exampleItem info =
+exampleItem i info =
     view
-        [ style styles.item ]
+        [ if i == 0 then
+            style <| StyleSheet.compose styles.item styles.firstItem
+
+          else
+            style styles.item
+        ]
         [ touchableOpacity
-            [ onPress (Decode.succeed <| ExampleListMsg <| GotoExample info)
-            ]
+            [ onPress (Decode.succeed <| ExampleListMsg <| GotoExample info) ]
             [ text [] [ str info.title ] ]
         ]
 
 
-listScreen model _ =
+exampleList list =
     safeAreaView []
         [ scrollView
-            [ contentContainerStyle styles.list ]
-            (List.map exampleItem model.list)
+            [ contentContainerStyle styles.container ]
+            [ view [ style styles.list ]
+                (list
+                    |> List.sortBy .title
+                    |> List.indexedMap exampleItem
+                )
+            ]
         ]
+
+
+listScreen model _ =
+    lazy exampleList model.list
 
 
 main : Program () Model Msg

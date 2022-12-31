@@ -7,7 +7,7 @@ create =
 
 
 hairlineWidth =
-    {}
+    0
 
 
 absoluteFill =
@@ -15,5 +15,5 @@ absoluteFill =
 
 
 compose : a -> b -> b
-compose a =
-    identity
+compose a b =
+    b

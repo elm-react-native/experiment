@@ -178,11 +178,10 @@ var _Browser_replaceUrl = F2(function(key, url)
   }));
 });
 
-var $author$project$ReactNative$StyleSheet$compose = function (a) {
-  return function(b) {
+var $author$project$ReactNative$StyleSheet$compose = F2(
+  function (a, b) {
     return StyleSheet.compose(a, b);
-  };
-};
+  });
 
 var $author$project$ReactNative$Vibrate$cancel = function () {
   return A2($elm$core$Task$perform, $elm$core$Basics$never, _Scheduler_binding(function() {
