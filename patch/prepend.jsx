@@ -37,6 +37,8 @@ import {
   Dimensions,
   Keyboard,
 } from "react-native";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import {
   NavigationContainer,
   createNavigationContainerRef,
@@ -74,6 +76,8 @@ const allComponents = {
   "Stack.Navigator": Stack.Navigator,
   "Animated.View": Animated.View,
   Fragment: React.Fragment,
+  Ionicons,
+  MaterialIcons,
 };
 
 const EventNodeContext = React.createContext();

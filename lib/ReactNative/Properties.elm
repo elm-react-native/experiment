@@ -53,6 +53,7 @@ module ReactNative.Properties exposing
     , resizeMode
     , sections
     , showHideTransition
+    , size
     , source
     , stickySectionHeadersEnabled
     , stringValue
@@ -300,6 +301,10 @@ inverted =
 
 initialNumToRender =
     property "initialNumToRender" << Encode.int
+
+
+size =
+    property "size" << Encode.int
 
 
 initialScrollIndex =

@@ -8,7 +8,9 @@ module ReactNative exposing
     , image
     , imageBackground
     , inputAccessoryView
+    , ionicon
     , keyboardAvoidingView
+    , materialIcon
     , modal
     , null
     , pressable
@@ -33,7 +35,7 @@ module ReactNative exposing
 import Html exposing (Attribute, Html, node)
 import Json.Encode as Encode
 import ReactNative.FlatList as FlatList
-import ReactNative.Properties exposing (property)
+import ReactNative.Properties exposing (name, property)
 import ReactNative.SectionList as SectionList
 import ReactNative.VirtualizedList as VirtualizedList
 
@@ -168,3 +170,13 @@ fragment =
 
 null =
     fragment [] []
+
+
+ionicon : String -> List (Attribute msg) -> Html msg
+ionicon n props =
+    node "Ionicons" (name n :: props) []
+
+
+materialIcon : String -> List (Attribute msg) -> Html msg
+materialIcon n props =
+    node "MaterialIcons" (name n :: props) []

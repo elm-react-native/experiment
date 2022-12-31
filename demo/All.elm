@@ -20,12 +20,12 @@ import ModalExample
 import PanResponderExample
 import PlatformColorExample
 import PressableExample
-import ReactNative exposing (button, null, pressable, safeAreaView, scrollView, statusBar, str, text, touchableOpacity, view)
+import ReactNative exposing (button, image, materialIcon, null, pressable, require, safeAreaView, scrollView, statusBar, str, text, touchableOpacity, view)
 import ReactNative.Events exposing (onPress)
 import ReactNative.Navigation as Nav
 import ReactNative.Navigation.Listeners as Listeners
 import ReactNative.Navigation.Stack as Stack
-import ReactNative.Properties exposing (barStyle, component, contentContainerStyle, getId, initialParams, name, options, style, title)
+import ReactNative.Properties exposing (barStyle, color, component, contentContainerStyle, getId, initialParams, name, options, size, source, style, title)
 import ReactNative.StyleSheet as StyleSheet
 import RefreshControlExample
 import ScrollViewExample
@@ -937,11 +937,12 @@ update msg model =
 -- VIEW
 
 
+borderColor =
+    "#ccc"
+
+
 styles =
     let
-        borderColor =
-            "gray"
-
         borderWidth =
             StyleSheet.hairlineWidth
     in
@@ -957,17 +958,40 @@ styles =
             , backgroundColor = "white"
             , width = "100%"
             , borderRadius = 10
-            , borderWidth = borderWidth
-            , borderColor = borderColor
             }
         , item =
-            { padding = 15
-            , borderTopWidth = borderWidth
+            { height = 44
             , width = "100%"
-            , borderTopColor = borderColor
             , fontWeight = "bold"
             }
-        , firstItem = { borderTopWidth = 0 }
+        , firstItem =
+            { borderTopLeftRadius = 10
+            , borderTopRightRadius = 10
+            }
+        , lastItem =
+            { borderBottomLeftRadius = 10
+            , borderBottomRightRadius = 10
+            }
+        , itemContent =
+            { flexDirection = "row"
+            , alignItems = "center"
+            , height = 44
+            }
+        , itemRight =
+            \i ->
+                { borderTopWidth = borderWidth
+                , borderTopColor =
+                    if i == 0 then
+                        "transparent"
+
+                    else
+                        borderColor
+                , height = "100%"
+                , flexGrow = 1
+                , flexDirection = "row"
+                , justifyContent = "space-between"
+                , alignItems = "center"
+                }
         }
 
 
@@ -1007,18 +1031,59 @@ detailsScreen model _ =
             null
 
 
-exampleItem i info =
-    view
-        [ if i == 0 then
+exampleIcon =
+    image
+        [ style
+            { marginHorizontal = 12
+            , width = 24
+            , height = 24
+            }
+        , source <| require "./assets/favicon.png"
+        ]
+        []
+
+
+arrowRight =
+    materialIcon "keyboard-arrow-right"
+        [ style { marginHorizontal = 12 }
+        , size 16
+        , color "#b3b3b3"
+        ]
+
+
+exampleItem len i info =
+    pressable
+        [ onPress (Decode.succeed <| ExampleListMsg <| GotoExample info)
+        , if i == 0 then
             style <| StyleSheet.compose styles.item styles.firstItem
+
+          else if i == len - 1 then
+            style <| StyleSheet.compose styles.item styles.lastItem
 
           else
             style styles.item
+        , style
+            (\{ pressed } ->
+                { backgroundColor =
+                    if pressed then
+                        borderColor
+
+                    else
+                        "white"
+                }
+            )
         ]
-        [ touchableOpacity
-            [ onPress (Decode.succeed <| ExampleListMsg <| GotoExample info) ]
-            [ text [] [ str info.title ] ]
-        ]
+        (\_ ->
+            view
+                [ style styles.itemContent ]
+                [ exampleIcon
+                , view
+                    [ style <| styles.itemRight i ]
+                    [ text [] [ str info.title ]
+                    , arrowRight
+                    ]
+                ]
+        )
 
 
 exampleList list =
@@ -1028,7 +1093,7 @@ exampleList list =
             [ view [ style styles.list ]
                 (list
                     |> List.sortBy .title
-                    |> List.indexedMap exampleItem
+                    |> List.indexedMap (exampleItem <| List.length list)
                 )
             ]
         ]
