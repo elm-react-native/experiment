@@ -96,7 +96,7 @@ modal =
     node "Modal"
 
 
-pressable : List (Attribute msg) -> ({ state | pressed : Bool } -> List (Html msg)) -> Html msg
+pressable : List (Attribute msg) -> ({ state | pressed : Bool } -> Html msg) -> Html msg
 pressable props children =
     node "Pressable" props []
 

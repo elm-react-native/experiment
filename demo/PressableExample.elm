@@ -122,7 +122,7 @@ root model =
                 )
             ]
             (\{ pressed } ->
-                [ text
+                text
                     [ style
                         (if pressed then
                             { color = "red" }
@@ -132,7 +132,6 @@ root model =
                         )
                     ]
                     [ str "Pressable" ]
-                ]
             )
         , view [ style styles.countContainer ]
             [ text [ style styles.countText ]
