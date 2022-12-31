@@ -81,7 +81,7 @@ root model =
         ]
 
 
-subs =
+subs _ =
     AppState.onChange AppStateChanged
 
 
@@ -91,5 +91,5 @@ main =
         { init = init
         , view = root
         , update = update
-        , subscriptions = \_ -> subs
+        , subscriptions = subs
         }

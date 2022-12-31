@@ -29,6 +29,10 @@ init key =
     ( { key = key }, Cmd.none )
 
 
+subs _ =
+    Sub.none
+
+
 main : Program () Model Msg
 main =
     Browser.application
@@ -39,7 +43,7 @@ main =
                 , body = [ root model ]
                 }
         , update = update
-        , subscriptions = \_ -> Sub.none
+        , subscriptions = subs
         , onUrlChange = \_ -> NoOp
         , onUrlRequest = \_ -> NoOp
         }

@@ -123,11 +123,15 @@ root model =
         ]
 
 
+subs _ =
+    Sub.none
+
+
 main : Program () Model Msg
 main =
     Browser.document
         { init = init
         , view = \model -> { title = "", body = [ root model ] }
         , update = update
-        , subscriptions = \_ -> Sub.none
+        , subscriptions = subs
         }

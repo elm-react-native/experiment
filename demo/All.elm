@@ -6,6 +6,7 @@ import AppStateExample
 import Browser
 import Browser.Navigation as N
 import ButtonExample
+import Dict exposing (Dict)
 import DimensionsExample
 import EasingExample
 import Html exposing (Html)
@@ -17,7 +18,7 @@ import KeyboardExample
 import ModalExample
 import PanResponderExample
 import PlatformColorExample
-import ReactNative exposing (button, pressable, safeAreaView, scrollView, statusBar, str, text, touchableOpacity, view)
+import ReactNative exposing (button, null, pressable, safeAreaView, scrollView, statusBar, str, text, touchableOpacity, view)
 import ReactNative.Events exposing (onPress)
 import ReactNative.Navigation as Nav
 import ReactNative.Navigation.Listeners as Listeners
@@ -35,54 +36,637 @@ import VibrationExample
 import VirtualListExample
 
 
+type alias ExampleApp model msg =
+    { id : String
+    , title : String
+    , init : N.Key -> ( model, Cmd msg )
+    , update : msg -> model -> ( model, Cmd msg )
+    , root : model -> Html msg
+    , subs : model -> Sub msg
+    }
 
-{- TODO
-   type alias ExampleApp =
-       { init : () -> ( ExampleModel, Cmd ExampleMsg )
-       , update : ExampleMsg -> ExampleModel -> ( ExampleModel, Cmd ExampleMsg )
-       , root : ExampleModel -> Html ExampleMsg
-       , id : String
-       }
+
+type alias GeneralExampleApp =
+    ExampleApp ExampleModel ExampleMsg
 
 
-   examples : List ExampleApp
-   examples =
-       [ { id = "AnimationExample"
-         , init =
-               \() ->
-                   let
-                       ( newModel, cmd ) =
-                           AnimationExample.init ()
-                   in
-                   ( AnimationExample newModel, Cmd.map AnimationExampleMsg cmd )
-         , update =
-               \msg model ->
-                   case msg of
-                       AnimationExampleMsg msg2 ->
-                           case model of
-                               AnimationExample model2 ->
-                                   let
-                                       ( newModel, cmd ) =
-                                           AnimationExample.update msg2 model2
-                                   in
-                                   ( AnimationExample newModel, Cmd.map AnimationExampleMsg cmd )
+toGeneralExampleApp :
+    (model -> ExampleModel)
+    -> (ExampleModel -> Maybe model)
+    -> (msg -> ExampleMsg)
+    -> (ExampleMsg -> Maybe msg)
+    -> ExampleApp model msg
+    -> GeneralExampleApp
+toGeneralExampleApp modelTagger modelUntagger msgTagger msgUntagger app =
+    { init =
+        \key ->
+            let
+                ( md, cmd ) =
+                    app.init key
+            in
+            ( modelTagger md, Cmd.map msgTagger cmd )
+    , update =
+        \msg model ->
+            case msgUntagger msg of
+                Just msg1 ->
+                    case modelUntagger model of
+                        Just model1 ->
+                            let
+                                ( md, cmd ) =
+                                    app.update msg1 model1
+                            in
+                            ( modelTagger md, Cmd.map msgTagger cmd )
 
-                               _ ->
-                                   ( model, Cmd.none )
+                        _ ->
+                            ( model, Cmd.none )
 
-                       _ ->
-                           ( model, Cmd.none )
-         , root =
-               \model ->
-                   case model of
-                       AnimationExample model2 ->
-                           Html.map AnimationExampleMsg <| AnimationExample.root model2
+                _ ->
+                    ( model, Cmd.none )
+    , root =
+        \model ->
+            case modelUntagger model of
+                Just model1 ->
+                    Html.map msgTagger <| app.root model1
 
-                       _ ->
-                           empty
-         }
-       ]
--}
+                _ ->
+                    null
+    , subs =
+        \model ->
+            case modelUntagger model of
+                Just model1 ->
+                    Sub.map msgTagger <| app.subs model1
+
+                _ ->
+                    Sub.none
+    , id = app.id
+    , title = app.title
+    }
+
+
+exampleApps : List GeneralExampleApp
+exampleApps =
+    [ toGeneralExampleApp
+        AnimationExample
+        (\model ->
+            case model of
+                AnimationExample m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        AnimationExampleMsg
+        (\msg ->
+            case msg of
+                AnimationExampleMsg m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        { id = "AnimationExample"
+        , title = "Animation"
+        , init = \_ -> AnimationExample.init ()
+        , update = AnimationExample.update
+        , root = AnimationExample.root
+        , subs = AnimationExample.subs
+        }
+    , toGeneralExampleApp
+        ButtonExample
+        (\model ->
+            case model of
+                ButtonExample m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        ButtonExampleMsg
+        (\msg ->
+            case msg of
+                ButtonExampleMsg m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        { id = "ButtonExample"
+        , title = "Button"
+        , init = \_ -> ButtonExample.init ()
+        , update = ButtonExample.update
+        , root = ButtonExample.root
+        , subs = ButtonExample.subs
+        }
+    , toGeneralExampleApp
+        AlertExample
+        (\model ->
+            case model of
+                AlertExample m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        AlertExampleMsg
+        (\msg ->
+            case msg of
+                AlertExampleMsg m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        { id = "AlertExample"
+        , title = "Alert"
+        , init = \_ -> AlertExample.init ()
+        , update = AlertExample.update
+        , root = AlertExample.root
+        , subs = AlertExample.subs
+        }
+    , toGeneralExampleApp
+        AppStateExample
+        (\model ->
+            case model of
+                AppStateExample m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        AppStateExampleMsg
+        (\msg ->
+            case msg of
+                AppStateExampleMsg m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        { id = "AppStateExample"
+        , title = "AppState"
+        , init = \_ -> AppStateExample.init ()
+        , update = AppStateExample.update
+        , root = AppStateExample.root
+        , subs = AppStateExample.subs
+        }
+    , toGeneralExampleApp
+        DimensionsExample
+        (\model ->
+            case model of
+                DimensionsExample m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        DimensionsExampleMsg
+        (\msg ->
+            case msg of
+                DimensionsExampleMsg m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        { id = "DimensionsExample"
+        , title = "Dimensions"
+        , init = \_ -> DimensionsExample.init ()
+        , update = DimensionsExample.update
+        , root = DimensionsExample.root
+        , subs = DimensionsExample.subs
+        }
+    , toGeneralExampleApp
+        EasingExample
+        (\model ->
+            case model of
+                EasingExample m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        EasingExampleMsg
+        (\msg ->
+            case msg of
+                EasingExampleMsg m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        { id = "EasingExample"
+        , title = "Easing"
+        , init = \_ -> EasingExample.init ()
+        , update = EasingExample.update
+        , root = EasingExample.root
+        , subs = EasingExample.subs
+        }
+    , toGeneralExampleApp
+        ImageExample
+        (\model ->
+            case model of
+                ImageExample m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        ImageExampleMsg
+        (\msg ->
+            case msg of
+                ImageExampleMsg m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        { id = "ImageExample"
+        , title = "Image"
+        , init = \_ -> ImageExample.init ()
+        , update = ImageExample.update
+        , root = ImageExample.root
+        , subs = ImageExample.subs
+        }
+    , toGeneralExampleApp
+        KeyboardAvoidingViewExample
+        (\model ->
+            case model of
+                KeyboardAvoidingViewExample m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        KeyboardAvoidingViewExampleMsg
+        (\msg ->
+            case msg of
+                KeyboardAvoidingViewExampleMsg m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        { id = "KeyboardAvoidingViewExample"
+        , title = "KeyboardAvoidingView"
+        , init = \_ -> KeyboardAvoidingViewExample.init ()
+        , update = KeyboardAvoidingViewExample.update
+        , root = KeyboardAvoidingViewExample.root
+        , subs = KeyboardAvoidingViewExample.subs
+        }
+    , toGeneralExampleApp
+        KeyboardExample
+        (\model ->
+            case model of
+                KeyboardExample m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        KeyboardExampleMsg
+        (\msg ->
+            case msg of
+                KeyboardExampleMsg m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        { id = "KeyboardExample"
+        , title = "Keyboard"
+        , init = \_ -> KeyboardExample.init ()
+        , update = KeyboardExample.update
+        , root = KeyboardExample.root
+        , subs = KeyboardExample.subs
+        }
+    , toGeneralExampleApp
+        ModalExample
+        (\model ->
+            case model of
+                ModalExample m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        ModalExampleMsg
+        (\msg ->
+            case msg of
+                ModalExampleMsg m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        { id = "ModalExample"
+        , title = "Modal"
+        , init = \_ -> ModalExample.init ()
+        , update = ModalExample.update
+        , root = ModalExample.root
+        , subs = ModalExample.subs
+        }
+    , toGeneralExampleApp
+        PanResponderExample
+        (\model ->
+            case model of
+                PanResponderExample m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        PanResponderExampleMsg
+        (\msg ->
+            case msg of
+                PanResponderExampleMsg m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        { id = "PanResponderExample"
+        , title = "PanResponder"
+        , init = \_ -> PanResponderExample.init ()
+        , update = PanResponderExample.update
+        , root = PanResponderExample.root
+        , subs = PanResponderExample.subs
+        }
+    , toGeneralExampleApp
+        PlatformColorExample
+        (\model ->
+            case model of
+                PlatformColorExample m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        PlatformColorExampleMsg
+        (\msg ->
+            case msg of
+                PlatformColorExampleMsg m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        { id = "PlatformColorExample"
+        , title = "PlatformColor"
+        , init = \_ -> PlatformColorExample.init ()
+        , update = PlatformColorExample.update
+        , root = PlatformColorExample.root
+        , subs = PlatformColorExample.subs
+        }
+    , toGeneralExampleApp
+        RefreshControlExample
+        (\model ->
+            case model of
+                RefreshControlExample m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        RefreshControlExampleMsg
+        (\msg ->
+            case msg of
+                RefreshControlExampleMsg m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        { id = "RefreshControlExample"
+        , title = "RefreshControl"
+        , init = \_ -> RefreshControlExample.init ()
+        , update = RefreshControlExample.update
+        , root = RefreshControlExample.root
+        , subs = RefreshControlExample.subs
+        }
+    , toGeneralExampleApp
+        StackNavigatorExample
+        (\model ->
+            case model of
+                StackNavigatorExample m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        StackNavigatorExampleMsg
+        (\msg ->
+            case msg of
+                StackNavigatorExampleMsg m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        { id = "StackNavigatorExample"
+        , title = "StackNavigator"
+        , init = StackNavigatorExample.init
+        , update = StackNavigatorExample.update
+        , root = StackNavigatorExample.root
+        , subs = StackNavigatorExample.subs
+        }
+    , toGeneralExampleApp
+        StatusBarExample
+        (\model ->
+            case model of
+                StatusBarExample m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        StatusBarExampleMsg
+        (\msg ->
+            case msg of
+                StatusBarExampleMsg m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        { id = "StatusBarExample"
+        , title = "StatusBar"
+        , init = \_ -> StatusBarExample.init ()
+        , update = StatusBarExample.update
+        , root = StatusBarExample.root
+        , subs = StatusBarExample.subs
+        }
+    , toGeneralExampleApp
+        SwitchExample
+        (\model ->
+            case model of
+                SwitchExample m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        SwitchExampleMsg
+        (\msg ->
+            case msg of
+                SwitchExampleMsg m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        { id = "SwitchExample"
+        , title = "Switch"
+        , init = \_ -> SwitchExample.init ()
+        , update = SwitchExample.update
+        , root = SwitchExample.root
+        , subs = SwitchExample.subs
+        }
+    , toGeneralExampleApp
+        TextExample
+        (\model ->
+            case model of
+                TextExample m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        TextExampleMsg
+        (\msg ->
+            case msg of
+                TextExampleMsg m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        { id = "TextExample"
+        , title = "Text"
+        , init = \_ -> TextExample.init ()
+        , update = TextExample.update
+        , root = TextExample.root
+        , subs = TextExample.subs
+        }
+    , toGeneralExampleApp
+        TextInputExample
+        (\model ->
+            case model of
+                TextInputExample m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        TextInputExampleMsg
+        (\msg ->
+            case msg of
+                TextInputExampleMsg m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        { id = "TextInputExample"
+        , title = "TextInput"
+        , init = \_ -> TextInputExample.init ()
+        , update = TextInputExample.update
+        , root = TextInputExample.root
+        , subs = TextInputExample.subs
+        }
+    , toGeneralExampleApp
+        TransformsExample
+        (\model ->
+            case model of
+                TransformsExample m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        TransformsExampleMsg
+        (\msg ->
+            case msg of
+                TransformsExampleMsg m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        { id = "TransformsExample"
+        , title = "Transforms"
+        , init = \_ -> TransformsExample.init ()
+        , update = TransformsExample.update
+        , root = TransformsExample.root
+        , subs = TransformsExample.subs
+        }
+    , toGeneralExampleApp
+        VibrationExample
+        (\model ->
+            case model of
+                VibrationExample m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        VibrationExampleMsg
+        (\msg ->
+            case msg of
+                VibrationExampleMsg m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        { id = "VibrationExample"
+        , title = "Vibration"
+        , init = \_ -> VibrationExample.init ()
+        , update = VibrationExample.update
+        , root = VibrationExample.root
+        , subs = VibrationExample.subs
+        }
+    , toGeneralExampleApp
+        VirtualListExample
+        (\model ->
+            case model of
+                VirtualListExample m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        VirtualListExampleMsg
+        (\msg ->
+            case msg of
+                VirtualListExampleMsg m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        { id = "VirtualListExample"
+        , title = "VirtualList"
+        , init = \_ -> VirtualListExample.init ()
+        , update = VirtualListExample.update
+        , root = VirtualListExample.root
+        , subs = VirtualListExample.subs
+        }
+    ]
+
+
+exampleAppsDict : Dict String GeneralExampleApp
+exampleAppsDict =
+    exampleApps
+        |> List.map (\app -> ( app.id, app ))
+        |> Dict.fromList
+
+
+getExampleApp : String -> Maybe GeneralExampleApp
+getExampleApp id =
+    Dict.get id exampleAppsDict
+
+
+
 -- MODEL
 
 
@@ -126,28 +710,14 @@ type alias Model =
 init : N.Key -> ( Model, Cmd Msg )
 init key =
     ( { list =
-            [ { id = "AnimationExample", title = "Animation", key = key }
-            , { id = "ButtonExample", title = "Button", key = key }
-            , { id = "PanResponderExample", title = "PanResponder", key = key }
-            , { id = "PlatformColorExample", title = "PlatformColor", key = key }
-            , { id = "StackNavigatorExample", title = "StackNavigator", key = key }
-            , { id = "VibrationExample", title = "Vibration", key = key }
-            , { id = "VirtualListExample", title = "VirtualList", key = key }
-            , { id = "AppStateExample", title = "AppState", key = key }
-            , { id = "ModalExample", title = "Modal", key = key }
-            , { id = "RefreshControlExample", title = "RefreshControl", key = key }
-            , { id = "EasingExample", title = "Easing", key = key }
-            , { id = "StatusBarExample", title = "StatusBar", key = key }
-            , { id = "DimensionsExample", title = "Dimensions", key = key }
-            , { id = "KeyboardExample", title = "Keyboard", key = key }
-            , { id = "TransformsExample", title = "Transforms", key = key }
-            , { id = "AlertExample", title = "Alert", key = key }
-            , { id = "ImageExample", title = "Image", key = key }
-            , { id = "SwitchExample", title = "Switch", key = key }
-            , { id = "TextExample", title = "Text", key = key }
-            , { id = "TextInputExample", title = "TextInput", key = key }
-            , { id = "KeyboardAvoidingViewExample", title = "KeyboardAvoidingView", key = key }
-            ]
+            List.map
+                (\app ->
+                    { id = app.id
+                    , title = app.title
+                    , key = key
+                    }
+                )
+                exampleApps
       , detail = Nothing
       }
     , Cmd.none
@@ -197,263 +767,31 @@ updateList : ExampleListMsg -> Model -> ( Model, Cmd Msg )
 updateList msg model =
     case msg of
         GotoExample info ->
-            let
-                ( exampleModel, exampleCmd ) =
-                    initExample info
-            in
-            ( { model | detail = Just ( info, exampleModel ) }
-            , Cmd.batch [ Nav.push info.key "ExampleDetails" { exampleId = info.id, exampleTitle = info.title }, Cmd.map ExampleMsg exampleCmd ]
-            )
+            case initExample info of
+                Just ( exampleModel, exampleCmd ) ->
+                    ( { model | detail = Just ( info, exampleModel ) }
+                    , Cmd.batch [ Nav.push info.key "ExampleDetails" { exampleId = info.id, exampleTitle = info.title }, Cmd.map ExampleMsg exampleCmd ]
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
 
         FocusListScreen ->
             ( { model | detail = Nothing }, Cmd.none )
 
 
-initExample : ExampleInfo -> ( ExampleModel, Cmd ExampleMsg )
+initExample : ExampleInfo -> Maybe ( ExampleModel, Cmd ExampleMsg )
 initExample info =
-    let
-        fromExampleCmd tagger tagger1 ( model, cmd ) =
-            ( tagger model, Cmd.map tagger1 cmd )
-    in
-    case info.id of
-        "AnimationExample" ->
-            fromExampleCmd AnimationExample AnimationExampleMsg <| AnimationExample.init ()
-
-        "ButtonExample" ->
-            fromExampleCmd ButtonExample ButtonExampleMsg <| ButtonExample.init ()
-
-        "PanResponderExample" ->
-            fromExampleCmd PanResponderExample PanResponderExampleMsg <| PanResponderExample.init ()
-
-        "PlatformColorExample" ->
-            fromExampleCmd PlatformColorExample PlatformColorExampleMsg <| PlatformColorExample.init ()
-
-        "StackNavigatorExample" ->
-            fromExampleCmd StackNavigatorExample StackNavigatorExampleMsg <| StackNavigatorExample.init info.key
-
-        "VibrationExample" ->
-            fromExampleCmd VibrationExample VibrationExampleMsg <| VibrationExample.init ()
-
-        "VirtualListExample" ->
-            fromExampleCmd VirtualListExample VirtualListExampleMsg <| VirtualListExample.init ()
-
-        "AppStateExample" ->
-            fromExampleCmd AppStateExample AppStateExampleMsg <| AppStateExample.init ()
-
-        "ModalExample" ->
-            fromExampleCmd ModalExample ModalExampleMsg <| ModalExample.init ()
-
-        "RefreshControlExample" ->
-            fromExampleCmd RefreshControlExample RefreshControlExampleMsg <| RefreshControlExample.init ()
-
-        "EasingExample" ->
-            fromExampleCmd EasingExample EasingExampleMsg <| EasingExample.init ()
-
-        "StatusBarExample" ->
-            fromExampleCmd StatusBarExample StatusBarExampleMsg <| StatusBarExample.init ()
-
-        "DimensionsExample" ->
-            fromExampleCmd DimensionsExample DimensionsExampleMsg <| DimensionsExample.init ()
-
-        "KeyboardExample" ->
-            fromExampleCmd KeyboardExample KeyboardExampleMsg <| KeyboardExample.init ()
-
-        "TransformsExample" ->
-            fromExampleCmd TransformsExample TransformsExampleMsg <| TransformsExample.init ()
-
-        "AlertExample" ->
-            fromExampleCmd AlertExample AlertExampleMsg <| AlertExample.init ()
-
-        "ImageExample" ->
-            fromExampleCmd ImageExample ImageExampleMsg <| ImageExample.init ()
-
-        "SwitchExample" ->
-            fromExampleCmd SwitchExample SwitchExampleMsg <| SwitchExample.init ()
-
-        "TextExample" ->
-            fromExampleCmd TextExample TextExampleMsg <| TextExample.init ()
-
-        "TextInputExample" ->
-            fromExampleCmd TextInputExample TextInputExampleMsg <| TextInputExample.init ()
-
-        _ ->
-            fromExampleCmd KeyboardAvoidingViewExample KeyboardAvoidingViewExampleMsg <| KeyboardAvoidingViewExample.init ()
+    info.id
+        |> getExampleApp
+        |> Maybe.map (\app -> app.init info.key)
 
 
-updateExample : ExampleMsg -> ( ExampleInfo, ExampleModel ) -> ( ExampleModel, Cmd ExampleMsg )
+updateExample : ExampleMsg -> ( ExampleInfo, ExampleModel ) -> Maybe ( ExampleModel, Cmd ExampleMsg )
 updateExample msg ( info, model ) =
-    let
-        fromExampleCmd tagger tagger1 ( exampleModel, cmd ) =
-            ( tagger exampleModel, Cmd.map tagger1 cmd )
-    in
-    case msg of
-        AnimationExampleMsg m ->
-            case model of
-                AnimationExample exampleModel ->
-                    fromExampleCmd AnimationExample AnimationExampleMsg <| AnimationExample.update m exampleModel
-
-                _ ->
-                    ( model, Cmd.none )
-
-        ButtonExampleMsg m ->
-            case model of
-                ButtonExample exampleModel ->
-                    fromExampleCmd ButtonExample ButtonExampleMsg <| ButtonExample.update m exampleModel
-
-                _ ->
-                    ( model, Cmd.none )
-
-        PanResponderExampleMsg m ->
-            case model of
-                PanResponderExample exampleModel ->
-                    fromExampleCmd PanResponderExample PanResponderExampleMsg <| PanResponderExample.update m exampleModel
-
-                _ ->
-                    ( model, Cmd.none )
-
-        PlatformColorExampleMsg m ->
-            case model of
-                PlatformColorExample exampleModel ->
-                    fromExampleCmd PlatformColorExample PlatformColorExampleMsg <| PlatformColorExample.update m exampleModel
-
-                _ ->
-                    ( model, Cmd.none )
-
-        StackNavigatorExampleMsg m ->
-            case model of
-                StackNavigatorExample exampleModel ->
-                    fromExampleCmd StackNavigatorExample StackNavigatorExampleMsg <| StackNavigatorExample.update m exampleModel
-
-                _ ->
-                    ( model, Cmd.none )
-
-        VibrationExampleMsg m ->
-            case model of
-                VibrationExample exampleModel ->
-                    fromExampleCmd VibrationExample VibrationExampleMsg <| VibrationExample.update m exampleModel
-
-                _ ->
-                    ( model, Cmd.none )
-
-        VirtualListExampleMsg m ->
-            case model of
-                VirtualListExample exampleModel ->
-                    fromExampleCmd VirtualListExample VirtualListExampleMsg <| VirtualListExample.update m exampleModel
-
-                _ ->
-                    ( model, Cmd.none )
-
-        AppStateExampleMsg m ->
-            case model of
-                AppStateExample exampleModel ->
-                    fromExampleCmd AppStateExample AppStateExampleMsg <| AppStateExample.update m exampleModel
-
-                _ ->
-                    ( model, Cmd.none )
-
-        ModalExampleMsg m ->
-            case model of
-                ModalExample exampleModel ->
-                    fromExampleCmd ModalExample ModalExampleMsg <| ModalExample.update m exampleModel
-
-                _ ->
-                    ( model, Cmd.none )
-
-        RefreshControlExampleMsg m ->
-            case model of
-                RefreshControlExample exampleModel ->
-                    fromExampleCmd RefreshControlExample RefreshControlExampleMsg <| RefreshControlExample.update m exampleModel
-
-                _ ->
-                    ( model, Cmd.none )
-
-        EasingExampleMsg m ->
-            case model of
-                EasingExample exampleModel ->
-                    fromExampleCmd EasingExample EasingExampleMsg <| EasingExample.update m exampleModel
-
-                _ ->
-                    ( model, Cmd.none )
-
-        StatusBarExampleMsg m ->
-            case model of
-                StatusBarExample exampleModel ->
-                    fromExampleCmd StatusBarExample StatusBarExampleMsg <| StatusBarExample.update m exampleModel
-
-                _ ->
-                    ( model, Cmd.none )
-
-        DimensionsExampleMsg m ->
-            case model of
-                DimensionsExample exampleModel ->
-                    fromExampleCmd DimensionsExample DimensionsExampleMsg <| DimensionsExample.update m exampleModel
-
-                _ ->
-                    ( model, Cmd.none )
-
-        KeyboardExampleMsg m ->
-            case model of
-                KeyboardExample exampleModel ->
-                    fromExampleCmd KeyboardExample KeyboardExampleMsg <| KeyboardExample.update m exampleModel
-
-                _ ->
-                    ( model, Cmd.none )
-
-        TransformsExampleMsg m ->
-            case model of
-                TransformsExample exampleModel ->
-                    fromExampleCmd TransformsExample TransformsExampleMsg <| TransformsExample.update m exampleModel
-
-                _ ->
-                    ( model, Cmd.none )
-
-        AlertExampleMsg m ->
-            case model of
-                AlertExample exampleModel ->
-                    fromExampleCmd AlertExample AlertExampleMsg <| AlertExample.update m exampleModel
-
-                _ ->
-                    ( model, Cmd.none )
-
-        ImageExampleMsg m ->
-            case model of
-                ImageExample exampleModel ->
-                    fromExampleCmd ImageExample ImageExampleMsg <| ImageExample.update m exampleModel
-
-                _ ->
-                    ( model, Cmd.none )
-
-        SwitchExampleMsg m ->
-            case model of
-                SwitchExample exampleModel ->
-                    fromExampleCmd SwitchExample SwitchExampleMsg <| SwitchExample.update m exampleModel
-
-                _ ->
-                    ( model, Cmd.none )
-
-        TextExampleMsg m ->
-            case model of
-                TextExample exampleModel ->
-                    fromExampleCmd TextExample TextExampleMsg <| TextExample.update m exampleModel
-
-                _ ->
-                    ( model, Cmd.none )
-
-        TextInputExampleMsg m ->
-            case model of
-                TextInputExample exampleModel ->
-                    fromExampleCmd TextInputExample TextInputExampleMsg <| TextInputExample.update m exampleModel
-
-                _ ->
-                    ( model, Cmd.none )
-
-        KeyboardAvoidingViewExampleMsg m ->
-            case model of
-                KeyboardAvoidingViewExample exampleModel ->
-                    fromExampleCmd KeyboardAvoidingViewExample KeyboardAvoidingViewExampleMsg <| KeyboardAvoidingViewExample.update m exampleModel
-
-                _ ->
-                    ( model, Cmd.none )
+    info.id
+        |> getExampleApp
+        |> Maybe.map (\app -> app.update msg model)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -468,11 +806,12 @@ update msg model =
         ExampleMsg exampleMsg ->
             case model.detail of
                 Just detail ->
-                    let
-                        ( exampleModel2, exampleCmd ) =
-                            updateExample exampleMsg detail
-                    in
-                    ( { model | detail = Just ( Tuple.first detail, exampleModel2 ) }, Cmd.map ExampleMsg exampleCmd )
+                    case updateExample exampleMsg detail of
+                        Just ( exampleModel2, exampleCmd ) ->
+                            ( { model | detail = Just ( Tuple.first detail, exampleModel2 ) }, Cmd.map ExampleMsg exampleCmd )
+
+                        _ ->
+                            ( model, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
@@ -516,8 +855,8 @@ styles =
         }
 
 
-empty =
-    view [] []
+exampleListTitle =
+    "Examples (" ++ String.fromInt (List.length exampleApps) ++ ")"
 
 
 root : Model -> Html Msg
@@ -526,7 +865,7 @@ root model =
         [ Stack.screen
             [ name "List"
             , component listScreen
-            , options { title = "Examples" }
+            , options { title = exampleListTitle }
             , Stack.listeners [ Listeners.focus <| Decode.succeed <| ExampleListMsg FocusListScreen ]
             ]
             []
@@ -543,77 +882,13 @@ root model =
 detailsScreen model _ =
     case model.detail of
         Just ( exampleInfo, exampleModel ) ->
-            detailsRoot exampleModel
+            exampleInfo.id
+                |> getExampleApp
+                |> Maybe.map (\app -> Html.map ExampleMsg <| app.root exampleModel)
+                |> Maybe.withDefault null
 
         _ ->
-            empty
-
-
-detailsRoot : ExampleModel -> Html Msg
-detailsRoot model =
-    case model of
-        AnimationExample m ->
-            Html.map (ExampleMsg << AnimationExampleMsg) <| AnimationExample.root m
-
-        ButtonExample m ->
-            Html.map (ExampleMsg << ButtonExampleMsg) <| ButtonExample.root m
-
-        PanResponderExample m ->
-            Html.map (ExampleMsg << PanResponderExampleMsg) <| PanResponderExample.root m
-
-        PlatformColorExample m ->
-            Html.map (ExampleMsg << PlatformColorExampleMsg) <| PlatformColorExample.root m
-
-        StackNavigatorExample m ->
-            Html.map (ExampleMsg << StackNavigatorExampleMsg) <| StackNavigatorExample.root m
-
-        VibrationExample m ->
-            Html.map (ExampleMsg << VibrationExampleMsg) <| VibrationExample.root m
-
-        VirtualListExample m ->
-            Html.map (ExampleMsg << VirtualListExampleMsg) <| VirtualListExample.root m
-
-        AppStateExample m ->
-            Html.map (ExampleMsg << AppStateExampleMsg) <| AppStateExample.root m
-
-        ModalExample m ->
-            Html.map (ExampleMsg << ModalExampleMsg) <| ModalExample.root m
-
-        RefreshControlExample m ->
-            Html.map (ExampleMsg << RefreshControlExampleMsg) <| RefreshControlExample.root m
-
-        EasingExample m ->
-            Html.map (ExampleMsg << EasingExampleMsg) <| EasingExample.root m
-
-        StatusBarExample m ->
-            Html.map (ExampleMsg << StatusBarExampleMsg) <| StatusBarExample.root m
-
-        DimensionsExample m ->
-            Html.map (ExampleMsg << DimensionsExampleMsg) <| DimensionsExample.root m
-
-        KeyboardExample m ->
-            Html.map (ExampleMsg << KeyboardExampleMsg) <| KeyboardExample.root m
-
-        TransformsExample m ->
-            Html.map (ExampleMsg << TransformsExampleMsg) <| TransformsExample.root m
-
-        AlertExample m ->
-            Html.map (ExampleMsg << AlertExampleMsg) <| AlertExample.root m
-
-        ImageExample m ->
-            Html.map (ExampleMsg << ImageExampleMsg) <| ImageExample.root m
-
-        SwitchExample m ->
-            Html.map (ExampleMsg << SwitchExampleMsg) <| SwitchExample.root m
-
-        TextExample m ->
-            Html.map (ExampleMsg << TextExampleMsg) <| TextExample.root m
-
-        TextInputExample m ->
-            Html.map (ExampleMsg << TextInputExampleMsg) <| TextInputExample.root m
-
-        KeyboardAvoidingViewExample m ->
-            Html.map (ExampleMsg << KeyboardAvoidingViewExampleMsg) <| KeyboardAvoidingViewExample.root m
+            null
 
 
 exampleItem i info =
@@ -663,16 +938,11 @@ main =
         , subscriptions =
             \model ->
                 case model.detail of
-                    Just ( exampleInfo, _ ) ->
-                        case exampleInfo.id of
-                            "AppStateExample" ->
-                                Sub.map (ExampleMsg << AppStateExampleMsg) AppStateExample.subs
-
-                            "KeyboardExample" ->
-                                Sub.map (ExampleMsg << KeyboardExampleMsg) KeyboardExample.subs
-
-                            _ ->
-                                Sub.none
+                    Just ( exampleInfo, exampleModel ) ->
+                        exampleInfo.id
+                            |> getExampleApp
+                            |> Maybe.map (\app -> Sub.map ExampleMsg <| app.subs exampleModel)
+                            |> Maybe.withDefault Sub.none
 
                     _ ->
                         Sub.none

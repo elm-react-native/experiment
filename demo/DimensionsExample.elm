@@ -91,11 +91,15 @@ root model =
         ]
 
 
+subs _ =
+    Dimensions.onChange <| Decode.map DimensionsValueChanged dimensionsValueDecoder
+
+
 main : Program () Model Msg
 main =
     Browser.element
         { init = init
         , view = root
         , update = update
-        , subscriptions = \_ -> Dimensions.onChange <| Decode.map DimensionsValueChanged dimensionsValueDecoder
+        , subscriptions = subs
         }

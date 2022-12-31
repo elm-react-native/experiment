@@ -86,7 +86,8 @@ root model =
         ]
 
 
-subs =
+subs : Model -> Sub Msg
+subs _ =
     Sub.batch
         [ Keyboard.onDidShow <| Decode.succeed KeyboardDidShow
         , Keyboard.onDidHide <| Decode.succeed KeyboardDidHide
@@ -99,5 +100,5 @@ main =
         { init = init
         , view = root
         , update = update
-        , subscriptions = \_ -> subs
+        , subscriptions = subs
         }

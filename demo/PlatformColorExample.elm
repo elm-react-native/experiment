@@ -69,11 +69,15 @@ root model =
         [ text [ style styles.label ] [ str "I am a special label color!" ] ]
 
 
+subs _ =
+    Sub.none
+
+
 main : Program () Model Msg
 main =
     Browser.element
         { init = init
         , view = root
         , update = update
-        , subscriptions = \_ -> Sub.none
+        , subscriptions = subs
         }

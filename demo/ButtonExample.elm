@@ -14,13 +14,17 @@ import ReactNative.StyleSheet as StyleSheet
 import Task
 
 
+subs _ =
+    Sub.none
+
+
 main : Program () Model Msg
 main =
     Browser.element
         { init = init
         , view = root
         , update = update
-        , subscriptions = \_ -> Sub.none
+        , subscriptions = subs
         }
 
 
