@@ -45,6 +45,7 @@ import StatusBarExample
 import SwitchExample
 import TextExample
 import TextInputExample
+import ToastAndroidExample
 import TransformsExample
 import VibrationExample
 import VirtualizedListExample
@@ -1008,6 +1009,32 @@ exampleApps =
                     , root = BackHandlerExample.root
                     , subs = BackHandlerExample.subs
                     }
+                , toGeneralExampleApp
+                    ToastAndroidExample
+                    (\model ->
+                        case model of
+                            ToastAndroidExample m ->
+                                Just m
+
+                            _ ->
+                                Nothing
+                    )
+                    ToastAndroidExampleMsg
+                    (\msg ->
+                        case msg of
+                            ToastAndroidExampleMsg m ->
+                                Just m
+
+                            _ ->
+                                Nothing
+                    )
+                    { id = "ToastAndroidExample"
+                    , title = "ToastAndroid"
+                    , init = \_ -> ToastAndroidExample.init ()
+                    , update = ToastAndroidExample.update
+                    , root = ToastAndroidExample.root
+                    , subs = ToastAndroidExample.subs
+                    }
                 ]
            )
 
@@ -1063,6 +1090,7 @@ type ExampleModel
     | ActionSheetIOSExample ActionSheetIOSExample.Model
     | SettingsExample SettingsExample.Model
     | BackHandlerExample BackHandlerExample.Model
+    | ToastAndroidExample ToastAndroidExample.Model
 
 
 type alias ExampleInfo =
@@ -1134,6 +1162,7 @@ type ExampleMsg
     | ActionSheetIOSExampleMsg ActionSheetIOSExample.Msg
     | SettingsExampleMsg SettingsExample.Msg
     | BackHandlerExampleMsg BackHandlerExample.Msg
+    | ToastAndroidExampleMsg ToastAndroidExample.Msg
 
 
 type ExampleListMsg

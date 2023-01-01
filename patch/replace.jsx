@@ -147,6 +147,40 @@ var $author$project$ReactNative$ActionSheetIOS$show = F2(
     });
   });
 
+var $author$project$ReactNative$ToastAndroid$show = F2(
+  function (msg, duration) {
+    return _Scheduler_binding(function(callback) {
+      ToastAndroid.show(msg, duration);
+      callback(_Scheduler_succeed(_Utils_Tuple0));
+    });
+  });
+
+var $author$project$ReactNative$ToastAndroid$toGravity = function (gravity) {
+  switch (gravity.$) {
+    case 'Top':
+      return ToastAndroid.TOP;
+    case 'Center':
+      return ToastAndroid.CENTER;
+    default:
+      return ToastAndroid.BOTTOM;
+  }
+};
+var $author$project$ReactNative$ToastAndroid$showWithGravity = F3(
+  function (msg, duration, gravity) {
+    return _Scheduler_binding(function(callback) {
+      ToastAndroid.showWithGravity(msg, duration, $author$project$ReactNative$ToastAndroid$toGravity(gravity));
+      callback(_Scheduler_succeed(_Utils_Tuple0));
+    });
+  });
+
+var $author$project$ReactNative$ToastAndroid$showWithGravityAndOffset = F5(
+  function (msg, duration, gravity, xOffset, yOffset) {
+    return _Scheduler_binding(function(callback) {
+      ToastAndroid.showWithGravityAndOffset(msg, duration, $author$project$ReactNative$ToastAndroid$toGravity(gravity), xOffset, yOffset);
+      callback(_Scheduler_succeed(_Utils_Tuple0));
+    });
+  });
+
 var $author$project$ReactNative$Alert$alert = F2(
   function (title, props) {
     return _Scheduler_binding(function(callback) {
@@ -464,7 +498,6 @@ var $author$project$ReactNative$Linking$getInitialURL = function () {
 var $author$project$ReactNative$Linking$sendIntent = F2(
   function (action, extras) {
     return _Scheduler_binding(function(callback) {
-      console.log("extras", _Json_unwrap(extras));
       Linking.sendIntent(action, _Json_unwrap(extras)).then(() => callback(_Scheduler_succeed(_Utils_Tuple0)));
     });
   });
@@ -623,7 +656,6 @@ var $author$project$ReactNative$PixelRatio$getPixelSizeForLayoutSize = function 
   return PixelRatio.getPixelSizeForLayoutSize(layoutSize);
 };
 var $author$project$ReactNative$PixelRatio$roundToNearestPixel = function (layoutSize) {
-  console.log("layoutSize", PixelRatio.roundToNearestPixel(layoutSize));
   return PixelRatio.roundToNearestPixel(layoutSize);
 };
 var $author$project$ReactNative$Platform$constants = function (decoder) {

@@ -154,6 +154,8 @@ const replacers = [
   variableReplacer("Platform$select", "Platform.select"),
   variableReplacer("StyleSheet$hairlineWidth", "StyleSheet.hairlineWidth"),
   variableReplacer("StyleSheet$create", "StyleSheet.create"),
+  variableReplacer("ToastAndroid$durationShort", "ToastAndroid.SHORT"),
+  variableReplacer("ToastAndroid$durationLong", "ToastAndroid.LONG"),
   variableReplacer("StatusBar$currentHeight", "StatusBar.currentHeight"),
   variableReplacer("Platform$interfaceIdiom", "Platform.interfaceIdiom"),
 ];

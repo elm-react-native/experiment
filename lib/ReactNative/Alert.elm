@@ -22,7 +22,6 @@ module ReactNative.Alert exposing
 
 import Json.Decode as Decode
 import Json.Encode as Encode exposing (Value)
-import Process
 import ReactNative exposing (KeyboardType)
 import ReactNative.Platform as Platform
 import ReactNative.Properties exposing (encode)
