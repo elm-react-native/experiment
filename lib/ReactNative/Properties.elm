@@ -56,6 +56,7 @@ module ReactNative.Properties exposing
     , size
     , source
     , stickySectionHeadersEnabled
+    , stringSize
     , stringValue
     , style
     , thumbColor
@@ -303,8 +304,12 @@ initialNumToRender =
     property "initialNumToRender" << Encode.int
 
 
-size =
+stringSize =
     property "size" << Encode.string
+
+
+size =
+    property "size" << Encode.int
 
 
 initialScrollIndex =

@@ -3,7 +3,7 @@ module ActivityIndicatorExample exposing (..)
 import Browser
 import Html exposing (Html)
 import ReactNative exposing (activityIndicator, str, text, view)
-import ReactNative.Properties exposing (color, size, style)
+import ReactNative.Properties exposing (color, stringSize, style)
 import ReactNative.StyleSheet as StyleSheet
 
 
@@ -57,9 +57,9 @@ root : Model -> Html Msg
 root model =
     view [ style styles.container, style styles.horizontal ]
         [ activityIndicator [] []
-        , activityIndicator [ size "large" ] []
-        , activityIndicator [ size "small", color "#0000ff" ] []
-        , activityIndicator [ size "large", color "#00ff00" ] []
+        , activityIndicator [ stringSize "large" ] []
+        , activityIndicator [ stringSize "small", color "#0000ff" ] []
+        , activityIndicator [ stringSize "large", color "#00ff00" ] []
         ]
 
 

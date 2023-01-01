@@ -1211,7 +1211,7 @@ exampleIcon =
 arrowRight =
     materialIcon "keyboard-arrow-right"
         [ style { marginHorizontal = 12 }
-        , size "16"
+        , size 16
         , color "#b3b3b3"
         ]
 
