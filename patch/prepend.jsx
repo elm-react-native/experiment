@@ -41,6 +41,7 @@ import {
   PixelRatio,
   Share,
   ActionSheetIOS,
+  DynamicColorIOS,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";

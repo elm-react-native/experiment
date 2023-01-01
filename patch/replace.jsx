@@ -187,6 +187,15 @@ var _Browser_go = F2(function(key, n)
   }));
 });
 
+var $author$project$ReactNative$DynamicColorIOS$setWithHighContrast = F4(
+  function (light, dark, highContrastLight, highContrastDark) {
+    return A2($elm$core$Task$perform, $elm$core$Basics$never, _Scheduler_binding(function() {
+      if (Platform.os === "ios") {
+        DynamicColorIOS({light, dark, highContrastLight: highContrastLight.a, highContrastDark: highContrastDark.a});
+      }
+    }));
+  });
+
 var $author$project$ReactNative$Navigation$push = F3(
   function (k, s, p) {
     return A2($elm$core$Task$perform, $elm$core$Basics$never, _Scheduler_binding(function() {
