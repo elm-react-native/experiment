@@ -579,3 +579,43 @@ var $author$project$ReactNative$Platform$constants = function (decoder) {
 var $author$project$ReactNative$Platform$constants = function () {
   return JSON.stringify(Platform.constants);
 }();
+
+var $author$project$ReactNative$Share$share = F2(
+  function (content, options) {
+    return _Scheduler_binding(function(callback) {
+      Share.share(content, options.a)
+      .then((res) => {
+        res.action = $author$project$ReactNative$Share$toAction(res.action);
+        callback(_Scheduler_succeed(res));
+      })
+      .catch((err) => {
+        callback(_Scheduler_fail(err.message));
+      });
+    });
+  });
+
+var $author$project$ReactNative$Share$share = function (props) {
+  const content = {};
+  const options = {};
+  for ( ; props.b; props=props.b ) { // WHILE_CONS
+    const p = props.a;
+    const k = p.a;
+    const v = _Json_unwrap(p.b);
+    if (k === "message" || k === "title" || k === "url") {
+      content[k] = v;
+    } else {
+      options[k] = v;
+    }
+  }
+
+  return _Scheduler_binding(function(callback) {
+    Share.share(content, options)
+    .then((res) => {
+      res.action = $author$project$ReactNative$Share$toAction(res.action);
+      callback(_Scheduler_succeed(res));
+    })
+    .catch((err) => {
+      callback(_Scheduler_fail(err.message));
+    });
+  });
+};

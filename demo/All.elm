@@ -35,6 +35,7 @@ import ReactNative.StyleSheet as StyleSheet
 import RefreshControlExample
 import ScrollViewExample
 import SectionListExample
+import ShareExample
 import StackNavigatorExample
 import StatusBarExample
 import SwitchExample
@@ -894,6 +895,32 @@ exampleApps =
         , root = ActivityIndicatorExample.root
         , subs = ActivityIndicatorExample.subs
         }
+    , toGeneralExampleApp
+        ShareExample
+        (\model ->
+            case model of
+                ShareExample m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        ShareExampleMsg
+        (\msg ->
+            case msg of
+                ShareExampleMsg m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        { id = "ShareExample"
+        , title = "Share"
+        , init = \_ -> ShareExample.init ()
+        , update = ShareExample.update
+        , root = ShareExample.root
+        , subs = ShareExample.subs
+        }
     ]
 
 
@@ -944,6 +971,7 @@ type ExampleModel
     | PixelRatioExample PixelRatioExample.Model
     | PlatformExample PlatformExample.Model
     | ActivityIndicatorExample ActivityIndicatorExample.Model
+    | ShareExample ShareExample.Model
 
 
 type alias ExampleInfo =
@@ -1011,6 +1039,7 @@ type ExampleMsg
     | PixelRatioExampleMsg PixelRatioExample.Msg
     | PlatformExampleMsg PlatformExample.Msg
     | ActivityIndicatorExampleMsg ActivityIndicatorExample.Msg
+    | ShareExampleMsg ShareExample.Msg
 
 
 type ExampleListMsg
