@@ -6,6 +6,7 @@ import AlertExample
 import AnimationExample
 import AppStateExample
 import AppearanceExample
+import BackHandlerExample
 import Browser
 import Browser.Navigation as N
 import ButtonExample
@@ -981,7 +982,33 @@ exampleApps =
                 ]
 
             else
-                []
+                [ toGeneralExampleApp
+                    BackHandlerExample
+                    (\model ->
+                        case model of
+                            BackHandlerExample m ->
+                                Just m
+
+                            _ ->
+                                Nothing
+                    )
+                    BackHandlerExampleMsg
+                    (\msg ->
+                        case msg of
+                            BackHandlerExampleMsg m ->
+                                Just m
+
+                            _ ->
+                                Nothing
+                    )
+                    { id = "BackHandlerExample"
+                    , title = "BackHandler"
+                    , init = \_ -> BackHandlerExample.init ()
+                    , update = BackHandlerExample.update
+                    , root = BackHandlerExample.root
+                    , subs = BackHandlerExample.subs
+                    }
+                ]
            )
 
 
@@ -1035,6 +1062,7 @@ type ExampleModel
     | ShareExample ShareExample.Model
     | ActionSheetIOSExample ActionSheetIOSExample.Model
     | SettingsExample SettingsExample.Model
+    | BackHandlerExample BackHandlerExample.Model
 
 
 type alias ExampleInfo =
@@ -1105,6 +1133,7 @@ type ExampleMsg
     | ShareExampleMsg ShareExample.Msg
     | ActionSheetIOSExampleMsg ActionSheetIOSExample.Msg
     | SettingsExampleMsg SettingsExample.Msg
+    | BackHandlerExampleMsg BackHandlerExample.Msg
 
 
 type ExampleListMsg

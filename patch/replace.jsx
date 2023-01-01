@@ -187,6 +187,12 @@ var _Browser_go = F2(function(key, n)
   }));
 });
 
+var $author$project$ReactNative$BackHandler$exitApp = function () {
+  return A2($elm$core$Task$perform, $elm$core$Basics$never, _Scheduler_binding(function() {
+    BackHandler.exitApp();
+  }));
+}();
+
 var $author$project$ReactNative$DynamicColorIOS$setWithHighContrast = F4(
   function (light, dark, highContrastLight, highContrastDark) {
     return A2($elm$core$Task$perform, $elm$core$Basics$never, _Scheduler_binding(function() {
@@ -493,6 +499,9 @@ var _Browser_on = F3(function(node, eventName, sendToSelf)
       eventSubs = Keyboard.addListener(eventName, handler);
     } else if (eventName === "appearanceChange") {
       eventSubs = Appearance.addChangeListener(handler);
+    } else if (eventName === "hardwareBackPress") {
+      // FIXME: return base on preventDefault (or stopPropagation?)
+      eventSubs = BackHandler.addEventListener(eventName, (e) => { handler(e); return true; });
     } else if (eventName.startsWith(WATCH_SETTING_PREFIX)) {
       const watchId = Settings.watchKeys(eventName.substr(WATCH_SETTING_PREFIX.length), handler);
       eventSubs = { remove: () => Settings.clearWatch(watchId) };
@@ -578,6 +587,13 @@ var $author$project$ReactNative$Settings$watchKey = F2(
       `watchSetting_${key}`,
       decoder);
   });
+
+var $author$project$ReactNative$BackHandler$onHardwareBackPress = function (msg) {
+  return A3($elm$browser$Browser$Events$on,
+    $elm$browser$Browser$Events$Document,
+    "hardwareBackPress",
+    $elm$json$Json$Decode$succeed(msg));
+};
 
 var $author$project$ReactNative$Transforms$transform = function (trans) {
   return $author$project$ReactNative$Properties$style(
