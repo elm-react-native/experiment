@@ -17,6 +17,7 @@ import FlatListExample
 import Html exposing (Html)
 import Html.Lazy exposing (lazy)
 import ImageExample
+import InputAccessoryViewExample
 import Json.Decode as Decode
 import KeyboardAvoidingViewExample
 import KeyboardExample
@@ -980,6 +981,32 @@ exampleApps =
                     , root = SettingsExample.root
                     , subs = SettingsExample.subs
                     }
+                , toGeneralExampleApp
+                    InputAccessoryViewExample
+                    (\model ->
+                        case model of
+                            InputAccessoryViewExample m ->
+                                Just m
+
+                            _ ->
+                                Nothing
+                    )
+                    InputAccessoryViewExampleMsg
+                    (\msg ->
+                        case msg of
+                            InputAccessoryViewExampleMsg m ->
+                                Just m
+
+                            _ ->
+                                Nothing
+                    )
+                    { id = "InputAccessoryViewExample"
+                    , title = "InputAccessoryView"
+                    , init = \_ -> InputAccessoryViewExample.init ()
+                    , update = InputAccessoryViewExample.update
+                    , root = InputAccessoryViewExample.root
+                    , subs = InputAccessoryViewExample.subs
+                    }
                 ]
 
             else
@@ -1091,6 +1118,7 @@ type ExampleModel
     | SettingsExample SettingsExample.Model
     | BackHandlerExample BackHandlerExample.Model
     | ToastAndroidExample ToastAndroidExample.Model
+    | InputAccessoryViewExample InputAccessoryViewExample.Model
 
 
 type alias ExampleInfo =
@@ -1163,6 +1191,7 @@ type ExampleMsg
     | SettingsExampleMsg SettingsExample.Msg
     | BackHandlerExampleMsg BackHandlerExample.Msg
     | ToastAndroidExampleMsg ToastAndroidExample.Msg
+    | InputAccessoryViewExampleMsg InputAccessoryViewExample.Msg
 
 
 type ExampleListMsg

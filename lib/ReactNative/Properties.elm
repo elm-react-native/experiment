@@ -27,14 +27,17 @@ module ReactNative.Properties exposing
     , initialNumToRender
     , initialParams
     , initialScrollIndex
+    , inputAccessoryViewID
     , inverted
     , ios_backgroundColor
     , keyExtractor
+    , keyboardDismissMode
     , listKey
     , maxLength
     , maxToRenderPerBatch
     , multiline
     , name
+    , nativeID
     , numberOfLines
     , onstyle
     , options
@@ -130,6 +133,18 @@ boolValue =
 
 stringValue =
     property "value" << Encode.string
+
+
+keyboardDismissMode =
+    property "keyboardDismissMode" << Encode.string
+
+
+inputAccessoryViewID =
+    property "inputAccessoryViewID" << Encode.string
+
+
+nativeID =
+    property "nativeID" << Encode.string
 
 
 extraData =
