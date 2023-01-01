@@ -5,7 +5,7 @@ import Html exposing (Html)
 import Json.Decode as Decode
 import Json.Encode as Encode
 import ReactNative exposing (button, image, modal, pressable, require, safeAreaView, str, text, view)
-import ReactNative.Alert as Alert exposing (alert)
+import ReactNative.Alert as Alert
 import ReactNative.Events exposing (onClick, onPress, onRefresh, onRequestClose)
 import ReactNative.Properties exposing (animationType, color, disabled, presentationStyle, source, style, title, transparent, visible)
 import ReactNative.StyleSheet as StyleSheet
@@ -53,7 +53,7 @@ update msg model =
                 _ =
                     Debug.log "ModalClosing" "ModalClosing"
             in
-            ( { model | modalOpen = False }, Alert.show (always NoOp) <| alert "Modal has been closed." )
+            ( { model | modalOpen = False }, Alert.showAlert (always NoOp) "Modal has been closed." [] )
 
 
 

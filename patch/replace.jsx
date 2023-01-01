@@ -124,46 +124,38 @@ function _Browser_application(impl)
   });
 }
 
-var $author$project$ReactNative$Alert$tshow = function (a) {
-  return _Scheduler_binding(function(callback) {
-    const args = _Json_unwrap(a);
+var $author$project$ReactNative$Alert$alert = F2(
+  function (title, props) {
+    return _Scheduler_binding(function(callback) {
+      let buttons = undefined;
+      const options = {};
+      let message = undefined;
+      for (; props.b; props = props.b) {
+        const p = props.a;
+        const k = p.a;
+        let v = _Json_unwrap(p.b);
+        if (k === "buttons") {
+          for (; v.b; v = v.b) {
+            const btn = v.a;
+            buttons = buttons || [];
+            buttons.push({
+              ...btn,
+              onPress: () => { callback(_Scheduler_succeed(btn.onPress)) },
+            });
+          }
+        } else if (k === "message") {
+          message = v;
+        } else {
+          options[k] = v;
 
-    let buttons = undefined;
-    for (let iter = args.buttons; iter.b; iter = iter.b) { // WHILE_CONS
-      const btn = {
-        ...iter.a,
-        onPress: () => {
-          callback(_Scheduler_succeed(iter.a.onPress));
-        },
-      };
-
-      buttons = buttons || []
-      buttons.push(btn);
-    }
-
-    const options = args.options.a && {
-      ...args.options.a,
-      onDismiss: () => {
-        callback(_Scheduler_succeed(args.options.a.onDismiss))
+          if (k === "cancelable" && v) {
+            options.onDismiss = () => { callback(_Scheduler_succeed($author$project$ReactNative$Alert$Dismiss)) };
+          }
+        }
       }
-    };
-
-    if (args.prompt.a) {
-      Alert.prompt(args.title,
-                   args.message.a,
-                   buttons,
-                   args.prompt.a.type_,
-                   args.prompt.a.defaultValue,
-                   args.prompt.a.keyboardType,
-                   options);
-    } else {
-      Alert.alert(args.title,
-                  args.message.a,
-                  buttons,
-                  options);
-    }
+      Alert.alert(title, message, buttons, options);
+    });
   });
-};
 
 var _Browser_go = F2(function(key, n)
 {

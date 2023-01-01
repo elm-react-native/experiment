@@ -4,7 +4,7 @@ import Browser
 import Html exposing (Html)
 import Json.Decode as Decode
 import ReactNative exposing (button, view)
-import ReactNative.Alert as Alert exposing (alert)
+import ReactNative.Alert as Alert
 import ReactNative.Events exposing (onPress)
 import ReactNative.Properties exposing (style, title)
 import ReactNative.Share as Share exposing (Action(..))
@@ -34,12 +34,6 @@ type Msg
     | Share
 
 
-showAlert s =
-    Task.map (Maybe.withDefault NoOp) <|
-        Alert.tshow <|
-            alert s
-
-
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -54,15 +48,13 @@ update msg model =
                         Task.mapError (always "") <|
                             case action of
                                 SharedAction ->
-                                    showAlert <|
-                                        "shared with "
-                                            ++ activityType
+                                    Alert.alert ("shared with " ++ activityType) []
 
                                 DismissedAction ->
-                                    showAlert "share dismissed"
+                                    Alert.alert "share dismissed" []
                     )
-                |> Task.onError (\err -> showAlert <| "Error: " ++ err)
-                |> Task.perform identity
+                |> Task.onError (\err -> Alert.alert ("Error: " ++ err) [])
+                |> Task.perform (always NoOp)
             )
 
 

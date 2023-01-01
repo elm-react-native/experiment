@@ -1,128 +1,158 @@
 module ReactNative.Alert exposing
-    ( AlertButton
-    , Options
-    , PromptOption
+    ( Button
+    , Msg(..)
+    , Property
     , alert
-    , cancelButton
-    , destructiveButton
-    , okButton
+    , button
+    , buttons
+    , buttons_titles
+    , cancel
+    , cancelable
+    , defaultValue
+    , destructive
+    , keyboardType
+    , message
+    , ok
     , prompt
-    , show
-    , tshow
-    , withButtons
-    , withMessage
-    , withOptions
-    , withPrompt
+    , promptType
+    , showAlert
+    , showPromt
+    , userInterfaceStyle
     )
 
+import Json.Decode as Decode
+import Json.Encode as Encode exposing (Value)
 import Process
 import ReactNative exposing (KeyboardType)
+import ReactNative.Platform as Platform
+import ReactNative.Properties exposing (encode)
 import Task exposing (Task)
 
 
-type alias AlertButton msg =
+type Msg
+    = Neutral String
+    | Positive String
+    | Negative String
+    | Destructive String
+    | Dismiss
+    | Prompt String String
+
+
+alert : String -> List Property -> Task Never Msg
+alert title props =
+    Task.succeed Dismiss
+
+
+prompt : String -> List Property -> Task Never Msg
+prompt title props =
+    Task.succeed Dismiss
+
+
+showAlert tagger title props =
+    alert title props
+        |> Task.perform tagger
+
+
+showPromt tagger title props =
+    prompt title props
+        |> Task.perform tagger
+
+
+type alias Property =
+    ( String, Value )
+
+
+property : String -> Value -> Property
+property name value =
+    ( name, value )
+
+
+message =
+    property "message" << Encode.string
+
+
+defaultValue =
+    property "defaultValue" << Encode.string
+
+
+keyboardType =
+    property "keyboardType" << Encode.string
+
+
+promptType =
+    property "type" << Encode.string
+
+
+userInterfaceStyle =
+    property "userInterfaceStyle" << Encode.string
+
+
+cancelable =
+    let
+        x =
+            Dismiss
+    in
+    property "cancelable" << Encode.bool
+
+
+
+-- BUTTON
+
+
+type alias Button =
     { text : String
-    , onPress : Maybe msg
     , style : String
+    , onPress : Msg
     }
 
 
-type alias Options msg =
-    { cancelable : Bool
-    , userInterfaceStyle : String
-    , onDismiss : Maybe msg
-    }
-
-
-type alias PromptOption =
-    { type_ : String
-    , defaultValue : String
-    , keyboardType : String
-    }
-
-
-type Alert msg
-    = Alert
-        { title : String
-        , message : Maybe String
-        , buttons : List (AlertButton msg)
-        , options : Maybe (Options msg)
-        , prompt : Maybe PromptOption
-        }
-
-
-alert : String -> Alert msg
-alert title =
-    Alert
-        { title = title
-        , message = Nothing
-        , buttons = []
-        , options = Nothing
-        , prompt = Nothing
-        }
-
-
-prompt : PromptOption -> String -> Alert msg
-prompt pt title =
-    Alert
-        { title = title
-        , message = Nothing
-        , buttons = []
-        , options = Nothing
-        , prompt = Just pt
-        }
-
-
-withMessage : String -> Alert msg -> Alert msg
-withMessage message (Alert a) =
-    Alert { a | message = Just message }
-
-
-withButtons : List (AlertButton msg) -> Alert msg -> Alert msg
-withButtons buttons (Alert a) =
-    Alert { a | buttons = buttons }
-
-
-button : String -> String -> Maybe msg -> AlertButton msg
-button style text onPress =
+createButton : String -> String -> Msg -> Button
+createButton style text onPress =
     { style = style, text = text, onPress = onPress }
 
 
-cancelButton =
-    button "cancel"
+buttons_titles : List String -> Property
+buttons_titles titles =
+    case titles of
+        [] ->
+            property "buttons" <| encode []
+
+        [ a ] ->
+            property "buttons" <| encode [ createButton "default" a <| Positive a ]
+
+        [ a, b ] ->
+            property "buttons" <|
+                encode
+                    [ createButton "cancel" a <| Negative a
+                    , createButton "default" b <| Positive b
+                    ]
+
+        a :: b :: c :: _ ->
+            property "buttons" <|
+                encode
+                    [ createButton "default" a <| Neutral a
+                    , createButton "cancel" b <| Negative b
+                    , createButton "default" c <| Positive c
+                    ]
 
 
-okButton =
-    button "default"
+buttons : List Button -> Property
+buttons btns =
+    property "buttons" <| encode btns
 
 
-destructiveButton =
-    button "destructive"
+button : Button -> Property
+button btn =
+    property "button" <| encode btn
 
 
-withOptions : Bool -> String -> Maybe msg -> Alert msg -> Alert msg
-withOptions cancelable userInterfaceStyle onDismiss (Alert a) =
-    Alert
-        { a
-            | options =
-                Just
-                    { cancelable = cancelable
-                    , userInterfaceStyle = userInterfaceStyle
-                    , onDismiss = onDismiss
-                    }
-        }
+ok text =
+    createButton "default" text (Positive text)
 
 
-withPrompt : PromptOption -> Alert msg -> Alert msg
-withPrompt pt (Alert a) =
-    Alert { a | prompt = Just pt }
+cancel text =
+    createButton "cancel" text (Negative text)
 
 
-tshow : Alert msg -> Task Never (Maybe msg)
-tshow a =
-    Task.succeed Nothing
-
-
-show : (Maybe msg -> msg1) -> Alert msg -> Cmd msg1
-show f =
-    tshow >> Task.perform f
+destructive text =
+    createButton "destructive" text (Destructive text)

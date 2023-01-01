@@ -5,7 +5,7 @@ import Html exposing (Html)
 import Json.Decode as Decode
 import Json.Encode as Encode exposing (Value)
 import ReactNative exposing (button, str, text, view)
-import ReactNative.Alert as Alert exposing (alert)
+import ReactNative.Alert as Alert
 import ReactNative.Events exposing (onPress)
 import ReactNative.Linking as Linking
 import ReactNative.Platform as Platform
@@ -40,9 +40,8 @@ type Msg
 
 
 unknownURLAlert url =
-    alert ("Don't know how to open this URL: " ++ url)
-        |> Alert.tshow
-        |> Task.map (Maybe.withDefault NoOp)
+    Alert.alert ("Don't know how to open this URL: " ++ url) []
+        |> Task.map (always ())
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -60,12 +59,11 @@ update msg model =
                         if can then
                             url
                                 |> Linking.openURL
-                                |> Task.map (always NoOp)
 
                         else
                             unknownURLAlert url
                     )
-                |> Task.perform identity
+                |> Task.perform (always NoOp)
             )
 
         OpenSettings ->

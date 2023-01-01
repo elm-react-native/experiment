@@ -4,7 +4,7 @@ import Browser
 import Html exposing (Html)
 import Json.Decode as Decode exposing (Decoder)
 import ReactNative exposing (button, view)
-import ReactNative.Alert as Alert exposing (alert, cancelButton, destructiveButton, okButton, withButtons, withMessage, withOptions)
+import ReactNative.Alert as Alert
 import ReactNative.Events exposing (onPress)
 import ReactNative.Properties exposing (style, title)
 import ReactNative.StyleSheet as StyleSheet
@@ -33,14 +33,15 @@ type Msg
     | ShowAlert
     | TwoButtonAlert
     | ThreeButtonAlert
-    | DismissAlert
-    | CancelPressed
-    | OkPressed
-    | AskMeLaterPressed
+    | AlertMsg Alert.Msg
 
 
 showAlert =
-    Alert.show (Maybe.withDefault NoOp)
+    Alert.showAlert AlertMsg
+
+
+showAlertAndIgnore =
+    Alert.showAlert (always NoOp)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -51,54 +52,53 @@ update msg model =
 
         TwoButtonAlert ->
             ( model
-            , alert "Alert Title"
-                |> withMessage "My Alert Msg"
-                |> withButtons
-                    [ cancelButton "Cancel" <| Just CancelPressed
-                    , okButton "OK" <| Just OkPressed
-                    ]
-                |> showAlert
+            , showAlert "Alert Title"
+                [ Alert.message "My Alert Msg"
+                , Alert.buttons_titles [ "Cancel", "OK" ]
+                ]
             )
 
         ThreeButtonAlert ->
             ( model
-            , alert "Alert Title"
-                |> withMessage "My Alert Msg"
-                |> withButtons
-                    [ destructiveButton "Ask me later" <| Just AskMeLaterPressed
-                    , cancelButton "Cancel" <| Just CancelPressed
-                    , okButton "OK" <| Just OkPressed
-                    ]
-                |> showAlert
+            , showAlert "Alert Title"
+                [ Alert.message "My Alert Msg"
+                , Alert.buttons_titles [ "Ask me later", "Cancel", "OK" ]
+                ]
             )
 
         ShowAlert ->
             ( model
-            , alert "Alert title"
-                |> withMessage "My Alert Msg"
-                |> withButtons [ cancelButton "Cancel" <| Just CancelPressed ]
-                |> withOptions True "light" (Just DismissAlert)
-                |> showAlert
+            , showAlert "Alert title"
+                [ Alert.message "My Alert Msg"
+                , Alert.buttons
+                    [ Alert.ok "OK"
+                    , Alert.destructive "DELETE"
+                    ]
+                , Alert.cancelable True
+                , Alert.userInterfaceStyle "light"
+                ]
             )
 
-        AskMeLaterPressed ->
+        AlertMsg alertMsg ->
             ( model
-            , showAlert <| alert "Ask me later pressed"
-            )
+            , case alertMsg of
+                Alert.Neutral _ ->
+                    showAlertAndIgnore "Ask me later pressed" []
 
-        CancelPressed ->
-            ( model
-            , showAlert <| alert "Cancel Pressed"
-            )
+                Alert.Positive _ ->
+                    showAlertAndIgnore "OK Pressed" []
 
-        OkPressed ->
-            ( model
-            , showAlert <| alert "OK Pressed"
-            )
+                Alert.Negative _ ->
+                    showAlertAndIgnore "Cancel Pressed" []
 
-        DismissAlert ->
-            ( model
-            , showAlert <| alert "This alert was dismissed by tapping outside of the alert dialog."
+                Alert.Destructive _ ->
+                    showAlertAndIgnore "Delete Pressed" []
+
+                Alert.Dismiss ->
+                    showAlertAndIgnore "The alert was dismissed by tapping outside of the alert dialog." []
+
+                _ ->
+                    Cmd.none
             )
 
 
