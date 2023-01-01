@@ -110,6 +110,7 @@ module ReactNative.Properties exposing
     , renderSectionHeader
     , renderToHardwareTextureAndroid
     , resizeMode
+    , screenOptions
     , sectionSeparatorComponent
     , sections
     , shouldRasterizeIOS
@@ -391,6 +392,11 @@ android_disableSound =
 options : a -> Attribute msg
 options =
     property "options" << encode
+
+
+screenOptions : a -> Attribute msg
+screenOptions =
+    property "screenOptions" << encode
 
 
 initialParams : a -> Attribute msg

@@ -54,9 +54,12 @@ import {
   StackActions,
 } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
 const navigationRef = createNavigationContainerRef();
 const Stack = createNativeStackNavigator();
+const BottomTab = createBottomTabNavigator();
+
 const allComponents = {
   ActivityIndicator,
   Button,
@@ -82,6 +85,7 @@ const allComponents = {
   InputAccessoryView,
   SafeAreaView,
   "Stack.Navigator": Stack.Navigator,
+  "Tab.Navigator": BottomTab.Navigator,
   "Animated.View": Animated.View,
   Fragment: React.Fragment,
   Ionicons,
@@ -217,9 +221,19 @@ const createScreenElement = (props, screenComponentsCache, eventNode, key) => {
     screenComponentsCache.set(component, screenComponent);
   }
 
-  return (
-    <Stack.Screen {...actualProps} component={screenComponent} key={key} />
-  );
+  if (props.tag === "Stack.Screen") {
+    return (
+      <Stack.Screen {...actualProps} component={screenComponent} key={key} />
+    );
+  } else if (props.tag === "Tab.Screen") {
+    return (
+      <BottomTab.Screen
+        {...actualProps}
+        component={screenComponent}
+        key={key}
+      />
+    );
+  }
 };
 
 const NavigatorComponent = (props) => {

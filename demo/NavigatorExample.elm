@@ -1,4 +1,4 @@
-module StackNavigatorExample exposing (..)
+module NavigatorExample exposing (..)
 
 import Browser
 import Browser.Navigation as N
@@ -6,11 +6,12 @@ import Debug
 import Html exposing (node)
 import Json.Decode as Decode
 import Json.Encode as Encode
-import ReactNative exposing (button, safeAreaView, str, text, view, virtualizedList)
+import ReactNative exposing (button, ionicon, safeAreaView, str, text, view, virtualizedList)
 import ReactNative.Events exposing (onClick, onPress, onRefresh)
 import ReactNative.Navigation as Nav
+import ReactNative.Navigation.BottomTab as BottomTab
 import ReactNative.Navigation.Stack as Stack
-import ReactNative.Properties exposing (component, name, options, property, style, title)
+import ReactNative.Properties exposing (color, component, name, options, property, screenOptions, size, style, title)
 import ReactNative.StyleSheet as StyleSheet
 
 
@@ -85,7 +86,7 @@ detailsScreen _ _ =
         ]
 
 
-root model =
+homeTabScreen _ _ =
     Stack.navigator
         []
         [ Stack.screen
@@ -97,6 +98,40 @@ root model =
         , Stack.screen
             [ name "Details"
             , component detailsScreen
+            ]
+            []
+        ]
+
+
+settingsTabScreen _ _ =
+    view
+        [ style
+            { flex = 1
+            , alignItems = "center"
+            , justifyContent = "center"
+            }
+        ]
+        [ text [] [ str "settings tab" ] ]
+
+
+root model =
+    BottomTab.navigator
+        [ screenOptions
+            { headerShown = False
+            , tabBarActiveTintColor = "tomato"
+            , tabBarInactiveTintColor = "gray"
+            }
+        ]
+        [ BottomTab.screen
+            [ name "HomeTab"
+            , component homeTabScreen
+            , options { tabBarIcon = \p -> ionicon "ios-information-circle" [ color p.color, size p.size ] }
+            ]
+            []
+        , BottomTab.screen
+            [ name "SettingsTab"
+            , component settingsTabScreen
+            , options { tabBarIcon = \p -> ionicon "ios-list" [ color p.color, size p.size ] }
             ]
             []
         ]

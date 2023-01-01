@@ -1,12 +1,12 @@
-module ReactNative.Navigation.Stack exposing (navigator, screen)
+module ReactNative.Navigation.BottomTab exposing (..)
 
 import Html exposing (Attribute, Html, node)
 import ReactNative.Properties exposing (encode, property)
 
 
 navigator =
-    node "Stack.Navigator"
+    node "Tab.Navigator"
 
 
 screen =
-    node "Stack.Screen"
+    node "Tab.Screen"

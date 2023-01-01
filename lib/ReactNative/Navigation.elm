@@ -1,6 +1,7 @@
-module ReactNative.Navigation exposing (goBack, navigate, popToTop, push)
+module ReactNative.Navigation exposing (goBack, listeners, navigate, popToTop, push, screenListeners)
 
 import Browser.Navigation exposing (Key, back, pushUrl, replaceUrl)
+import ReactNative.Properties exposing (encode, property)
 
 
 navigate : Key -> String -> Cmd msg
@@ -21,3 +22,11 @@ goBack key =
 popToTop : Key -> Cmd msg
 popToTop key =
     back key -10000
+
+
+listeners =
+    property "listeners" << encode
+
+
+screenListeners =
+    property "screenListeners" << encode

@@ -24,6 +24,7 @@ import KeyboardAvoidingViewExample
 import KeyboardExample
 import LinkingExample
 import ModalExample
+import NavigatorExample
 import PanResponderExample
 import PixelRatioExample
 import PlatformColorExample
@@ -42,7 +43,6 @@ import ScrollViewExample
 import SectionListExample
 import SettingsExample
 import ShareExample
-import StackNavigatorExample
 import StatusBarExample
 import SwitchExample
 import TextExample
@@ -461,30 +461,30 @@ exampleApps =
         , subs = RefreshControlExample.subs
         }
     , toGeneralExampleApp
-        StackNavigatorExample
+        NavigatorExample
         (\model ->
             case model of
-                StackNavigatorExample m ->
+                NavigatorExample m ->
                     Just m
 
                 _ ->
                     Nothing
         )
-        StackNavigatorExampleMsg
+        NavigatorExampleMsg
         (\msg ->
             case msg of
-                StackNavigatorExampleMsg m ->
+                NavigatorExampleMsg m ->
                     Just m
 
                 _ ->
                     Nothing
         )
-        { id = "StackNavigatorExample"
-        , title = "StackNavigator"
-        , init = StackNavigatorExample.init
-        , update = StackNavigatorExample.update
-        , root = StackNavigatorExample.root
-        , subs = StackNavigatorExample.subs
+        { id = "NavigatorExample"
+        , title = "Navigator"
+        , init = NavigatorExample.init
+        , update = NavigatorExample.update
+        , root = NavigatorExample.root
+        , subs = NavigatorExample.subs
         }
     , toGeneralExampleApp
         StatusBarExample
@@ -1114,7 +1114,7 @@ type ExampleModel
     | ButtonExample ButtonExample.Model
     | PanResponderExample PanResponderExample.Model
     | PlatformColorExample PlatformColorExample.Model
-    | StackNavigatorExample StackNavigatorExample.Model
+    | NavigatorExample NavigatorExample.Model
     | VibrationExample VibrationExample.Model
     | VirtualizedListExample VirtualizedListExample.Model
     | AppStateExample AppStateExample.Model
@@ -1188,7 +1188,7 @@ type ExampleMsg
     | ButtonExampleMsg ButtonExample.Msg
     | PanResponderExampleMsg PanResponderExample.Msg
     | PlatformColorExampleMsg PlatformColorExample.Msg
-    | StackNavigatorExampleMsg StackNavigatorExample.Msg
+    | NavigatorExampleMsg NavigatorExample.Msg
     | VibrationExampleMsg VibrationExample.Msg
     | VirtualizedListExampleMsg VirtualizedListExample.Msg
     | AppStateExampleMsg AppStateExample.Msg
@@ -1352,7 +1352,7 @@ root model =
             [ name "List"
             , component listScreen
             , options { title = exampleListTitle }
-            , Stack.listeners [ Listeners.focus <| Decode.succeed <| ExampleListMsg FocusListScreen ]
+            , Nav.listeners [ Listeners.focus <| Decode.succeed <| ExampleListMsg FocusListScreen ]
             ]
             []
         , Stack.screen
