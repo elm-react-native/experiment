@@ -304,7 +304,7 @@ initialNumToRender =
 
 
 size =
-    property "size" << Encode.int
+    property "size" << Encode.string
 
 
 initialScrollIndex =

@@ -1,5 +1,6 @@
 module All exposing (..)
 
+import ActivityIndicatorExample
 import AlertExample
 import AnimationExample
 import AppStateExample
@@ -867,6 +868,32 @@ exampleApps =
         , root = PlatformExample.root
         , subs = PlatformExample.subs
         }
+    , toGeneralExampleApp
+        ActivityIndicatorExample
+        (\model ->
+            case model of
+                ActivityIndicatorExample m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        ActivityIndicatorExampleMsg
+        (\msg ->
+            case msg of
+                ActivityIndicatorExampleMsg m ->
+                    Just m
+
+                _ ->
+                    Nothing
+        )
+        { id = "ActivityIndicatorExample"
+        , title = "ActivityIndicator"
+        , init = \_ -> ActivityIndicatorExample.init ()
+        , update = ActivityIndicatorExample.update
+        , root = ActivityIndicatorExample.root
+        , subs = ActivityIndicatorExample.subs
+        }
     ]
 
 
@@ -916,6 +943,7 @@ type ExampleModel
     | LinkingExample LinkingExample.Model
     | PixelRatioExample PixelRatioExample.Model
     | PlatformExample PlatformExample.Model
+    | ActivityIndicatorExample ActivityIndicatorExample.Model
 
 
 type alias ExampleInfo =
@@ -982,6 +1010,7 @@ type ExampleMsg
     | LinkingExampleMsg LinkingExample.Msg
     | PixelRatioExampleMsg PixelRatioExample.Msg
     | PlatformExampleMsg PlatformExample.Msg
+    | ActivityIndicatorExampleMsg ActivityIndicatorExample.Msg
 
 
 type ExampleListMsg
@@ -1153,7 +1182,7 @@ exampleIcon =
 arrowRight =
     materialIcon "keyboard-arrow-right"
         [ style { marginHorizontal = 12 }
-        , size 16
+        , size "16"
         , color "#b3b3b3"
         ]
 
