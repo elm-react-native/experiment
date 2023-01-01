@@ -479,6 +479,8 @@ var $author$project$ReactNative$Dimensions$onChange = function (decoder) {
 
 var _Browser_on = F3(function(node, eventName, sendToSelf)
 {
+  const WATCH_SETTING_PREFIX = "watchSetting_";
+
   return _Scheduler_spawn(_Scheduler_binding(function(callback)
   {
     function handler(event) { _Scheduler_rawSpawn(sendToSelf(event)); }
@@ -491,6 +493,9 @@ var _Browser_on = F3(function(node, eventName, sendToSelf)
       eventSubs = Keyboard.addListener(eventName, handler);
     } else if (eventName === "appearanceChange") {
       eventSubs = Appearance.addChangeListener(handler);
+    } else if (eventName.startsWith(WATCH_SETTING_PREFIX)) {
+      const watchId = Settings.watchKeys(eventName.substr(WATCH_SETTING_PREFIX.length), handler);
+      eventSubs = { remove: () => Settings.clearWatch(watchId) };
     }
     return function() {
       if (eventSubs) eventSubs.remove();
@@ -563,6 +568,14 @@ var $author$project$ReactNative$Keyboard$on = F2(
     return A3($elm$browser$Browser$Events$on,
       $elm$browser$Browser$Events$Document,
       event,
+      decoder);
+  });
+
+var $author$project$ReactNative$Settings$watchKey = F2(
+  function (key, decoder) {
+    return A3($elm$browser$Browser$Events$on,
+      $elm$browser$Browser$Events$Document,
+      `watchSetting_${key}`,
       decoder);
   });
 
@@ -641,5 +654,32 @@ var $author$project$ReactNative$Share$share = function (props) {
     .catch((err) => {
       callback(_Scheduler_fail(err.message));
     });
+  });
+};
+
+var $author$project$ReactNative$Settings$get = F2(
+  function (k, decoder) {
+    return _Scheduler_binding(function(callback) {
+      const result = _Json_runHelp(decoder, Settings.get(k));
+      if ($elm$core$Result$isOk(result)) {
+        callback(_Scheduler_succeed(result.a));
+      } else {
+        callback(_Scheduler_fail(result.a));
+      }
+    });
+  });
+
+var $author$project$ReactNative$Settings$set = function (settings) {
+  return _Scheduler_binding(function(callback) {
+    let res = undefined;
+    for (; settings.b; settings = settings.b) {
+      const p = settings.a;
+      const k = p.a
+      const v = _Json_unwrap(p.b);
+      res = res || {};
+      res[k] = v;
+    }
+    Settings.set(res);
+    callback(_Scheduler_fail(_Utils_Tuple0));
   });
 };

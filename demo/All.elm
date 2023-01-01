@@ -37,6 +37,7 @@ import ReactNative.StyleSheet as StyleSheet
 import RefreshControlExample
 import ScrollViewExample
 import SectionListExample
+import SettingsExample
 import ShareExample
 import StackNavigatorExample
 import StatusBarExample
@@ -951,6 +952,32 @@ exampleApps =
                     , root = ActionSheetIOSExample.root
                     , subs = ActionSheetIOSExample.subs
                     }
+                , toGeneralExampleApp
+                    SettingsExample
+                    (\model ->
+                        case model of
+                            SettingsExample m ->
+                                Just m
+
+                            _ ->
+                                Nothing
+                    )
+                    SettingsExampleMsg
+                    (\msg ->
+                        case msg of
+                            SettingsExampleMsg m ->
+                                Just m
+
+                            _ ->
+                                Nothing
+                    )
+                    { id = "SettingsExample"
+                    , title = "Settings"
+                    , init = \_ -> SettingsExample.init ()
+                    , update = SettingsExample.update
+                    , root = SettingsExample.root
+                    , subs = SettingsExample.subs
+                    }
                 ]
 
             else
@@ -1007,6 +1034,7 @@ type ExampleModel
     | ActivityIndicatorExample ActivityIndicatorExample.Model
     | ShareExample ShareExample.Model
     | ActionSheetIOSExample ActionSheetIOSExample.Model
+    | SettingsExample SettingsExample.Model
 
 
 type alias ExampleInfo =
@@ -1076,6 +1104,7 @@ type ExampleMsg
     | ActivityIndicatorExampleMsg ActivityIndicatorExample.Msg
     | ShareExampleMsg ShareExample.Msg
     | ActionSheetIOSExampleMsg ActionSheetIOSExample.Msg
+    | SettingsExampleMsg SettingsExample.Msg
 
 
 type ExampleListMsg
