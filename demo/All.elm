@@ -1,5 +1,6 @@
 module All exposing (..)
 
+import ActionSheetIOSExample
 import ActivityIndicatorExample
 import AlertExample
 import AnimationExample
@@ -30,6 +31,7 @@ import ReactNative.Events exposing (onPress)
 import ReactNative.Navigation as Nav
 import ReactNative.Navigation.Listeners as Listeners
 import ReactNative.Navigation.Stack as Stack
+import ReactNative.Platform as Platform
 import ReactNative.Properties exposing (barStyle, color, component, contentContainerStyle, getId, initialParams, name, options, size, source, style, title)
 import ReactNative.StyleSheet as StyleSheet
 import RefreshControlExample
@@ -922,6 +924,38 @@ exampleApps =
         , subs = ShareExample.subs
         }
     ]
+        ++ (if Platform.os == "ios" then
+                [ toGeneralExampleApp
+                    ActionSheetIOSExample
+                    (\model ->
+                        case model of
+                            ActionSheetIOSExample m ->
+                                Just m
+
+                            _ ->
+                                Nothing
+                    )
+                    ActionSheetIOSExampleMsg
+                    (\msg ->
+                        case msg of
+                            ActionSheetIOSExampleMsg m ->
+                                Just m
+
+                            _ ->
+                                Nothing
+                    )
+                    { id = "ActionSheetIOSExample"
+                    , title = "ActionSheetIOS"
+                    , init = \_ -> ActionSheetIOSExample.init ()
+                    , update = ActionSheetIOSExample.update
+                    , root = ActionSheetIOSExample.root
+                    , subs = ActionSheetIOSExample.subs
+                    }
+                ]
+
+            else
+                []
+           )
 
 
 exampleAppsDict : Dict String GeneralExampleApp
@@ -972,6 +1006,7 @@ type ExampleModel
     | PlatformExample PlatformExample.Model
     | ActivityIndicatorExample ActivityIndicatorExample.Model
     | ShareExample ShareExample.Model
+    | ActionSheetIOSExample ActionSheetIOSExample.Model
 
 
 type alias ExampleInfo =
@@ -1040,6 +1075,7 @@ type ExampleMsg
     | PlatformExampleMsg PlatformExample.Msg
     | ActivityIndicatorExampleMsg ActivityIndicatorExample.Msg
     | ShareExampleMsg ShareExample.Msg
+    | ActionSheetIOSExampleMsg ActionSheetIOSExample.Msg
 
 
 type ExampleListMsg

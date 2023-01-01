@@ -124,6 +124,29 @@ function _Browser_application(impl)
   });
 }
 
+var $author$project$ReactNative$ActionSheetIOS$show = F2(
+  function (options, props) {
+    return _Scheduler_binding(function(callback) {
+      const opts = { options: _List_toArray(options) };
+      for (; props.b; props = props.b) {
+        const p = props.a;
+        let k = p.a;
+        let v = _Json_unwrap(p.b);
+
+        if (k === "disabledButtonIndices") {
+          v = _List_toArray(v);
+        } else if (k === "destructiveButtonIndices") {
+          k = "destructiveButtonIndex";
+          v = _List_toArray(v);
+        }
+
+        opts[k] = v;
+      }
+
+      ActionSheetIOS.showActionSheetWithOptions(opts, (buttonIndex) => { callback(_Scheduler_succeed(buttonIndex)) });
+    });
+  });
+
 var $author$project$ReactNative$Alert$alert = F2(
   function (title, props) {
     return _Scheduler_binding(function(callback) {
