@@ -12,6 +12,7 @@ import Browser.Navigation as N
 import ButtonExample
 import Dict exposing (Dict)
 import DimensionsExample
+import DrawerLayoutAndroidExample
 import EasingExample
 import FlatListExample
 import Html exposing (Html)
@@ -1062,6 +1063,32 @@ exampleApps =
                     , root = ToastAndroidExample.root
                     , subs = ToastAndroidExample.subs
                     }
+                , toGeneralExampleApp
+                    DrawerLayoutAndroidExample
+                    (\model ->
+                        case model of
+                            DrawerLayoutAndroidExample m ->
+                                Just m
+
+                            _ ->
+                                Nothing
+                    )
+                    DrawerLayoutAndroidExampleMsg
+                    (\msg ->
+                        case msg of
+                            DrawerLayoutAndroidExampleMsg m ->
+                                Just m
+
+                            _ ->
+                                Nothing
+                    )
+                    { id = "DrawerLayoutAndroidExample"
+                    , title = "DrawerLayoutAndroid"
+                    , init = \_ -> DrawerLayoutAndroidExample.init ()
+                    , update = DrawerLayoutAndroidExample.update
+                    , root = DrawerLayoutAndroidExample.root
+                    , subs = DrawerLayoutAndroidExample.subs
+                    }
                 ]
            )
 
@@ -1119,6 +1146,7 @@ type ExampleModel
     | BackHandlerExample BackHandlerExample.Model
     | ToastAndroidExample ToastAndroidExample.Model
     | InputAccessoryViewExample InputAccessoryViewExample.Model
+    | DrawerLayoutAndroidExample DrawerLayoutAndroidExample.Model
 
 
 type alias ExampleInfo =
@@ -1192,6 +1220,7 @@ type ExampleMsg
     | BackHandlerExampleMsg BackHandlerExample.Msg
     | ToastAndroidExampleMsg ToastAndroidExample.Msg
     | InputAccessoryViewExampleMsg InputAccessoryViewExample.Msg
+    | DrawerLayoutAndroidExampleMsg DrawerLayoutAndroidExample.Msg
 
 
 type ExampleListMsg

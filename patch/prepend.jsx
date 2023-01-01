@@ -78,7 +78,6 @@ const allComponents = {
   TouchableWithoutFeedback,
   View,
   VirtualizedList,
-  DrawerLayoutAndroid,
   TouchableNativeFeedback,
   InputAccessoryView,
   SafeAreaView,
@@ -87,6 +86,7 @@ const allComponents = {
   Fragment: React.Fragment,
   Ionicons,
   MaterialIcons,
+  DrawerLayoutAndroid,
 };
 
 const EventNodeContext = React.createContext();
@@ -130,11 +130,42 @@ const listToChildren = (list) => {
   else return children;
 };
 
+const componentRefs = new Map();
+
+const factListFindId = (factList) => {
+  for (; factList.b; factList = factList.b) {
+    if (factList.a.n === "id") {
+      return factList.a.o;
+    }
+  }
+};
+
+const ElmNodeComponentWithRef = (props) => {
+  const eventNode = React.useContext(EventNodeContext);
+  const actualProps = _VirtualDom_factsToReactProps(props, eventNode);
+  const id = actualProps.id;
+  const Component = scope.resolveComponent(props.tag);
+  const children = listToChildren(props.kidList);
+
+  const drawerRef = React.useRef(null);
+  React.useEffect(() => {
+    componentRefs.set(id, drawerRef.current);
+    return () => {
+      componentRefs.delete(id);
+    };
+  }, []);
+
+  return (
+    <Component {...actualProps} ref={drawerRef}>
+      {children}
+    </Component>
+  );
+};
+
 const ElmNodeComponent = (props) => {
   const eventNode = React.useContext(EventNodeContext);
   const actualProps = _VirtualDom_factsToReactProps(props, eventNode);
   const Component = scope.resolveComponent(props.tag);
-
   const children = listToChildren(props.kidList);
   return <Component {...actualProps}>{children}</Component>;
 };

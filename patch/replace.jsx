@@ -24,6 +24,10 @@ var _VirtualDom_nodeNS = F2(function(namespace, tag)
     {
       return <FlatListComponent factList={factList} kidList={kidList} />;
     }
+
+    if (factListFindId(factList)) {
+      return <ElmNodeComponentWithRef tag={tag} factList={factList} kidList={kidList} />;
+    }
     return <ElmNodeComponent tag={tag} factList={factList} kidList={kidList} />;
   });
 });
@@ -61,6 +65,10 @@ var _VirtualDom_keyedNodeNS = F2(function(namespace, tag)
     else if (tag === "FlatList")
     {
       return <FlatListComponent factList={factList} kidList={kidList} />;
+    }
+
+    if (factListFindId(factList)) {
+      return <ElmNodeComponentWithRef tag={tag} factList={factList} kidList={kidList} />;
     }
     return <ElmKeyedNodeComponent tag={tag} factList={factList} kidList={kidList} />;
   });
@@ -729,5 +737,20 @@ var $author$project$ReactNative$Settings$set = function (settings) {
     }
     Settings.set(res);
     callback(_Scheduler_fail(_Utils_Tuple0));
+  });
+};
+
+var $author$project$ReactNative$DrawerLayoutAndroid$close = function (id) {
+  return _Scheduler_binding(function(callback) {
+    const drawer = componentRefs.get(id);
+    if (drawer) drawer.closeDrawer();
+    callback(_Scheduler_succeed(_Utils_Tuple0));
+  });
+};
+var $author$project$ReactNative$DrawerLayoutAndroid$open = function (id) {
+  return _Scheduler_binding(function(callback) {
+    const drawer = componentRefs.get(id);
+    if (drawer) drawer.openDrawer();
+    callback(_Scheduler_succeed(_Utils_Tuple0));
   });
 };

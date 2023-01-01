@@ -16,6 +16,10 @@ module ReactNative.Properties exposing
     , data
     , delayLongPress
     , disabled
+    , drawerBackgroundColor
+    , drawerLockMode
+    , drawerPosition
+    , drawerWidth
     , editable
     , encode
     , getId
@@ -24,6 +28,7 @@ module ReactNative.Properties exposing
     , getItemLayout
     , hidden
     , horizontal
+    , id
     , initialNumToRender
     , initialParams
     , initialScrollIndex
@@ -50,6 +55,7 @@ module ReactNative.Properties exposing
     , refreshing
     , removeClippedSubviews
     , renderItem
+    , renderNavigationView
     , renderScrollComponent
     , renderSectionFooter
     , renderSectionHeader
@@ -58,6 +64,7 @@ module ReactNative.Properties exposing
     , showHideTransition
     , size
     , source
+    , statusBarBackgroundColor
     , stickySectionHeadersEnabled
     , stringSize
     , stringValue
@@ -135,6 +142,14 @@ stringValue =
     property "value" << Encode.string
 
 
+id =
+    property "id" << Encode.string
+
+
+statusBarBackgroundColor =
+    property "statusBarBackgroundColor" << Encode.string
+
+
 keyboardDismissMode =
     property "keyboardDismissMode" << Encode.string
 
@@ -147,6 +162,19 @@ nativeID =
     property "nativeID" << Encode.string
 
 
+drawerWidth =
+    property "drawerWidth" << Encode.float
+
+
+drawerPosition =
+    property "drawerPosition" << Encode.string
+
+
+renderNavigationView : (() -> Html msg) -> Attribute msg
+renderNavigationView =
+    property "renderNavigationView" << encode
+
+
 extraData =
     property "extraData" << encode
 
@@ -157,6 +185,14 @@ data =
 
 stickySectionHeadersEnabled =
     property "stickySectionHeadersEnabled" << Encode.bool
+
+
+drawerLockMode =
+    property "drawerLockMode" << Encode.string
+
+
+drawerBackgroundColor =
+    property "drawerBackgroundColor" << Encode.string
 
 
 removeClippedSubviews =
