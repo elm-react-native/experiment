@@ -1,34 +1,67 @@
 module ReactNative.Properties exposing
-    ( ItemLayout
+    ( AccessibilityAction
+    , ImageSource
+    , ItemLayout
     , RippleConfig
+    , accessibilityActions
+    , accessibilityElementsHidden
+    , accessibilityHint
+    , accessibilityIgnoresInvertColors
+    , accessibilityLabel
+    , accessibilityLanguage
+    , accessibilityLiveRegion
+    , accessibilityRole
+    , accessibilityState
+    , accessibilityValue
+    , accessibilityViewIsModal
+    , accessible
     , activeOpacity
     , android_disableSound
     , android_ripple
     , animated
+    , animating
     , animationType
     , backgroundColor
     , barStyle
     , behavior
+    , blurRadius
     , boolValue
+    , capInsets
+    , cellRendererComponent
+    , collapsable
     , color
+    , colors
     , component
     , contentContainerStyle
     , data
+    , defaultSource
     , delayLongPress
+    , delayPressIn
+    , delayPressOut
+    , disableVirtualization
     , disabled
     , drawerBackgroundColor
     , drawerLockMode
     , drawerPosition
     , drawerWidth
     , editable
+    , enabled
     , encode
+    , fadeDuration
+    , focusable
     , getId
     , getItem
     , getItemCount
     , getItemLayout
+    , hardwareAccelerated
+    , hasTVPreferredFocus
     , hidden
+    , hidesWhenStopped
+    , hitSlop
     , horizontal
     , id
+    , imageStyle
+    , importantForAccessibility
     , initialNumToRender
     , initialParams
     , initialScrollIndex
@@ -37,18 +70,34 @@ module ReactNative.Properties exposing
     , ios_backgroundColor
     , keyExtractor
     , keyboardDismissMode
+    , keyboardVerticalOffset
+    , listFooterComponent
+    , listFooterComponentStyle
+    , listHeaderComponent
+    , listHeaderComponentStyle
+    , listItemComponent
     , listKey
+    , loadingIndicatorSource
     , maxLength
     , maxToRenderPerBatch
     , multiline
     , name
     , nativeID
+    , needsOffscreenAlphaCompositing
+    , nextFocusDown
+    , nextFocusForward
+    , nextFocusLeft
+    , nextFocusRight
+    , nextFocusUp
     , numberOfLines
+    , onEndReachedThreshold
     , onstyle
     , options
     , persistentScrollbar
     , placeholder
+    , pointerEvents
     , presentationStyle
+    , progressBackgroundColor
     , progressViewOffset
     , property
     , refreshCtrl
@@ -59,18 +108,28 @@ module ReactNative.Properties exposing
     , renderScrollComponent
     , renderSectionFooter
     , renderSectionHeader
+    , renderToHardwareTextureAndroid
     , resizeMode
+    , sectionSeparatorComponent
     , sections
+    , shouldRasterizeIOS
     , showHideTransition
     , size
     , source
     , statusBarBackgroundColor
+    , statusBarTranslucent
     , stickySectionHeadersEnabled
     , stringSize
     , stringValue
     , style
+    , supportedOrientations
+    , testID
+    , testOnly_pressed
     , thumbColor
+    , tintColor
     , title
+    , titleColor
+    , touchSoundDisabled
     , trackColor
     , transparent
     , underlayColor
@@ -99,9 +158,23 @@ style =
     property "style" << encode
 
 
+imageStyle : a -> Attribute msg
+imageStyle =
+    property "imageStyle" << encode
+
+
 sections : a -> Attribute msg
 sections =
     property "sections" << encode
+
+
+blurRadius =
+    property "blurRadius" << Encode.int
+
+
+capInsets : Rect -> Attribute msg
+capInsets =
+    property "capInsets" << encode
 
 
 keyExtractor : (a -> Int -> String) -> Attribute msg
@@ -152,6 +225,10 @@ statusBarBackgroundColor =
 
 keyboardDismissMode =
     property "keyboardDismissMode" << Encode.string
+
+
+keyboardVerticalOffset =
+    property "keyboardVerticalOffset" << Encode.float
 
 
 inputAccessoryViewID =
@@ -219,6 +296,69 @@ delayLongPress =
     property "delayLongPress" << Encode.int
 
 
+delayPressIn =
+    property "delayPressIn" << Encode.int
+
+
+delayPressOut =
+    property "delayPressOut" << Encode.int
+
+
+cellRendererComponent : (() -> Html msg) -> Attribute msg
+cellRendererComponent =
+    property "CellRendererComponent" << encode
+
+
+itemSeparatorComponent : (() -> Html msg) -> Attribute msg
+itemSeparatorComponent =
+    property "ItemSeparatorComponent" << encode
+
+
+listItemComponent : (() -> Html msg) -> Attribute msg
+listItemComponent =
+    property "ListItemComponent" << encode
+
+
+listEmptyComponent : (() -> Html msg) -> Attribute msg
+listEmptyComponent =
+    property "ListEmptyComponent" << encode
+
+
+listFooterComponent : (() -> Html msg) -> Attribute msg
+listFooterComponent =
+    property "ListFooterComponent" << encode
+
+
+listFooterComponentStyle =
+    property "listFooterComponentStyle" << encode
+
+
+listHeaderComponent : (() -> Html msg) -> Attribute msg
+listHeaderComponent =
+    property "ListHeaderComponent" << encode
+
+
+listHeaderComponentStyle =
+    property "listHeaderComponentStyle" << encode
+
+
+sectionSeparatorComponent : (() -> Html msg) -> Attribute msg
+sectionSeparatorComponent =
+    property "SectionSeparatorComponent" << encode
+
+
+enabled =
+    property "enabled" << Encode.bool
+
+
+debug =
+    property "debug" << Encode.bool
+
+
+disableVirtualization =
+    property "disableVirtualization" << Encode.bool
+
+
 unstable_pressDelay =
     property "unstable_pressDelay" << Encode.int
 
@@ -258,9 +398,42 @@ initialParams =
     property "initialParams" << encode
 
 
+type alias ImageSource =
+    { uri : String
+    , width : Float
+    , height : Float
+    , scale : Float
+    , bundle : String
+    , method : String
+    , headers : List ( String, String )
+    , body : String
+    , cache : String
+    }
+
+
+
+--requireSource : String -> Attribute msg
+--requireSource s =
+--    property "source" <| encode (require s)
+
+
 source : a -> Attribute msg
 source =
     property "source" << encode
+
+
+defaultSource : a -> Attribute msg
+defaultSource =
+    property "defaultSource" << encode
+
+
+loadingIndicatorSource : String -> Attribute msg
+loadingIndicatorSource uri =
+    property "loadingIndicatorSource" <| encode { uri = uri }
+
+
+fadeDuration =
+    property "fadeDuration" << Encode.int
 
 
 onstyle : (a -> List Encode.Value) -> Attribute msg
@@ -305,6 +478,14 @@ title =
 
 color =
     property "color" << Encode.string
+
+
+colors =
+    property "colors" << Encode.list Encode.string
+
+
+progressBackgroundColor =
+    property "progressBackgroundColor" << Encode.string
 
 
 disabled =
@@ -367,6 +548,14 @@ initialScrollIndex =
     property "initialScrollIndex" << Encode.int
 
 
+hidesWhenStopped =
+    property "hidesWhenStopped" << Encode.bool
+
+
+animating =
+    property "animating" << Encode.bool
+
+
 windowSize =
     property "windowSize" << Encode.int
 
@@ -383,12 +572,28 @@ presentationStyle =
     property "presentationStyle" << Encode.string
 
 
+statusBarTranslucent =
+    property "statusBarTranslucent" << Encode.bool
+
+
+supportedOrientations =
+    property "supportedOrientations" << Encode.string
+
+
 backgroundColor =
     property "backgroundColor" << Encode.string
 
 
 barStyle =
     property "barStyle" << Encode.string
+
+
+titleColor =
+    property "titleColor" << Encode.string
+
+
+tintColor =
+    property "tintColor" << Encode.string
 
 
 trackColor : String -> String -> Attribute msg
@@ -398,6 +603,10 @@ trackColor false true =
             { false = false
             , true = true
             }
+
+
+updateCellsBatchingPeriod =
+    property "updateCellsBatchingPeriod" << Encode.int
 
 
 thumbColor =
@@ -444,3 +653,132 @@ hitSlop =
 pressRetentionOffset : Rect -> Attribute msg
 pressRetentionOffset =
     property "pressRetentionOffset" << encode
+
+
+type alias AccessibilityAction =
+    { name : String, label : Maybe String }
+
+
+accessibilityActions : List AccessibilityAction -> Attribute msg
+accessibilityActions =
+    property "accessibilityActions" << encode
+
+
+accessibilityElementsHidden =
+    property "accessibilityElementsHidden" << Encode.bool
+
+
+accessibilityHint =
+    property "accessibilityHint" << Encode.string
+
+
+accessibilityLanguage =
+    property "accessibilityLanguage" << Encode.string
+
+
+accessibilityIgnoresInvertColors =
+    property "accessibilityIgnoresInvertColors" << Encode.bool
+
+
+accessibilityLabel =
+    property "accessibilityLabel" << Encode.string
+
+
+accessibilityLiveRegion =
+    property "accessibilityLiveRegion" << Encode.string
+
+
+accessibilityRole =
+    property "accessibilityRole" << Encode.string
+
+
+{-| TODO: checked
+-}
+accessibilityState : { disabled : Bool, selected : Bool, checked : String, busy : Bool, expanded : Bool } -> Attribute msg
+accessibilityState =
+    property "accessibilityState" << encode
+
+
+accessibilityValue : { min : Float, max : Float, now : Float, text : String } -> Attribute msg
+accessibilityValue =
+    property "accessibilityValue" << encode
+
+
+accessibilityViewIsModal =
+    property "accessibilityViewIsModal" << Encode.bool
+
+
+accessible =
+    property "accessible" << Encode.bool
+
+
+collapsable =
+    property "collapsable" << Encode.bool
+
+
+focusable =
+    property "focusable" << Encode.bool
+
+
+touchSoundDisabled =
+    property "touchSoundDisabled" << Encode.bool
+
+
+hasTVPreferredFocus =
+    property "hasTVPreferredFocus" << Encode.bool
+
+
+importantForAccessibility =
+    property "importantForAccessibility" << Encode.string
+
+
+needsOffscreenAlphaCompositing =
+    property "needsOffscreenAlphaCompositing" << Encode.bool
+
+
+nextFocusDown =
+    property "nextFocusDown" << Encode.int
+
+
+nextFocusForward =
+    property "nextFocusForward" << Encode.int
+
+
+onEndReachedThreshold =
+    property "onEndReachedThreshold" << Encode.int
+
+
+nextFocusLeft =
+    property "nextFocusLeft" << Encode.int
+
+
+nextFocusRight =
+    property "nextFocusRight" << Encode.int
+
+
+nextFocusUp =
+    property "nextFocusUp" << Encode.int
+
+
+pointerEvents =
+    property "pointerEvents" << Encode.string
+
+
+renderToHardwareTextureAndroid =
+    property "renderToHardwareTextureAndroid" << Encode.bool
+
+
+hardwareAccelerated =
+    property "hardwareAccelerated" << Encode.bool
+
+
+shouldRasterizeIOS =
+    property "shouldRasterizeIOS" << Encode.bool
+
+
+testID =
+    property "testID" << Encode.string
+
+
+testOnly_pressed =
+    property "testOnly_pressed" << Encode.bool

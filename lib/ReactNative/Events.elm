@@ -1,18 +1,41 @@
 module ReactNative.Events exposing
-    ( onBoolValueChange
+    ( onAccessibilityAction
+    , onAccessibilityEscape
+    , onAccessibilityTap
+    , onBlur
+    , onBoolValueChange
     , onChangeText
     , onClick
+    , onDismiss
     , onDrawerClose
     , onDrawerOpen
     , onDrawerSlide
     , onDrawerStateChange
+    , onEndReached
+    , onError
+    , onFocus
+    , onLayout
     , onLongPress
+    , onMagicTap
+    , onMoveShouldSetResponder
+    , onMoveShouldSetResponderCapture
+    , onOrientationChange
     , onPress
     , onPressIn
     , onPressOut
     , onRefresh
     , onRequestClose
+    , onResponderGrant
+    , onResponderMove
+    , onResponderReject
+    , onResponderRelease
+    , onResponderTerminate
+    , onResponderTerminationRequest
+    , onScrollToIndexFailed
+    , onStartShouldSetResponder
+    , onStartShouldSetResponderCapture
     , onSubmitEditing
+    , onViewableItemsChanged
     )
 
 import Html exposing (Attribute)
@@ -34,6 +57,14 @@ onPressOut =
 
 onLongPress =
     on "longPress"
+
+
+onFocus =
+    on "focus"
+
+
+onBlur =
+    on "blur"
 
 
 onClick =
@@ -80,3 +111,87 @@ onDrawerSlide msg =
 onDrawerStateChange : (String -> msg) -> Attribute msg
 onDrawerStateChange tagger =
     on "drawerStateChange" <| Decode.map tagger Decode.string
+
+
+onDismiss =
+    on "dismiss"
+
+
+onOrientationChange =
+    on "orientationChange"
+
+
+onAccessibilityAction =
+    on "accessibilityAction"
+
+
+onAccessibilityEscape =
+    on "accessibilityEscape"
+
+
+onAccessibilityTap =
+    on "accessibilityTap"
+
+
+onLayout =
+    on "layout"
+
+
+onMagicTap =
+    on "magicTap"
+
+
+onMoveShouldSetResponder =
+    on "moveShouldSetResponder"
+
+
+onMoveShouldSetResponderCapture =
+    on "moveShouldSetResponderCapture"
+
+
+onResponderGrant =
+    on "responderGrant"
+
+
+onResponderMove =
+    on "responderMove"
+
+
+onResponderReject =
+    on "responderReject"
+
+
+onResponderRelease =
+    on "responderRelease"
+
+
+onResponderTerminate =
+    on "responderTerminate"
+
+
+onResponderTerminationRequest =
+    on "responderTerminationRequest"
+
+
+onStartShouldSetResponder =
+    on "startShouldSetResponder"
+
+
+onStartShouldSetResponderCapture =
+    on "startShouldSetResponderCapture"
+
+
+onEndReached =
+    on "endReached"
+
+
+onScrollToIndexFailed =
+    on "scrollToIndexFailed"
+
+
+onViewableItemsChanged =
+    on "viewableItemsChanged"
+
+
+onError =
+    on "error"
