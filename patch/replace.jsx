@@ -168,6 +168,17 @@ var $author$project$ReactNative$ToastAndroid$show = F2(
     });
   });
 
+var $author$project$ReactNative$LayoutAnimation$configureNext = function (cfg) {
+  return _Scheduler_binding(function(callback) {
+    LayoutAnimation.configureNext(cfg,
+      () => {
+        callback(_Scheduler_succeed(_Utils_Tuple0));
+      }, () => {
+        callback(_Scheduler_fail(_Utils_Tuple0));
+      });
+  });
+};
+
 var $author$project$ReactNative$ToastAndroid$toGravity = function (gravity) {
   switch (gravity.$) {
     case 'Top':
@@ -758,4 +769,12 @@ var $author$project$ReactNative$DrawerLayoutAndroid$open = function (id) {
     if (drawer) drawer.openDrawer();
     callback(_Scheduler_succeed(_Utils_Tuple0));
   });
+};
+var $author$project$ReactNative$LayoutAnimation$config = function (c) {
+  return {
+    duration: c.duration,
+    create: c.create && { type: c.create.a, ...c.create.b },
+    update: c.update && { type: c.update.a, ...c.update.b },
+    delete: c._delete && { type: c._delete.a, ...c._delete.b },
+  };
 };

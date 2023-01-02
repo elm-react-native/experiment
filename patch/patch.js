@@ -158,6 +158,12 @@ const replacers = [
   variableReplacer("ToastAndroid$durationLong", "ToastAndroid.LONG"),
   variableReplacer("StatusBar$currentHeight", "StatusBar.currentHeight"),
   variableReplacer("Platform$interfaceIdiom", "Platform.interfaceIdiom"),
+  variableReplacer("LayoutAnimation$spring", "LayoutAnimation.Presets.spring"),
+  variableReplacer("LayoutAnimation$linear", "LayoutAnimation.Presets.linear"),
+  variableReplacer(
+    "LayoutAnimation$easeInEaseOut",
+    "LayoutAnimation.Presets.easeInEaseOut"
+  ),
 ];
 
 const output = source
