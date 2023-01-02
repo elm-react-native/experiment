@@ -22,6 +22,7 @@ import InputAccessoryViewExample
 import Json.Decode as Decode
 import KeyboardAvoidingViewExample
 import KeyboardExample
+import LayoutAnimationExample
 import LinkingExample
 import ModalExample
 import NavigatorExample
@@ -1007,6 +1008,32 @@ exampleApps =
                     , root = InputAccessoryViewExample.root
                     , subs = InputAccessoryViewExample.subs
                     }
+                , toGeneralExampleApp
+                    LayoutAnimationExample
+                    (\model ->
+                        case model of
+                            LayoutAnimationExample m ->
+                                Just m
+
+                            _ ->
+                                Nothing
+                    )
+                    LayoutAnimationExampleMsg
+                    (\msg ->
+                        case msg of
+                            LayoutAnimationExampleMsg m ->
+                                Just m
+
+                            _ ->
+                                Nothing
+                    )
+                    { id = "LayoutAnimationExample"
+                    , title = "LayoutAnimation"
+                    , init = \_ -> LayoutAnimationExample.init ()
+                    , update = LayoutAnimationExample.update
+                    , root = LayoutAnimationExample.root
+                    , subs = LayoutAnimationExample.subs
+                    }
                 ]
 
             else
@@ -1146,6 +1173,7 @@ type ExampleModel
     | ToastAndroidExample ToastAndroidExample.Model
     | InputAccessoryViewExample InputAccessoryViewExample.Model
     | DrawerLayoutAndroidExample DrawerLayoutAndroidExample.Model
+    | LayoutAnimationExample LayoutAnimationExample.Model
 
 
 type alias ExampleInfo =
@@ -1220,6 +1248,7 @@ type ExampleMsg
     | ToastAndroidExampleMsg ToastAndroidExample.Msg
     | InputAccessoryViewExampleMsg InputAccessoryViewExample.Msg
     | DrawerLayoutAndroidExampleMsg DrawerLayoutAndroidExample.Msg
+    | LayoutAnimationExampleMsg LayoutAnimationExample.Msg
 
 
 type ExampleListMsg

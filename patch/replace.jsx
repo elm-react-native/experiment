@@ -251,6 +251,14 @@ var $author$project$ReactNative$BackHandler$exitApp = function () {
   }));
 }();
 
+var $author$project$ReactNative$LayoutAnimation$setLayoutAnimationEnabledExperimental = function (b) {
+  return A2($elm$core$Task$perform, $elm$core$Basics$never, _Scheduler_binding(function() {
+    if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+      UIManager.setLayoutAnimationEnabledExperimental(b);
+    }
+  }));
+};
+
 var $author$project$ReactNative$DynamicColorIOS$setWithHighContrast = F4(
   function (light, dark, highContrastLight, highContrastDark) {
     return A2($elm$core$Task$perform, $elm$core$Basics$never, _Scheduler_binding(function() {

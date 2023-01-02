@@ -23,7 +23,11 @@ type alias Model =
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { expanded = False, boxes = [ "left", "left", "left", "left" ] }, Cmd.none )
+    ( { expanded = False
+      , boxes = [ "left", "left", "left", "left" ]
+      }
+    , Cmd.none
+    )
 
 
 type alias Box =

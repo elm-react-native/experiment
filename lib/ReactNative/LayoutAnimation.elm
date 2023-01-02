@@ -20,9 +20,9 @@ import Task exposing (Task)
 --}
 
 
-setLayoutAnimationEnabledExperimental : Bool -> Task Never ()
+setLayoutAnimationEnabledExperimental : Bool -> Cmd msg
 setLayoutAnimationEnabledExperimental b =
-    Task.succeed ()
+    Cmd.none
 
 
 type Config
