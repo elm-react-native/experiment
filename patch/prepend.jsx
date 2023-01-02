@@ -57,8 +57,6 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
 const navigationRef = createNavigationContainerRef();
-const Stack = createNativeStackNavigator();
-const BottomTab = createBottomTabNavigator();
 
 const allComponents = {
   ActivityIndicator,
@@ -84,8 +82,6 @@ const allComponents = {
   TouchableNativeFeedback,
   InputAccessoryView,
   SafeAreaView,
-  "Stack.Navigator": Stack.Navigator,
-  "Tab.Navigator": BottomTab.Navigator,
   "Animated.View": Animated.View,
   Fragment: React.Fragment,
   Ionicons,
@@ -200,7 +196,13 @@ const screenListenersMakeCallback = (listeners, eventNode) => {
   return result;
 };
 
-const createScreenElement = (props, screenComponentsCache, eventNode, key) => {
+const createScreenElement = (
+  Screen,
+  props,
+  screenComponentsCache,
+  eventNode,
+  key
+) => {
   const { component, ...actualProps } = _VirtualDom_factsToReactProps(
     props,
     null
@@ -221,19 +223,27 @@ const createScreenElement = (props, screenComponentsCache, eventNode, key) => {
     screenComponentsCache.set(component, screenComponent);
   }
 
-  if (props.tag === "Stack.Screen") {
-    return (
-      <Stack.Screen {...actualProps} component={screenComponent} key={key} />
-    );
-  } else if (props.tag === "Tab.Screen") {
-    return (
-      <BottomTab.Screen
-        {...actualProps}
-        component={screenComponent}
-        key={key}
-      />
-    );
+  return <Screen {...actualProps} component={screenComponent} key={key} />;
+};
+
+const createNavigator = function (tag) {
+  if (tag === "Tab") {
+    return createBottomTabNavigator();
+  } else if (tag === "Drawer") {
+    // todo
   }
+
+  return createNativeStackNavigator();
+};
+
+const registerNavigator = function (tag, prefix) {
+  const key = `${prefix}.${tag}.Navigator`;
+
+  if (!allComponents[key]) {
+    allComponents[key] = createNavigator(tag);
+  }
+
+  return key;
 };
 
 const NavigatorComponent = (props) => {
@@ -247,6 +257,9 @@ const NavigatorComponent = (props) => {
   }
 
   const Component = scope.resolveComponent(props.tag);
+  const Navigator = Component.Navigator;
+  const Screen = Component.Screen;
+
   const screenComponentsCacheRef = React.useRef(new Map());
 
   let screens = [];
@@ -254,6 +267,7 @@ const NavigatorComponent = (props) => {
     const ps = kids.a;
     screens.push(
       createScreenElement(
+        Screen,
         ps,
         screenComponentsCacheRef.current,
         eventNode,
@@ -261,7 +275,7 @@ const NavigatorComponent = (props) => {
       )
     );
   }
-  return <Component {...actualProps}>{screens}</Component>;
+  return <Navigator {...actualProps}>{screens}</Navigator>;
 };
 
 const ElmThunkComponent = (props) => {

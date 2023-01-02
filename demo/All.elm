@@ -32,9 +32,8 @@ import PlatformExample
 import PressableExample
 import ReactNative exposing (button, image, materialIcon, null, pressable, require, safeAreaView, scrollView, statusBar, str, text, touchableOpacity, view)
 import ReactNative.Events exposing (onPress)
-import ReactNative.Navigation as Nav
+import ReactNative.Navigation as Nav exposing (screen, stackNavigator)
 import ReactNative.Navigation.Listeners as Listeners
-import ReactNative.Navigation.Stack as Stack
 import ReactNative.Platform as Platform
 import ReactNative.Properties exposing (barStyle, color, component, contentContainerStyle, getId, initialParams, name, options, size, source, style, title)
 import ReactNative.StyleSheet as StyleSheet
@@ -1347,15 +1346,15 @@ exampleListTitle =
 
 root : Model -> Html Msg
 root model =
-    Stack.navigator [] <|
-        [ Stack.screen
+    stackNavigator "Main" [] <|
+        [ screen
             [ name "List"
             , component listScreen
             , options { title = exampleListTitle }
             , Nav.listeners [ Listeners.focus <| Decode.succeed <| ExampleListMsg FocusListScreen ]
             ]
             []
-        , Stack.screen
+        , screen
             [ name "ExampleDetails"
             , component detailsScreen
             , getId (\{ params } -> params.exampleId)

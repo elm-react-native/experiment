@@ -8,9 +8,7 @@ import Json.Decode as Decode
 import Json.Encode as Encode
 import ReactNative exposing (button, ionicon, safeAreaView, str, text, view, virtualizedList)
 import ReactNative.Events exposing (onClick, onPress, onRefresh)
-import ReactNative.Navigation as Nav
-import ReactNative.Navigation.BottomTab as BottomTab
-import ReactNative.Navigation.Stack as Stack
+import ReactNative.Navigation as Nav exposing (screen, stackNavigator, tabNavigator)
 import ReactNative.Properties exposing (color, component, name, options, property, screenOptions, size, style, title)
 import ReactNative.StyleSheet as StyleSheet
 
@@ -87,15 +85,15 @@ detailsScreen _ _ =
 
 
 homeTabScreen _ _ =
-    Stack.navigator
+    stackNavigator "Home"
         []
-        [ Stack.screen
+        [ screen
             [ name "Home"
             , component homeScreen
             , options { title = "Overview" }
             ]
             []
-        , Stack.screen
+        , screen
             [ name "Details"
             , component detailsScreen
             ]
@@ -115,20 +113,20 @@ settingsTabScreen _ _ =
 
 
 root model =
-    BottomTab.navigator
+    tabNavigator "Tab"
         [ screenOptions
             { headerShown = False
             , tabBarActiveTintColor = "tomato"
             , tabBarInactiveTintColor = "gray"
             }
         ]
-        [ BottomTab.screen
+        [ screen
             [ name "HomeTab"
             , component homeTabScreen
             , options { tabBarIcon = \p -> ionicon "ios-information-circle" [ color p.color, size p.size ] }
             ]
             []
-        , BottomTab.screen
+        , screen
             [ name "SettingsTab"
             , component settingsTabScreen
             , options { tabBarIcon = \p -> ionicon "ios-list" [ color p.color, size p.size ] }

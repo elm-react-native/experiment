@@ -3,7 +3,7 @@ var _VirtualDom_nodeNS = F2(function(namespace, tag)
 {
   return F2(function(factList, kidList)
   {
-    if (tag.endsWith(".Screen"))
+    if (tag === "Screen")
     {
       // delay to navigator component
       return {tag, factList, kidList};
@@ -32,6 +32,12 @@ var _VirtualDom_nodeNS = F2(function(namespace, tag)
   });
 });
 
+var $author$project$ReactNative$Navigation$Internal$navigatorNode = F2(
+  function (tag, prefix) {
+    const key = registerNavigator(tag, prefix);
+    return $elm$html$Html$node(key);
+  });
+
 var _VirtualDom_map = F2(function(tagger, node)
 {
   return <ElmMapComponent tagger={tagger} node={node} />;
@@ -49,12 +55,12 @@ var _VirtualDom_keyedNodeNS = F2(function(namespace, tag)
 {
   return F2(function(factList, kidList)
   {
-    if (tag.endsWith(".Screen"))
+    if (tag === "Screen")
     {
       // delay to navigator component
       return {tag, factList, kidList};
     }
-    else if (tag === "Stack.Navigator")
+    else if (tag.endsWith(".Navigator"))
     {
       return <NavigatorComponent tag={tag} factList={factList} kidList={kidList} />;
     }
@@ -78,7 +84,6 @@ function _VirtualDom_thunk(refs, thunk)
 {
   return <ElmThunkComponent refs={refs} thunk={thunk} />;
 }
-
 
 var _Browser_element = _Debugger_element || F4(function(impl, flagDecoder, debugMetadata, args)
 {
