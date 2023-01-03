@@ -95,6 +95,7 @@ module ReactNative.Properties exposing
     , options
     , persistentScrollbar
     , placeholder
+    , placeholderTextColor
     , pointerEvents
     , presentationStyle
     , progressBackgroundColor
@@ -113,6 +114,7 @@ module ReactNative.Properties exposing
     , screenOptions
     , sectionSeparatorComponent
     , sections
+    , secureTextEntry
     , shouldRasterizeIOS
     , showHideTransition
     , size
@@ -524,6 +526,14 @@ showHideTransition =
 
 placeholder =
     property "placeholder" << Encode.string
+
+
+placeholderTextColor =
+    property "placeholderTextColor" << Encode.string
+
+
+secureTextEntry =
+    property "secureTextEntry" << Encode.bool
 
 
 visible =
