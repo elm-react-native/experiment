@@ -142,6 +142,14 @@ const factListFindId = (factList) => {
   }
 };
 
+const factListFindKey = (factList) => {
+  for (; factList.b; factList = factList.b) {
+    if (factList.a.n === "key") {
+      return factList.a.o;
+    }
+  }
+};
+
 const ElmNodeComponentWithRef = (props) => {
   const eventNode = React.useContext(EventNodeContext);
   const actualProps = _VirtualDom_factsToReactProps(props, eventNode);

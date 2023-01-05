@@ -10,7 +10,15 @@ var _VirtualDom_nodeNS = F2(function(namespace, tag)
     }
     else if (tag === "Fragment")
     {
-      return <React.Fragment>{listToChildren(kidList)}</React.Fragment>;
+      const key = factListFindKey(factList)
+      if (key)
+      {
+        return <React.Fragment key={key}>{listToChildren(kidList)}</React.Fragment>;
+      }
+      else
+      {
+        return <React.Fragment>{listToChildren(kidList)}</React.Fragment>;
+      }
     }
     else if (tag === "RefreshControl")
     {

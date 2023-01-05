@@ -68,6 +68,7 @@ module ReactNative.Properties exposing
     , inputAccessoryViewID
     , inverted
     , ios_backgroundColor
+    , key
     , keyExtractor
     , keyboardDismissMode
     , keyboardVerticalOffset
@@ -178,6 +179,10 @@ blurRadius =
 capInsets : Rect -> Attribute msg
 capInsets =
     property "capInsets" << encode
+
+
+key =
+    property "key" << Encode.string
 
 
 keyExtractor : (a -> Int -> String) -> Attribute msg
