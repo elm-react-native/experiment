@@ -1,28 +1,31 @@
 module Api exposing (..)
 
 import Http
+import Json.Decode as Decode exposing (Decoder)
+import Json.Encode as Encode exposing (Value)
 import Task exposing (Task)
 
 
-type alias MediaContainer metadata =
-    { size : Int -- The number of libraries.
-    , allowSync : Bool -- 1 - allow syncing content from this library.  0 - don't allow syncing content from this library.
-    , identifier : String -- The type of item.
-    , art : String -- Background artwork used to represent the library.
-    , librarySectionID : String -- The unique key associated with the library.
-    , librarySectionTitle : String -- The title of the library.
-    , librarySectionUUID : String -- Unique GUID identifier for the library.
-    , mediaTagPrefix : String -- Prefix for the media tag.
-    , medidTagVersion : Int -- Media tag version. Note: This could be a date and time value.
-    , thumb : String -- The thumbnail for the library.
-    , title1 : String -- The title of the library. Note: This appears to be internally created, and can't be changed by the server owner.
-    , title2 : String -- A descriptive title for the library.
-    , sortAsc : Bool -- 1 - the library is sorted in ascending order. 0 - the library is sorted in descending order.
-    , viewGroup : String -- The group type used to view the library.
-    , viewMode : Int -- Unknown integer value.
-    , nocache : Bool
-    , metadata : List metadata
-    }
+
+--type alias MediaContainer metadata =
+--    { size : Int -- The number of libraries.
+--    , allowSync : Bool -- 1 - allow syncing content from this library.  0 - don't allow syncing content from this library.
+--    , identifier : String -- The type of item.
+--    , art : String -- Background artwork used to represent the library.
+--    , librarySectionID : String -- The unique key associated with the library.
+--    , librarySectionTitle : String -- The title of the library.
+--    , librarySectionUUID : String -- Unique GUID identifier for the library.
+--    , mediaTagPrefix : String -- Prefix for the media tag.
+--    , medidTagVersion : Int -- Media tag version. Note: This could be a date and time value.
+--    , thumb : String -- The thumbnail for the library.
+--    , title1 : String -- The title of the library. Note: This appears to be internally created, and can't be changed by the server owner.
+--    , title2 : String -- A descriptive title for the library.
+--    , sortAsc : Bool -- 1 - the library is sorted in ascending order. 0 - the library is sorted in descending order.
+--    , viewGroup : String -- The group type used to view the library.
+--    , viewMode : Int -- Unknown integer value.
+--    , nocache : Bool
+--    , metadata : List metadata
+--    }
 
 
 type alias Library =
@@ -127,7 +130,106 @@ type alias Metadata =
     , hasPremiumPrimaryExtra : String
     , lastViewedAt : Int
     , viewCount : Int
+    , viewOffset : Int
     }
+
+
+initialMetadata =
+    { ratingKey = ""
+    , key = ""
+    , guid = ""
+    , studio = ""
+    , typ = ""
+    , title = ""
+    , contentRating = ""
+    , summary = ""
+    , rating = ""
+    , audienceRating = ""
+    , skipCount = ""
+    , year = 0
+    , tagline = ""
+    , thumb = ""
+    , art = ""
+    , duration = 0
+    , originallyAvailableAt = 0
+    , addedAt = 0
+    , updatedAt = 0
+    , audienceRatingImage = ""
+    , chapterSource = ""
+    , ratingImage = ""
+    , media = []
+    , originalTitle = ""
+    , includedAt = 0
+    , index = 0
+    , parentKey = ""
+    , parentRatingKey = ""
+    , parentTitle = ""
+    , parentYear = 0
+    , parentThumb = ""
+    , parentTheme = ""
+    , parentGuid = ""
+    , parentIndex = 0
+    , parentStudio = ""
+    , grandparentTitle = ""
+    , grandparentKey = ""
+    , grandparentRatingKey = ""
+    , grandparentGuid = ""
+    , grandparentThumb = ""
+    , grandparentArt = ""
+    , grandparentTheme = ""
+    , grandparentIndex = 0
+    , grandparentStudio = ""
+    , genres = []
+    , directors = []
+    , writers = []
+    , roles = []
+    , ratings = []
+    , guids = []
+    , countries = []
+    , primaryExtraKey = ""
+    , hasPremiumExtras = ""
+    , hasPremiumPrimaryExtra = ""
+    , lastViewedAt = 0
+    , viewCount = 0
+    , viewOffset = 0
+    }
+
+
+maybeWithDefault defaultValue decoder =
+    Decode.map (Maybe.withDefault defaultValue) <| Decode.maybe decoder
+
+
+maybeString =
+    maybeWithDefault ""
+
+
+maybeZero =
+    maybeWithDefault 0
+
+
+metadataDecoder : Decoder Metadata
+metadataDecoder =
+    Decode.map8
+        (\ratingKey guid typ thumb title duration grandparentTitle viewOffset ->
+            { initialMetadata
+                | ratingKey = ratingKey
+                , guid = guid
+                , typ = typ
+                , thumb = thumb
+                , title = title
+                , duration = duration
+                , grandparentTitle = grandparentTitle
+                , viewOffset = viewOffset
+            }
+        )
+        (Decode.field "ratingKey" Decode.string)
+        (Decode.field "guid" Decode.string)
+        (Decode.field "type" Decode.string)
+        (Decode.field "thumb" Decode.string)
+        (maybeString <| Decode.field "title" Decode.string)
+        (maybeZero <| Decode.field "duration" Decode.int)
+        (maybeString <| Decode.field "grandparentTitle" Decode.string)
+        (maybeZero <| Decode.field "viewOffset" Decode.int)
 
 
 type alias Director =
@@ -236,35 +338,120 @@ type alias Setting =
     }
 
 
+type alias Section =
+    { title : String
+    , size : Int
+    , more : Bool
+    , data : List (Tree Metadata)
+    }
+
+
+type Tree a
+    = Branch a (List (Tree a))
+    | Leaf a
+
+
 type alias Client =
     { token : String
     , serverAddress : String
     }
 
 
-getLibraries : Client -> Task Http.Error (List Library)
-getLibraries client =
-    Task.fail Http.NetworkError
+clientGetJson : Decoder a -> String -> (Result Http.Error a -> msg) -> Client -> Cmd msg
+clientGetJson decoder path tagger { serverAddress, token } =
+    Http.request
+        { url = serverAddress ++ path ++ "?X-Plex-Token=" ++ token
+        , method = "GET"
+        , headers = [ Http.header "Accept" "application/json" ]
+        , body = Http.emptyBody
+        , expect = Http.expectJson tagger decoder
+        , timeout = Nothing
+        , tracker = Nothing
+        }
 
 
-getMetadata : Client -> String -> Task Http.Error (List Metadata)
-getMetadata client path =
-    Task.fail Http.NetworkError
+libraryDecoder : Decoder Library
+libraryDecoder =
+    Decode.fail ""
 
 
-getContinueWatching : Client -> Task Http.Error (List Metadata)
-getContinueWatching client =
-    getMetadata client "/continueWatching"
+getLibraries : String -> (Result Http.Error Library -> msg) -> Client -> Cmd msg
+getLibraries =
+    clientGetJson libraryDecoder
 
 
-getRecentlyAdded : Client -> Task Http.Error (List Metadata)
-getRecentlyAdded client =
-    getMetadata client "/recentlyAdded"
+continueWatchingDecoder : Decoder Section
+continueWatchingDecoder =
+    Decode.at [ "MediaContainer", "Hub" ] <|
+        Decode.index 0 <|
+            Decode.map4
+                (\title size more data ->
+                    { title = title, size = size, more = more, data = List.map Leaf data }
+                )
+                (Decode.field "title" Decode.string)
+                (Decode.field "size" Decode.int)
+                (Decode.field "more" Decode.bool)
+                (Decode.field "Metadata" <| Decode.list metadataDecoder)
 
 
-getAccount : Client -> Task Http.Error Account
-getAccount client =
-    Task.fail Http.NetworkError
+getContinueWatching : (Result Http.Error Section -> msg) -> Client -> Cmd msg
+getContinueWatching =
+    clientGetJson continueWatchingDecoder "/hubs/continueWatching"
+
+
+recentlyAddedDecoder : Decoder Section
+recentlyAddedDecoder =
+    Decode.fail ""
+
+
+getRecentlyAdded : (Result Http.Error Section -> msg) -> Client -> Cmd msg
+getRecentlyAdded =
+    clientGetJson recentlyAddedDecoder "/recentlyAdded"
+
+
+firstAccountWithName decoder =
+    decoder
+        |> Decode.list
+        |> Decode.andThen
+            (\accs ->
+                case List.filter (\acc -> acc.name /= "") accs of
+                    [] ->
+                        Decode.fail "Account not found"
+
+                    acc :: _ ->
+                        Decode.succeed acc
+            )
+        |> Decode.at [ "MediaContainer", "Account" ]
+
+
+accountDecoder : Decoder Account
+accountDecoder =
+    firstAccountWithName <|
+        Decode.map8
+            (\id key name defaultAudioLanguage autoSelectAudio defaultSubtitleLanguage subtitleMode thumb ->
+                { id = id
+                , key = key
+                , name = name
+                , defaultAudioLanguage = defaultAudioLanguage
+                , autoSelectAudio = autoSelectAudio
+                , defaultSubtitleLanguage = defaultSubtitleLanguage
+                , subtitleMode = subtitleMode
+                , thumb = thumb
+                }
+            )
+            (Decode.field "id" Decode.int)
+            (Decode.field "key" Decode.string)
+            (Decode.field "name" Decode.string)
+            (Decode.field "defaultAudioLanguage" Decode.string)
+            (Decode.field "autoSelectAudio" Decode.bool)
+            (Decode.field "defaultSubtitleLanguage" Decode.string)
+            (Decode.field "subtitleMode" Decode.int)
+            (Decode.field "thumb" Decode.string)
+
+
+getAccount : (Result Http.Error Account -> msg) -> Client -> Cmd msg
+getAccount =
+    clientGetJson accountDecoder "/accounts"
 
 
 getSettings : Client -> Task Http.Error (List Setting)

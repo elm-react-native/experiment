@@ -1,6 +1,6 @@
 module Plex exposing (..)
 
-import Api exposing (Account, Client, Library, Metadata)
+import Api exposing (Account, Client, Library, Metadata, Section, Tree(..))
 import Browser
 import Browser.Navigation as N
 import Html exposing (Html)
@@ -9,7 +9,8 @@ import Json.Decode as Decode
 import Json.Encode as Encode
 import ReactNative
     exposing
-        ( button
+        ( activityIndicator
+        , button
         , fragment
         , image
         , keyboardAvoidingView
@@ -17,6 +18,8 @@ import ReactNative
         , pressable
         , require
         , safeAreaView
+        , scrollView
+        , sectionList
         , statusBar
         , str
         , text
@@ -35,8 +38,11 @@ import ReactNative.Properties
     exposing
         ( barStyle
         , behavior
+        , color
         , component
+        , contentContainerStyle
         , disabled
+        , horizontal
         , name
         , options
         , placeholder
@@ -56,25 +62,28 @@ import Task exposing (Task)
 -- MODEL
 
 
-type alias Section =
-    { info : Library
-    , items : List Entity
+type alias SignInModel =
+    { client : Client, navKey : N.Key, submitting : Bool }
+
+
+type alias RemoteData data =
+    Maybe (Result Http.Error data)
+
+
+type alias HomeModel =
+    { continueWatching : RemoteData Section
+    , recentlyAdded : RemoteData Section
+    , libraries : List (RemoteData Section)
+    , client : Client
+    , account : Account
+    , navKey : N.Key
     }
-
-
-type Entity
-    = Show { info : Metadata, seasons : List Season }
-    | Movie Metadata
-
-
-type alias Season =
-    { info : Metadata, episodes : List Metadata }
 
 
 type Model
     = Initial N.Key
-    | SignIn { client : Client, navKey : N.Key, submitting : Bool }
-    | Loaded { data : List Section, client : Client, account : Account, navKey : N.Key }
+    | SignIn SignInModel
+    | Home HomeModel
 
 
 init : N.Key -> ( Model, Cmd Msg )
@@ -97,10 +106,10 @@ type Msg
     | SignInInputAddress String
     | SignInInputToken String
     | SignInSubmit Client
-    | SignInSubmitFail String
-    | SignInSubmitSuccess Account
+    | SignInSubmitResponse (Result Http.Error Account)
+    | GotContinueWatching (Result Http.Error Section)
+    | GotRecentlyAdded (Result Http.Error Section)
     | DismissKeyboard
-    | LoadSection Section
     | ShowSection String
     | ShowEntity String String
 
@@ -109,24 +118,20 @@ initialClient =
     { serverAddress = "", token = "" }
 
 
-signInSubmit client =
-    Task.attempt
-        (\res ->
-            case res of
-                Ok account ->
-                    SignInSubmitSuccess account
+signInSubmit =
+    Api.getAccount SignInSubmitResponse
 
-                Err (Http.BadUrl _) ->
-                    SignInSubmitFail "Server address is invalid."
 
-                Err (Http.BadStatus 401) ->
-                    SignInSubmitFail "Token is invalid or expired."
+getContinueWatching =
+    Api.getContinueWatching GotContinueWatching
 
-                Err _ ->
-                    SignInSubmitFail "Network error."
-        )
-    <|
-        Api.getAccount client
+
+saveClient client =
+    Task.perform (always NoOp) <|
+        Settings.set
+            [ ( "serverAddress", Encode.string client.serverAddress )
+            , ( "token", Encode.string client.token )
+            ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -170,9 +175,7 @@ update msg model =
         SignInSubmit client ->
             case model of
                 Initial key ->
-                    ( SignIn { client = client, navKey = key, submitting = True }
-                    , signInSubmit client
-                    )
+                    ( SignIn { client = client, navKey = key, submitting = True }, signInSubmit client )
 
                 SignIn m ->
                     ( SignIn { m | client = client, submitting = True }, signInSubmit client )
@@ -180,32 +183,57 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
-        SignInSubmitFail err ->
+        SignInSubmitResponse (Ok account) ->
             case model of
-                SignIn m ->
-                    ( SignIn { m | submitting = False }, Task.perform (always NoOp) <| Alert.alert err [] )
+                SignIn { client, navKey } ->
+                    ( Home
+                        { continueWatching = Nothing
+                        , recentlyAdded = Nothing
+                        , libraries = []
+                        , account = account
+                        , client = client
+                        , navKey = navKey
+                        }
+                    , Cmd.batch [ saveClient client, getContinueWatching client ]
+                    )
 
                 _ ->
                     ( model, Cmd.none )
 
-        SignInSubmitSuccess account ->
-            ( case model of
-                SignIn { client, navKey } ->
-                    Loaded { data = [], account = account, client = client, navKey = navKey }
+        SignInSubmitResponse (Err err) ->
+            case model of
+                SignIn m ->
+                    let
+                        errMessage =
+                            case err of
+                                Http.BadUrl _ ->
+                                    "Server address is invalid."
 
-                Loaded loaded ->
-                    Loaded { loaded | account = account }
+                                Http.BadStatus 401 ->
+                                    "Token is invalid or expired."
+
+                                e ->
+                                    "Network error."
+                    in
+                    ( SignIn { m | submitting = False }, Task.perform (always NoOp) <| Alert.alert errMessage [] )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        GotContinueWatching resp ->
+            ( case model of
+                Home m ->
+                    Home { m | continueWatching = Just resp }
 
                 _ ->
                     model
             , Cmd.none
             )
 
-        LoadSection section ->
+        GotRecentlyAdded resp ->
             ( case model of
-                Loaded loaded ->
-                    -- TODO: avoid duplicate
-                    Loaded { loaded | data = section :: loaded.data }
+                Home m ->
+                    Home { m | recentlyAdded = Just resp }
 
                 _ ->
                     model
@@ -269,94 +297,161 @@ signInStyles =
         }
 
 
-initialScreen _ =
-    image [ source <| require "./assets/plex-logo.png" ] []
-
-
-signInScreen model _ =
-    case model of
-        SignIn { client, navKey, submitting } ->
-            touchableWithoutFeedback
-                [ onPress <| Decode.succeed DismissKeyboard
+signInScreen : SignInModel -> Html Msg
+signInScreen { client, navKey, submitting } =
+    touchableWithoutFeedback
+        [ onPress <| Decode.succeed DismissKeyboard
+        ]
+        [ view
+            [ style signInStyles.container
+            ]
+            [ keyboardAvoidingView
+                [ style signInStyles.form
+                , behavior "height"
                 ]
-                [ view
-                    [ style signInStyles.container
+                [ image
+                    [ source <| require "./assets/plex-logo.png"
+                    , style signInStyles.logo
                     ]
-                    [ keyboardAvoidingView
-                        [ style signInStyles.form
-                        , behavior "height"
-                        ]
-                        [ image
-                            [ source <| require "./assets/plex-logo.png"
-                            , style signInStyles.logo
-                            ]
-                            []
-                        , textInput
-                            [ style signInStyles.input
-                            , disabled submitting
-                            , placeholder "Address http://192.168.1.1:32400"
-                            , placeholderTextColor "#555"
-                            , stringValue client.serverAddress
-                            , onChangeText SignInInputAddress
-                            ]
-                            []
-                        , textInput
-                            [ style signInStyles.input
-                            , disabled submitting
-                            , placeholder "Token hoSG7jeEsYDMQnstqnzP"
-                            , placeholderTextColor "#555"
-                            , stringValue client.token
-                            , secureTextEntry True
-                            , onChangeText SignInInputToken
-                            ]
-                            []
-                        , let
-                            buttonDisabled =
-                                submitting
-                                    || (client.serverAddress == "")
-                                    || (client.token == "")
-                          in
-                          touchableOpacity
-                            [ if buttonDisabled then
-                                style <| StyleSheet.compose signInStyles.button signInStyles.buttonDisabled
+                    []
+                , textInput
+                    [ style signInStyles.input
+                    , disabled submitting
+                    , placeholder "Address http://192.168.1.1:32400"
+                    , placeholderTextColor "#555"
+                    , stringValue client.serverAddress
+                    , onChangeText SignInInputAddress
+                    ]
+                    []
+                , textInput
+                    [ style signInStyles.input
+                    , disabled submitting
+                    , placeholder "Token hoSG7jeEsYDMQnstqnzP"
+                    , placeholderTextColor "#555"
+                    , stringValue client.token
+                    , secureTextEntry True
+                    , onChangeText SignInInputToken
+                    ]
+                    []
+                , let
+                    buttonDisabled =
+                        submitting
+                            || (client.serverAddress == "")
+                            || (client.token == "")
+                  in
+                  touchableOpacity
+                    [ if buttonDisabled then
+                        style <| StyleSheet.compose signInStyles.button signInStyles.buttonDisabled
 
-                              else
-                                style signInStyles.button
-                            , disabled buttonDisabled
-                            , onPress <| Decode.succeed <| SignInSubmit client
-                            ]
-                            [ text
-                                [ style signInStyles.buttonText ]
-                                [ str "Sign In" ]
-                            ]
-                        ]
+                      else
+                        style signInStyles.button
+                    , disabled buttonDisabled
+                    , onPress <| Decode.succeed <| SignInSubmit client
                     ]
+                    [ if submitting then
+                        activityIndicator [ color "white" ] []
+
+                      else
+                        text
+                            [ style signInStyles.buttonText ]
+                            [ str "Sign In" ]
+                    ]
+                ]
+            ]
+        ]
+
+
+homeStyles =
+    StyleSheet.create
+        { sectionTitle =
+            { fontSize = 12
+            , fontWeight = "bold"
+            }
+        , sectionContent =
+            { flexDirection = "row"
+            , justifyContent = "space-around"
+            }
+        , image =
+            { borderRadius = 5
+            , margin = 5
+            }
+        }
+
+
+itemView : Client -> Tree Metadata -> Html Msg
+itemView client item =
+    let
+        metadata =
+            case item of
+                Branch meta _ ->
+                    meta
+
+                Leaf meta ->
+                    meta
+
+        _ =
+            Debug.log "item" <| metadata.thumb
+    in
+    view []
+        [ image
+            [ source
+                { uri = client.serverAddress ++ metadata.thumb ++ "?X-Plex-Token=" ++ client.token
+                , width = 80
+                , height = 120
+                }
+            , style homeStyles.image
+            ]
+            []
+
+        --, text [] [ str metadata.title ]
+        ]
+
+
+sectionView : Client -> RemoteData Section -> Html Msg
+sectionView client data =
+    case data of
+        Just (Ok section) ->
+            view [ style homeStyles.sectionTitle ]
+                [ str section.title
+                , scrollView
+                    [ contentContainerStyle homeStyles.sectionContent
+                    , horizontal True
+                    ]
+                    (List.map (itemView client) section.data)
+                ]
+
+        Just (Err _) ->
+            text [] [ str "Load Error" ]
+
+        _ ->
+            activityIndicator [] []
+
+
+homeScreen model _ =
+    case model of
+        Home m ->
+            safeAreaView []
+                [ scrollView [] (List.map (sectionView m.client) <| [ m.continueWatching, m.recentlyAdded ] ++ m.libraries)
                 ]
 
         _ ->
             null
 
 
-homeScreen model _ =
-    null
-
-
 root : Model -> Html Msg
 root model =
     case model of
         Initial _ ->
-            initialScreen model
+            null
+
+        SignIn m ->
+            signInScreen m
 
         _ ->
             stackNavigator "Main" [] <|
                 [ screen
-                    [ name "signIn"
-                    , component signInScreen
-                    , options { headerShown = False }
-                    ]
-                    []
-                , screen
                     [ name "home"
+                    , options { title = "Home" }
                     , component homeScreen
                     ]
                     []
