@@ -46,9 +46,11 @@ import ReactNative.Properties
         , horizontal
         , name
         , options
+        , persistentScrollbar
         , placeholder
         , placeholderTextColor
         , secureTextEntry
+        , showsHorizontalScrollIndicator
         , source
         , stringValue
         , style
@@ -397,8 +399,8 @@ itemView client item =
         [ image
             [ source
                 { uri = client.serverAddress ++ metadata.thumb ++ "?X-Plex-Token=" ++ client.token
-                , width = 80
-                , height = 120
+                , width = 110
+                , height = 150
                 }
             , style homeStyles.image
             ]
@@ -416,6 +418,7 @@ sectionView client data =
                 [ str section.title
                 , scrollView
                     [ contentContainerStyle homeStyles.sectionContent
+                    , showsHorizontalScrollIndicator False
                     , horizontal True
                     ]
                     (List.map (itemView client) section.data)
@@ -430,7 +433,10 @@ sectionView client data =
 
 homeScreen model _ =
     safeAreaView []
-        [ scrollView [] (List.map (sectionView model.client) <| [ model.continueWatching, model.recentlyAdded ] ++ model.libraries)
+        [ scrollView
+            [ persistentScrollbar False
+            ]
+            (List.map (sectionView model.client) <| [ model.continueWatching, model.recentlyAdded ] ++ model.libraries)
         ]
 
 

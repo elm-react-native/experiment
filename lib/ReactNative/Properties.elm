@@ -2,10 +2,7 @@ module ReactNative.Properties exposing
     ( AccessibilityAction
     , ImageSource
     , ItemLayout
-    , RippleConfig
-    , accessibilityActions
-    , accessibilityElementsHidden
-    , accessibilityHint
+    , Rect
     , accessibilityIgnoresInvertColors
     , accessibilityLabel
     , accessibilityLanguage
@@ -16,29 +13,45 @@ module ReactNative.Properties exposing
     , accessibilityViewIsModal
     , accessible
     , activeOpacity
+    , alwaysBounceHorizontal
+    , alwaysBounceVertical
     , android_disableSound
     , android_ripple
     , animated
     , animating
     , animationType
+    , automaticallyAdjustContentInsets
+    , automaticallyAdjustKeyboardInsets
+    , automaticallyAdjustsScrollIndicatorInsets
     , backgroundColor
     , barStyle
     , behavior
     , blurRadius
     , boolValue
+    , bounces
+    , bouncesZoom
+    , canCancelContentTouches
     , capInsets
     , cellRendererComponent
+    , centerContent
     , collapsable
     , color
     , colors
     , component
     , componentModel
     , contentContainerStyle
+    , contentInset
+    , contentInsetAdjustmentBehavior
+    , contentOffset
     , data
+    , decelerationRateFloat
     , defaultSource
     , delayLongPress
     , delayPressIn
     , delayPressOut
+    , directionalLockEnabled
+    , disableIntervalMomentum
+    , disableScrollViewPanResponder
     , disableVirtualization
     , disabled
     , drawerBackgroundColor
@@ -48,7 +61,9 @@ module ReactNative.Properties exposing
     , editable
     , enabled
     , encode
+    , endFillColor
     , fadeDuration
+    , fadingEdgeLength
     , focusable
     , getId
     , getItem
@@ -63,10 +78,12 @@ module ReactNative.Properties exposing
     , id
     , imageStyle
     , importantForAccessibility
+    , indicatorStyle
     , initialNumToRender
     , initialParams
     , initialScrollIndex
     , inputAccessoryViewID
+    , invertStickyHeaders
     , inverted
     , ios_backgroundColor
     , key
@@ -80,12 +97,16 @@ module ReactNative.Properties exposing
     , listItemComponent
     , listKey
     , loadingIndicatorSource
+    , maintainVisibleContentPosition
     , maxLength
     , maxToRenderPerBatch
+    , maximumZoomScale
+    , minimumZoomScale
     , multiline
     , name
     , nativeID
     , needsOffscreenAlphaCompositing
+    , nestedScrollEnabled
     , nextFocusDown
     , nextFocusForward
     , nextFocusLeft
@@ -95,7 +116,10 @@ module ReactNative.Properties exposing
     , onEndReachedThreshold
     , onstyle
     , options
+    , overScrollMode
+    , pagingEnabled
     , persistentScrollbar
+    , pinchGestureEnabled
     , placeholder
     , placeholderTextColor
     , pointerEvents
@@ -114,15 +138,27 @@ module ReactNative.Properties exposing
     , renderToHardwareTextureAndroid
     , resizeMode
     , screenOptions
+    , scrollEnabled
+    , scrollEventThrottle
     , sectionSeparatorComponent
     , sections
     , secureTextEntry
     , shouldRasterizeIOS
     , showHideTransition
+    , showsHorizontalScrollIndicator
+    , showsVerticalScrollIndicator
     , size
+    , snapToAlignment
+    , snapToEnd
+    , snapToInterval
+    , snapToOffsets
+    , snapToStart
     , source
     , statusBarBackgroundColor
     , statusBarTranslucent
+    , stickyHeaderComponent
+    , stickyHeaderHiddenOnScroll
+    , stickyHeaderIndices
     , stickySectionHeadersEnabled
     , stringSize
     , stringValue
@@ -141,6 +177,7 @@ module ReactNative.Properties exposing
     , unstable_pressDelay
     , visible
     , windowSize
+    , zoomScale
     )
 
 import Html exposing (Attribute, Html)
@@ -220,6 +257,19 @@ boolValue =
     property "value" << Encode.bool
 
 
+pinchGestureEnabled =
+    property "pinchGestureEnabled" << Encode.bool
+
+
+scrollEventThrottle =
+    property "scrollEventThrottle" << Encode.int
+
+
+scrollIndicatorInsets : { top : Float, left : Float, right : Float, bottom : Float } -> Attribute msg
+scrollIndicatorInsets =
+    property "scrollIndicatorInsets" << encode
+
+
 stringValue =
     property "value" << Encode.string
 
@@ -269,8 +319,106 @@ data =
     property "data" << encode
 
 
+contentOffset : Float -> Float -> Attribute msg
+contentOffset x y =
+    property "contentOffset" <| encode { x = x, y = y }
+
+
+contentInsetAdjustmentBehavior =
+    property "contentInsetAdjustmentBehavior" << Encode.string
+
+
+contentInset : { top : Float, left : Float, right : Float, bottom : Float } -> Attribute msg
+contentInset =
+    property "contentInset" << encode
+
+
+automaticallyAdjustsScrollIndicatorInsets =
+    property "automaticallyAdjustsScrollIndicatorInsets" << Encode.bool
+
+
+automaticallyAdjustKeyboardInsets =
+    property "automaticallyAdjustKeyboardInsets" << Encode.bool
+
+
+automaticallyAdjustContentInsets =
+    property "automaticallyAdjustContentInsets" << Encode.bool
+
+
+alwaysBounceVertical =
+    property "alwaysBounceVertical" << Encode.bool
+
+
+alwaysBounceHorizontal =
+    property "alwaysBounceHorizontal" << Encode.bool
+
+
+bounces =
+    property "bounces" << Encode.bool
+
+
+bouncesZoom =
+    property "bouncesZoom" << Encode.bool
+
+
+canCancelContentTouches =
+    property "canCancelContentTouches" << Encode.bool
+
+
+centerContent =
+    property "centerContent" << Encode.bool
+
+
+decelerationRate =
+    property "decelerationRate" << Encode.string
+
+
+decelerationRateFloat =
+    property "decelerationRate" << Encode.float
+
+
+directionalLockEnabled =
+    property "directionalLockEnabled" << Encode.bool
+
+
+disableIntervalMomentum =
+    property "disableIntervalMomentum" << Encode.bool
+
+
+disableScrollViewPanResponder =
+    property "disableScrollViewPanResponder" << Encode.bool
+
+
 stickySectionHeadersEnabled =
     property "stickySectionHeadersEnabled" << Encode.bool
+
+
+endFillColor =
+    property "endFillColor" << Encode.float
+
+
+fadingEdgeLength =
+    property "fadingEdgeLength" << Encode.float
+
+
+indicatorStyle =
+    property "indicatorStyle" << Encode.string
+
+
+invertStickyHeaders =
+    property "invertStickyHeaders" << Encode.bool
+
+
+stickyHeaderHiddenOnScroll =
+    property "stickyHeaderHiddenOnScroll" << Encode.bool
+
+
+stickyHeaderIndices =
+    property "stickyHeaderIndices" << Encode.list Encode.int
+
+
+zoomScale =
+    property "zoomScale" << Encode.float
 
 
 drawerLockMode =
@@ -285,8 +433,44 @@ removeClippedSubviews =
     property "removeClippedSubviews" << Encode.bool
 
 
+pagingEnabled =
+    property "pagingEnabled" << Encode.bool
+
+
 persistentScrollbar =
     property "persistentScrollbar" << Encode.bool
+
+
+scrollEnabled =
+    property "scrollEnabled" << Encode.bool
+
+
+showsHorizontalScrollIndicator =
+    property "showsHorizontalScrollIndicator" << Encode.bool
+
+
+showsVerticalScrollIndicator =
+    property "showsVerticalScrollIndicator" << Encode.bool
+
+
+snapToAlignment =
+    property "snapToAlignment" << Encode.bool
+
+
+snapToEnd =
+    property "snapToEnd" << Encode.bool
+
+
+snapToStart =
+    property "snapToStart" << Encode.bool
+
+
+snapToInterval =
+    property "snapToInterval" << Encode.int
+
+
+snapToOffsets =
+    property "snapToOffsets" << Encode.list Encode.int
 
 
 numberOfLines =
@@ -311,6 +495,11 @@ delayPressIn =
 
 delayPressOut =
     property "delayPressOut" << Encode.int
+
+
+stickyHeaderComponent : (() -> Html msg) -> Attribute msg
+stickyHeaderComponent =
+    property "StickyHeaderComponent" << encode
 
 
 cellRendererComponent : (() -> Html msg) -> Attribute msg
@@ -569,6 +758,31 @@ stringSize =
 
 size =
     property "size" << Encode.int
+
+
+overScrollMode =
+    property "overScrollMode" << Encode.string
+
+
+nestedScrollEnabled =
+    property "nestedScrollEnabled" << Encode.bool
+
+
+maximumZoomScale =
+    property "maximumZoomScale" << Encode.float
+
+
+keyboardShouldPersistTaps =
+    property "keyboardShouldPersistTaps" << Encode.string
+
+
+maintainVisibleContentPosition : { minIndexForVisible : Float, autoscrollToTopThreshold : Float } -> Attribute msg
+maintainVisibleContentPosition =
+    property "maintainVisibleContentPosition" << encode
+
+
+minimumZoomScale =
+    property "minimumZoomScale" << Encode.float
 
 
 initialScrollIndex =
