@@ -8,9 +8,13 @@ var _VirtualDom_nodeNS = F2(function(namespace, tag)
       // delay to navigator component
       return {tag, factList, kidList};
     }
+    else if (tag === "Fragment")
+    {
+      return <React.Fragment>{listToChildren(kidList)}</React.Fragment>;
+    }
     else if (tag === "RefreshControl")
     {
-      return {tag, factList, kidList}
+      return {tag, factList, kidList};
     }
     else if (tag.endsWith(".Navigator"))
     {
