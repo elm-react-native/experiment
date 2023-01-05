@@ -40,6 +40,7 @@ import ReactNative.Properties
         , behavior
         , color
         , component
+        , componentModel
         , contentContainerStyle
         , disabled
         , horizontal
@@ -428,14 +429,9 @@ sectionView client data =
 
 
 homeScreen model _ =
-    case model of
-        Home m ->
-            safeAreaView []
-                [ scrollView [] (List.map (sectionView m.client) <| [ m.continueWatching, m.recentlyAdded ] ++ m.libraries)
-                ]
-
-        _ ->
-            null
+    safeAreaView []
+        [ scrollView [] (List.map (sectionView model.client) <| [ model.continueWatching, model.recentlyAdded ] ++ model.libraries)
+        ]
 
 
 root : Model -> Html Msg
@@ -447,8 +443,8 @@ root model =
         SignIn m ->
             signInScreen m
 
-        _ ->
-            stackNavigator "Main" [] <|
+        Home m ->
+            stackNavigator "Main" [ componentModel m ] <|
                 [ screen
                     [ name "home"
                     , options { title = "Home" }

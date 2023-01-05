@@ -32,6 +32,7 @@ module ReactNative.Properties exposing
     , color
     , colors
     , component
+    , componentModel
     , contentContainerStyle
     , data
     , defaultSource
@@ -465,6 +466,11 @@ hidden =
 component : (a -> b -> Html msg) -> Attribute msg
 component =
     property "component" << encode
+
+
+componentModel : a -> Attribute msg
+componentModel =
+    property "componentModel" << encode
 
 
 refreshCtrl : Html msg -> Attribute msg

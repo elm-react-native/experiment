@@ -213,10 +213,8 @@ const createScreenElement = (
   eventNode,
   key
 ) => {
-  const { component, ...actualProps } = _VirtualDom_factsToReactProps(
-    props,
-    null
-  );
+  const { component, componentModel, ...actualProps } =
+    _VirtualDom_factsToReactProps(props, null);
   if (actualProps.listeners) {
     actualProps.listeners = screenListenersMakeCallback(
       actualProps.listeners,
@@ -227,7 +225,9 @@ const createScreenElement = (
   let screenComponent = screenComponentsCache.get(component);
   if (!screenComponent) {
     screenComponent = (props) => {
-      const model = React.useContext(ModelContext);
+      let model = React.useContext(ModelContext);
+      model = componentModel ? componentModel(model) : model;
+
       return component(model, props.route.params);
     };
     screenComponentsCache.set(component, screenComponent);
@@ -258,7 +258,10 @@ const registerNavigator = function (tag, prefix) {
 
 const NavigatorComponent = (props) => {
   const eventNode = React.useContext(EventNodeContext);
-  const actualProps = _VirtualDom_factsToReactProps(props, eventNode);
+  const { componentModel, ...actualProps } = _VirtualDom_factsToReactProps(
+    props,
+    eventNode
+  );
   if (actualProps.screenListeners) {
     actualProps.screenListeners = screenListenersMakeCallback(
       actualProps.screenListeners,
@@ -285,7 +288,15 @@ const NavigatorComponent = (props) => {
       )
     );
   }
-  return <Navigator {...actualProps}>{screens}</Navigator>;
+  if (componentModel) {
+    return (
+      <ModelContext.Provider value={componentModel}>
+        <Navigator {...actualProps}>{screens}</Navigator>
+      </ModelContext.Provider>
+    );
+  } else {
+    return <Navigator {...actualProps}>{screens}</Navigator>;
+  }
 };
 
 const ElmThunkComponent = (props) => {
