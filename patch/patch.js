@@ -160,10 +160,6 @@ const replacers = [
   variableReplacer("Platform$interfaceIdiom", "Platform.interfaceIdiom"),
   variableReplacer("LayoutAnimation$spring", "LayoutAnimation.Presets.spring"),
   variableReplacer("LayoutAnimation$linear", "LayoutAnimation.Presets.linear"),
-  variableReplacer(
-    "LayoutAnimation$easeInEaseOut",
-    "LayoutAnimation.Presets.easeInEaseOut"
-  ),
 ];
 
 const output = source

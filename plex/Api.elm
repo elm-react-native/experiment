@@ -90,7 +90,7 @@ type alias Metadata =
     , thumb : String --   The thumbnail for the item.
     , art : String -- The background artwork used to represent the item.
     , duration : Int --    The length of the item in milliseconds.
-    , originallyAvailableAt : Int --   The original release date of the item.
+    , originallyAvailableAt : String --   The original release date of the item.
     , addedAt : Int -- The date and time the item was added to the library.
     , updatedAt : Int --   The date and time the item was updated in the library.
     , audienceRatingImage : String -- The image associated with the audience rating.
@@ -151,7 +151,7 @@ initialMetadata =
     , thumb = ""
     , art = ""
     , duration = 0
-    , originallyAvailableAt = 0
+    , originallyAvailableAt = ""
     , addedAt = 0
     , updatedAt = 0
     , audienceRatingImage = ""
@@ -209,27 +209,67 @@ maybeZero =
 
 metadataDecoder : Decoder Metadata
 metadataDecoder =
-    Decode.map8
-        (\ratingKey guid typ thumb title duration grandparentTitle viewOffset ->
-            { initialMetadata
-                | ratingKey = ratingKey
-                , guid = guid
-                , typ = typ
-                , thumb = thumb
-                , title = title
-                , duration = duration
-                , grandparentTitle = grandparentTitle
-                , viewOffset = viewOffset
-            }
-        )
-        (Decode.field "ratingKey" Decode.string)
-        (Decode.field "guid" Decode.string)
-        (Decode.field "type" Decode.string)
-        (Decode.field "thumb" Decode.string)
-        (maybeString <| Decode.field "title" Decode.string)
-        (maybeZero <| Decode.field "duration" Decode.int)
-        (maybeString <| Decode.field "grandparentTitle" Decode.string)
-        (maybeZero <| Decode.field "viewOffset" Decode.int)
+    let
+        decoder =
+            Decode.map8
+                (\summary guid typ thumb title duration grandparentTitle viewOffset ->
+                    { initialMetadata
+                        | summary = summary
+                        , guid = guid
+                        , typ = typ
+                        , thumb = thumb
+                        , title = title
+                        , duration = duration
+                        , grandparentTitle = grandparentTitle
+                        , viewOffset = viewOffset
+                    }
+                )
+                (Decode.field "summary" Decode.string)
+                (Decode.field "guid" Decode.string)
+                (Decode.field "type" Decode.string)
+                (Decode.field "thumb" Decode.string)
+                (maybeString <| Decode.field "title" Decode.string)
+                (maybeZero <| Decode.field "duration" Decode.int)
+                (maybeString <| Decode.field "grandparentTitle" Decode.string)
+                (maybeZero <| Decode.field "viewOffset" Decode.int)
+
+        decoder2 =
+            Decode.map8
+                (\data grandparentTitle grandparentThumb parentTitle parentThumb tagline contentRating originallyAvailableAt ->
+                    { data
+                        | grandparentTitle = grandparentTitle
+                        , grandparentThumb = grandparentThumb
+                        , parentTitle = parentTitle
+                        , parentThumb = parentThumb
+                        , tagline = tagline
+                        , contentRating = contentRating
+                        , originallyAvailableAt = originallyAvailableAt
+                    }
+                )
+                decoder
+                (maybeString <| Decode.field "grandparentTitle" Decode.string)
+                (maybeString <| Decode.field "grandparentThumb" Decode.string)
+                (maybeString <| Decode.field "parentTitle" Decode.string)
+                (maybeString <| Decode.field "parentThumb" Decode.string)
+                (maybeString <| Decode.field "tagline" Decode.string)
+                (maybeString <| Decode.field "contentRating" Decode.string)
+                (maybeString <| Decode.field "originallyAvailableAt" Decode.string)
+
+        decoder3 =
+            Decode.map4
+                (\data index parentIndex grandparentIndex ->
+                    { data
+                        | index = index
+                        , parentIndex = parentIndex
+                        , grandparentIndex = grandparentIndex
+                    }
+                )
+                decoder2
+                (maybeZero <| Decode.field "index" Decode.int)
+                (maybeZero <| Decode.field "parentIndex" Decode.int)
+                (maybeZero <| Decode.field "grandparentIndex" Decode.int)
+    in
+    decoder3
 
 
 type alias Director =

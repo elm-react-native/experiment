@@ -13,6 +13,7 @@ import ReactNative
         , button
         , fragment
         , image
+        , imageBackground
         , keyboardAvoidingView
         , null
         , pressable
@@ -32,6 +33,7 @@ import ReactNative.Alert as Alert
 import ReactNative.Events exposing (onChangeText, onPress)
 import ReactNative.Keyboard as Keyboard
 import ReactNative.Navigation as Nav exposing (screen, stackNavigator)
+import ReactNative.Navigation.CardStyleInterpolators as CardStyleInterpolators
 import ReactNative.Navigation.Listeners as Listeners
 import ReactNative.Platform as Platform
 import ReactNative.Properties
@@ -43,7 +45,9 @@ import ReactNative.Properties
         , componentModel
         , contentContainerStyle
         , disabled
+        , getId
         , horizontal
+        , imageStyle
         , name
         , options
         , persistentScrollbar
@@ -115,6 +119,9 @@ type Msg
     | DismissKeyboard
     | ShowSection String
     | ShowEntity String String
+    | GotoAccount
+    | GotoEntity String
+    | SignOut
 
 
 initialClient =
@@ -135,6 +142,10 @@ saveClient client =
             [ ( "serverAddress", Encode.string client.serverAddress )
             , ( "token", Encode.string client.token )
             ]
+
+
+pathToAuthedUrl path client =
+    client.serverAddress ++ path ++ "?X-Plex-Token=" ++ client.token
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -193,7 +204,12 @@ update msg model =
                         { continueWatching = Nothing
                         , recentlyAdded = Nothing
                         , libraries = []
-                        , account = account
+                        , account =
+                            if account.thumb == "" then
+                                account
+
+                            else
+                                { account | thumb = pathToAuthedUrl account.thumb client }
                         , client = client
                         , navKey = navKey
                         }
@@ -249,6 +265,32 @@ update msg model =
         ShowEntity sectionId entityId ->
             ( model, Cmd.none )
 
+        GotoAccount ->
+            case model of
+                Home m ->
+                    ( model, Nav.push m.navKey "account" {} )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        GotoEntity guid ->
+            case model of
+                Home m ->
+                    ( model, Nav.push m.navKey "entity" { guid = guid } )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        SignOut ->
+            case model of
+                Home m ->
+                    ( SignIn { client = m.client, navKey = m.navKey, submitting = False }
+                    , saveClient { serverAddress = "", token = "" }
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
+
         DismissKeyboard ->
             ( model, Task.perform (always NoOp) Keyboard.dismiss )
 
@@ -259,6 +301,10 @@ update msg model =
 
 themeColor =
     "#EBAF00"
+
+
+backgroundColor =
+    "#2c2c2c"
 
 
 signInStyles =
@@ -366,19 +412,81 @@ signInScreen { client, navKey, submitting } =
 
 homeStyles =
     StyleSheet.create
-        { sectionTitle =
-            { fontSize = 12
+        { container = { height = "100%", backgroundColor = backgroundColor }
+        , sectionContainer =
+            { height = 180, paddingVertical = 5 }
+        , sectionTitle =
+            { fontSize = 15
             , fontWeight = "bold"
+            , color = "white"
+            , marginLeft = 5
+            , marginBottom = 2
             }
         , sectionContent =
             { flexDirection = "row"
-            , justifyContent = "space-around"
+            , alignItems = "center"
+            , justifyContent = "center"
             }
-        , image =
-            { borderRadius = 5
-            , margin = 5
+        , sectionContentLoading =
+            { width = "100%" }
+        , itemContainer =
+            { marginHorizontal = 5
+            , borderTopLeftRadius = 4
+            , borderTopRightRadius = 4
+            , overflow = "hidden"
+            , width = 100
+            , height = 149
+            }
+        , itemImage =
+            { justifyContent = "flex-end"
+            , width = 100
+            , height = 146
+            }
+        , itemImageAlt =
+            { position = "absolute"
+            , top = 0
+            , left = 0
+            , right = 0
+            , bottom = 0
+            , justifyContent = "center"
+            , alignItems = "center"
+            }
+        , itemImageAltText =
+            { fontSize = 12
+            , color = "white"
+            , fontWeight = "bold"
+            }
+        , itemLabel =
+            { fontSize = 10
+            , lineHeight = 10
+            , fontWeight = "bold"
+            , color = "white"
+            }
+        , itemLabelBackground =
+            { alignItems = "center"
+            , justifyContent = "flex-end"
+            , height = 15
+            }
+        , progress =
+            { backgroundColor = themeColor
+            , height = 3
             }
         }
+
+
+percentFloat f =
+    (String.fromInt <| ceiling <| f * 100) ++ "%"
+
+
+itemLabel label =
+    imageBackground
+        [ style homeStyles.itemLabelBackground
+        , source <| require "./assets/gradient.png"
+        , imageStyle { resizeMode = "repeat" }
+        ]
+        [ text [ style homeStyles.itemLabel ]
+            [ str label ]
+        ]
 
 
 itemView : Client -> Tree Metadata -> Html Msg
@@ -392,21 +500,39 @@ itemView client item =
                 Leaf meta ->
                     meta
 
-        _ =
-            Debug.log "item" <| metadata.thumb
-    in
-    view []
-        [ image
-            [ source
-                { uri = client.serverAddress ++ metadata.thumb ++ "?X-Plex-Token=" ++ client.token
-                , width = 110
-                , height = 150
-                }
-            , style homeStyles.image
-            ]
-            []
+        { label, thumb, alt } =
+            case metadata.typ of
+                "episode" ->
+                    { thumb = metadata.grandparentThumb
+                    , label = "S" ++ String.fromInt metadata.parentIndex ++ ":E" ++ String.fromInt metadata.index
+                    , alt = metadata.grandparentTitle
+                    }
 
-        --, text [] [ str metadata.title ]
+                _ ->
+                    { thumb = metadata.thumb
+                    , label = formatDuration metadata.duration
+                    , alt = metadata.title
+                    }
+
+        progress =
+            toFloat metadata.viewOffset / toFloat metadata.duration
+    in
+    touchableOpacity
+        [ style homeStyles.itemContainer
+        , onPress <| Decode.succeed <| GotoEntity metadata.guid
+        ]
+        [ view [ style homeStyles.itemImageAlt ] [ text [ style homeStyles.itemImageAltText ] [ str alt ] ]
+        , imageBackground
+            [ style homeStyles.itemImage
+            , source
+                { uri = pathToAuthedUrl thumb client
+                , width = 480
+                , height = 719
+                }
+            , imageStyle { resizeMode = "cover" }
+            ]
+            [ itemLabel label ]
+        , view [ style homeStyles.progress, style { width = percentFloat progress } ] []
         ]
 
 
@@ -414,8 +540,8 @@ sectionView : Client -> RemoteData Section -> Html Msg
 sectionView client data =
     case data of
         Just (Ok section) ->
-            view [ style homeStyles.sectionTitle ]
-                [ str section.title
+            view [ style homeStyles.sectionContainer ]
+                [ text [ style homeStyles.sectionTitle ] [ str section.title ]
                 , scrollView
                     [ contentContainerStyle homeStyles.sectionContent
                     , showsHorizontalScrollIndicator False
@@ -428,16 +554,266 @@ sectionView client data =
             text [] [ str "Load Error" ]
 
         _ ->
-            activityIndicator [] []
+            null
+
+
+
+--view
+--    [ style homeStyles.sectionContent
+--    , style homeStyles.sectionContentLoading
+--    , style homeStyles.sectionContainer
+--    ]
+--    [ activityIndicator [] []
+--    ]
 
 
 homeScreen model _ =
-    safeAreaView []
-        [ scrollView
-            [ persistentScrollbar False
-            ]
-            (List.map (sectionView model.client) <| [ model.continueWatching, model.recentlyAdded ] ++ model.libraries)
+    scrollView
+        [ persistentScrollbar False
+        , contentContainerStyle homeStyles.container
+        , style { backgroundColor = backgroundColor }
         ]
+        (List.map (sectionView model.client) <| [ model.continueWatching, model.recentlyAdded ] ++ model.libraries)
+
+
+avatarStyles size =
+    StyleSheet.create
+        { container =
+            { width = size
+            , height = size
+            , borderRadius = 5
+            , backgroundColor = themeColor
+            , justifyContent = "center"
+            , alignItems = "center"
+            , textAlign = "center"
+            , textAlignVertical = "center"
+            }
+        , text =
+            { fontSize = size
+            , fontWeight = "bold"
+            , color = "white"
+            , lineHeight = size
+            }
+        }
+
+
+avatar account size =
+    let
+        styles =
+            avatarStyles size
+    in
+    if account.thumb == "" then
+        view
+            [ style styles.container ]
+            [ text
+                [ style styles.text ]
+                [ str <| String.slice 0 1 account.name ]
+            ]
+
+    else
+        image
+            [ source
+                { uri = account.thumb
+                , width = size
+                , height = size
+                , borderRadius = 5
+                }
+            ]
+            []
+
+
+accountScreen model _ =
+    view
+        [ style
+            { backgroundColor = backgroundColor
+            , height = "100%"
+            , width = "100%"
+            , alignItems = "center"
+            , paddingTop = 20
+            }
+        ]
+        [ avatar model.account 64
+        , scrollView [ contentContainerStyle { width = "100%", alignItems = "center" } ]
+            [ view
+                []
+                [ button
+                    [ color "white"
+                    , title "Sign Out"
+                    , onPress <| Decode.succeed SignOut
+                    ]
+                    []
+                ]
+            , view []
+                [ text [ style { color = "white" } ] [ str "Version 0.1" ] ]
+            ]
+        ]
+
+
+favicon size =
+    image
+        [ source <| require "./assets/plex-favicon.png"
+        , style { width = size, height = size }
+        ]
+        []
+
+
+formatDuration duration =
+    let
+        h =
+            duration // 1000 // 60 // 60
+
+        m =
+            duration // 1000 // 60
+    in
+    if h == 0 then
+        (String.fromInt <| m) ++ "m"
+
+    else
+        (String.fromInt <| duration // 1000 // 60 // 60) ++ "h"
+
+
+entityScreen : HomeModel -> { guid : String } -> Html Msg
+entityScreen { client, continueWatching } { guid } =
+    let
+        maybeMeta =
+            case continueWatching of
+                Just (Ok section) ->
+                    section.data
+                        |> List.filterMap
+                            (\item ->
+                                let
+                                    metadata =
+                                        case item of
+                                            Branch meta _ ->
+                                                meta
+
+                                            Leaf meta ->
+                                                meta
+                                in
+                                if metadata.guid == guid then
+                                    Just metadata
+
+                                else
+                                    Nothing
+                            )
+                        |> List.head
+
+                _ ->
+                    Nothing
+    in
+    case maybeMeta of
+        Just meta ->
+            let
+                progress =
+                    toFloat meta.viewOffset / toFloat meta.duration
+
+                remainingDuration =
+                    formatDuration (meta.duration - meta.viewOffset) ++ " remaining"
+            in
+            view
+                [ style
+                    { backgroundColor = backgroundColor
+                    , width = "100%"
+                    , height = "100%"
+                    }
+                ]
+                [ image
+                    [ source
+                        { uri = pathToAuthedUrl meta.thumb client
+                        , width = "100%"
+                        , height = 210
+                        }
+                    ]
+                    []
+                , scrollView
+                    [ contentContainerStyle { paddingHorizontal = 10 } ]
+                    [ text
+                        [ style
+                            { fontSize = 18
+                            , fontWeight = "bold"
+                            , color = "white"
+                            , marginTop = 10
+                            }
+                        ]
+                        [ str meta.title ]
+                    , view [ style { flexDirection = "row", marginTop = 10 } ]
+                        [ text [ style { color = "white" } ] [ str meta.originallyAvailableAt ]
+                        , if meta.contentRating == "" then
+                            null
+
+                          else
+                            view
+                                [ style
+                                    { backgroundColor = "gray"
+                                    , borderRadius = 3
+                                    , padding = 3
+                                    , marginLeft = 3
+                                    , alignItems = "center"
+                                    , justifyContent = "center"
+                                    }
+                                ]
+                                [ text
+                                    [ style
+                                        { color = "white"
+                                        , fontSize = 9
+                                        , fontWeight = "bold"
+                                        }
+                                    ]
+                                    [ str meta.contentRating
+                                    ]
+                                ]
+                        , text [ style { color = "white", marginLeft = 3 } ] [ str <| formatDuration meta.duration ]
+                        ]
+                    , pressable []
+                        (\pressed ->
+                            view
+                                [ style
+                                    { justifyContent = "center"
+                                    , alignItems = "center"
+                                    , backgroundColor = themeColor
+                                    , borderRadius = 3
+                                    , height = 35
+                                    , marginVertical = 10
+                                    , flexDirection = "row"
+                                    }
+                                ]
+                                [ text [ style { color = "black", fontSize = 30, top = 2 } ] [ str "⏵" ]
+                                , text [ style { color = "black", fontWeight = "bold" } ] [ str " Resume" ]
+                                ]
+                        )
+                    , view
+                        [ style
+                            { flexDirection = "row"
+                            , alignItems = "center"
+                            , justifyContent = "space-between"
+                            , marginTop = 15
+                            , marginBottom = 5
+                            }
+                        ]
+                        [ view
+                            [ style
+                                { width = "80%"
+                                , backgroundColor = "gray"
+                                , height = 3
+                                }
+                            ]
+                            [ view
+                                [ style
+                                    { width = percentFloat progress
+                                    , backgroundColor = themeColor
+                                    , height = "100%"
+                                    }
+                                ]
+                                []
+                            ]
+                        , text [ style { color = "gray", fontSize = 9 } ] [ str remainingDuration ]
+                        ]
+                    , text [ style { color = "white" } ] [ str meta.summary ]
+                    ]
+                ]
+
+        _ ->
+            null
 
 
 root : Model -> Html Msg
@@ -453,8 +829,45 @@ root model =
             stackNavigator "Main" [ componentModel m ] <|
                 [ screen
                     [ name "home"
-                    , options { title = "Home" }
+                    , options
+                        { headerTitle = "Home"
+                        , headerLeft = \_ -> favicon 20
+                        , headerRight =
+                            \_ ->
+                                pressable [ onPress <| Decode.succeed GotoAccount ]
+                                    (\{ pressed } ->
+                                        avatar m.account <|
+                                            if pressed then
+                                                22
+
+                                            else
+                                                24
+                                    )
+                        , headerTintColor = "white"
+                        , headerStyle = { backgroundColor = backgroundColor }
+                        }
                     , component homeScreen
+                    ]
+                    []
+                , screen
+                    [ name "account"
+                    , options
+                        { headerTitle = ""
+                        , headerBackTitle = m.account.name
+                        , headerTintColor = "white"
+                        , headerStyle = { backgroundColor = backgroundColor }
+                        }
+                    , component accountScreen
+                    ]
+                    []
+                , screen
+                    [ name "entity"
+                    , options
+                        { presentation = "formSheet"
+                        , headerShown = False
+                        }
+                    , getId (\{ params } -> params.guid)
+                    , component entityScreen
                     ]
                     []
                 ]
