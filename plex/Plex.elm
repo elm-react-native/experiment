@@ -14,6 +14,7 @@ import ReactNative
         , fragment
         , image
         , imageBackground
+        , ionicon
         , keyboardAvoidingView
         , null
         , pressable
@@ -55,6 +56,7 @@ import ReactNative.Properties
         , placeholderTextColor
         , secureTextEntry
         , showsHorizontalScrollIndicator
+        , size
         , source
         , stringValue
         , style
@@ -62,6 +64,7 @@ import ReactNative.Properties
         )
 import ReactNative.Settings as Settings
 import ReactNative.StyleSheet as StyleSheet
+import ReactNative.Transforms exposing (rotate, scale, scaleY, transform, translateX)
 import Task exposing (Task)
 
 
@@ -489,6 +492,44 @@ itemLabel label =
         ]
 
 
+videoPlay handlePress =
+    view
+        [ style
+            { backgroundColor = "rgba(0,0,0,0.6)"
+            , borderRadius = 15
+            , borderColor = "white"
+            , borderWidth = 1
+            }
+        ]
+        [ touchableOpacity
+            [ onPress handlePress
+            , style
+                { width = 28
+                , height = 28
+                , justifyContent = "center"
+                , alignItems = "center"
+                , left = 1
+                }
+            ]
+            [ ionicon "play" [ color "white", size 15 ] ]
+        ]
+
+
+vidoePlayContainer handlePress =
+    view
+        [ style
+            { position = "absolute"
+            , left = 0
+            , top = 0
+            , right = 0
+            , bottom = 0
+            , alignItems = "center"
+            , justifyContent = "center"
+            }
+        ]
+        [ videoPlay handlePress ]
+
+
 itemView : Client -> Tree Metadata -> Html Msg
 itemView client item =
     let
@@ -531,7 +572,9 @@ itemView client item =
                 }
             , imageStyle { resizeMode = "cover" }
             ]
-            [ itemLabel label ]
+            [ vidoePlayContainer (Decode.succeed NoOp)
+            , itemLabel label
+            ]
         , view [ style homeStyles.progress, style { width = percentFloat progress } ] []
         ]
 
@@ -657,19 +700,32 @@ favicon size =
         []
 
 
+quotRem a b =
+    ( a // b, remainderBy b a )
+
+
 formatDuration duration =
     let
-        h =
-            duration // 1000 // 60 // 60
+        ( h, ms ) =
+            quotRem duration (3600 * 1000)
 
-        m =
-            duration // 1000 // 60
+        ( m, ms2 ) =
+            quotRem ms (60 * 1000)
+
+        s =
+            ms2 // 1000
     in
-    if h == 0 then
-        (String.fromInt <| m) ++ "m"
+    if h == 0 && m == 0 && s > 0 then
+        String.fromInt s ++ "s"
+
+    else if h == 0 && m > 0 then
+        String.fromInt m ++ "m"
+
+    else if h > 0 && m == 0 then
+        String.fromInt h ++ "h"
 
     else
-        (String.fromInt <| duration // 1000 // 60 // 60) ++ "h"
+        String.fromInt h ++ "h " ++ String.fromInt m ++ "m"
 
 
 entityScreen : HomeModel -> { guid : String } -> Html Msg
@@ -709,6 +765,18 @@ entityScreen { client, continueWatching } { guid } =
 
                 remainingDuration =
                     formatDuration (meta.duration - meta.viewOffset) ++ " remaining"
+
+                { title, label } =
+                    case meta.typ of
+                        "episode" ->
+                            { title = meta.grandparentTitle
+                            , label = "S" ++ String.fromInt meta.parentIndex ++ ":E" ++ String.fromInt meta.index ++ " " ++ meta.title
+                            }
+
+                        _ ->
+                            { title = meta.title
+                            , label = ""
+                            }
             in
             view
                 [ style
@@ -735,9 +803,15 @@ entityScreen { client, continueWatching } { guid } =
                             , marginTop = 10
                             }
                         ]
-                        [ str meta.title ]
+                        [ str title ]
                     , view [ style { flexDirection = "row", marginTop = 10 } ]
-                        [ text [ style { color = "white" } ] [ str meta.originallyAvailableAt ]
+                        [ text
+                            [ style
+                                { color = "white"
+                                , fontSize = 12
+                                }
+                            ]
+                            [ str <| String.slice 0 4 meta.originallyAvailableAt ]
                         , if meta.contentRating == "" then
                             null
 
@@ -745,9 +819,9 @@ entityScreen { client, continueWatching } { guid } =
                             view
                                 [ style
                                     { backgroundColor = "gray"
-                                    , borderRadius = 3
-                                    , padding = 3
-                                    , marginLeft = 3
+                                    , borderRadius = 2
+                                    , padding = 2
+                                    , marginLeft = 2
                                     , alignItems = "center"
                                     , justifyContent = "center"
                                     }
@@ -755,46 +829,63 @@ entityScreen { client, continueWatching } { guid } =
                                 [ text
                                     [ style
                                         { color = "white"
-                                        , fontSize = 9
+                                        , fontSize = 8
                                         , fontWeight = "bold"
                                         }
                                     ]
                                     [ str meta.contentRating
                                     ]
                                 ]
-                        , text [ style { color = "white", marginLeft = 3 } ] [ str <| formatDuration meta.duration ]
+                        , text [ style { color = "white", marginLeft = 2, fontSize = 12 } ] [ str <| formatDuration meta.duration ]
                         ]
-                    , pressable []
-                        (\pressed ->
-                            view
-                                [ style
-                                    { justifyContent = "center"
-                                    , alignItems = "center"
-                                    , backgroundColor = themeColor
-                                    , borderRadius = 3
-                                    , height = 35
-                                    , marginVertical = 10
-                                    , flexDirection = "row"
-                                    }
-                                ]
-                                [ text [ style { color = "black", fontSize = 30, top = 2 } ] [ str "⏵" ]
-                                , text [ style { color = "black", fontWeight = "bold" } ] [ str " Resume" ]
-                                ]
-                        )
+                    , touchableOpacity []
+                        [ view
+                            [ style
+                                { justifyContent = "center"
+                                , alignItems = "center"
+                                , backgroundColor = "white"
+                                , borderRadius = 3
+                                , height = 35
+                                , marginTop = 15
+                                , flexDirection = "row"
+                                }
+                            ]
+                            [ text [ style { color = "black", fontSize = 30, top = 2, right = 2 } ] [ str "⏵" ]
+                            , text [ style { color = "black", fontWeight = "bold" } ] [ str " Resume" ]
+                            ]
+                        ]
+                    , if label == "" then
+                        null
+
+                      else
+                        text
+                            [ style
+                                { color = "white"
+                                , fontWeight = "bold"
+                                , fontSize = 15
+                                , marginTop = 10
+                                }
+                            ]
+                            [ str label ]
                     , view
                         [ style
                             { flexDirection = "row"
                             , alignItems = "center"
                             , justifyContent = "space-between"
-                            , marginTop = 15
-                            , marginBottom = 5
+                            , marginTop =
+                                if label == "" then
+                                    20
+
+                                else
+                                    10
                             }
                         ]
                         [ view
                             [ style
-                                { width = "80%"
-                                , backgroundColor = "gray"
+                                { backgroundColor = "gray"
                                 , height = 3
+                                , flexGrow = 1
+                                , marginRight = 10
                                 }
                             ]
                             [ view
@@ -808,7 +899,14 @@ entityScreen { client, continueWatching } { guid } =
                             ]
                         , text [ style { color = "gray", fontSize = 9 } ] [ str remainingDuration ]
                         ]
-                    , text [ style { color = "white" } ] [ str meta.summary ]
+                    , text
+                        [ style
+                            { fontSize = 12
+                            , color = "white"
+                            , marginTop = 5
+                            }
+                        ]
+                        [ str meta.summary ]
                     ]
                 ]
 
@@ -834,15 +932,9 @@ root model =
                         , headerLeft = \_ -> favicon 20
                         , headerRight =
                             \_ ->
-                                pressable [ onPress <| Decode.succeed GotoAccount ]
-                                    (\{ pressed } ->
-                                        avatar m.account <|
-                                            if pressed then
-                                                22
-
-                                            else
-                                                24
-                                    )
+                                touchableOpacity
+                                    [ onPress <| Decode.succeed GotoAccount ]
+                                    [ avatar m.account 24 ]
                         , headerTintColor = "white"
                         , headerStyle = { backgroundColor = backgroundColor }
                         }
