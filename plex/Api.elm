@@ -53,6 +53,31 @@ type alias Library =
     }
 
 
+initialLibrary =
+    { allowSync = False
+    , art = ""
+    , composite = ""
+    , filters = False
+    , refreshing = False
+    , thumb = ""
+    , key = ""
+    , typ = ""
+    , title = ""
+    , agent = ""
+    , scanner = ""
+    , language = ""
+    , uuid = ""
+    , updatedAt = 0
+    , createdAt = 0
+    , scannedAt = 0
+    , content = False
+    , directory = False
+    , contentChangedAt = 0
+    , hidden = False
+    , location = []
+    }
+
+
 type alias Location =
     { id : Int, path : String }
 
@@ -205,6 +230,14 @@ maybeString =
 
 maybeZero =
     maybeWithDefault 0
+
+
+maybeFalse =
+    maybeWithDefault False
+
+
+maybeEmpty =
+    maybeWithDefault []
 
 
 metadataDecoder : Decoder Metadata
@@ -380,7 +413,6 @@ type alias Setting =
 
 type alias Section =
     { title : String
-    , size : Int
     , more : Bool
     , data : List (Tree Metadata)
     }
@@ -397,10 +429,70 @@ type alias Client =
     }
 
 
+httpJsonBodyResolver : Decoder a -> Http.Response String -> Result Http.Error a
+httpJsonBodyResolver decoder resp =
+    case resp of
+        Http.GoodStatus_ m s ->
+            Decode.decodeString decoder s
+                |> Result.mapError (Decode.errorToString >> Http.BadBody)
+
+        Http.BadUrl_ s ->
+            Err (Http.BadUrl s)
+
+        Http.Timeout_ ->
+            Err Http.Timeout
+
+        Http.NetworkError_ ->
+            Err Http.NetworkError
+
+        Http.BadStatus_ m s ->
+            Decode.decodeString decoder s
+                -- just trying; if our decoder understands the response body, great
+                |> Result.mapError (\_ -> Http.BadStatus m.statusCode)
+
+
+clientGetJsonTask : Decoder a -> String -> Client -> Task Http.Error a
+clientGetJsonTask decoder path { serverAddress, token } =
+    Http.task
+        { url =
+            serverAddress
+                ++ path
+                ++ (if String.contains path "?" then
+                        "&"
+
+                    else
+                        "?"
+                   )
+                ++ "X-Plex-Token="
+                ++ token
+        , method = "GET"
+        , headers = [ Http.header "Accept" "application/json" ]
+        , body = Http.emptyBody
+        , resolver = Http.stringResolver <| httpJsonBodyResolver decoder
+        , timeout = Nothing
+        }
+
+
 clientGetJson : Decoder a -> String -> (Result Http.Error a -> msg) -> Client -> Cmd msg
 clientGetJson decoder path tagger { serverAddress, token } =
+    let
+        url =
+            serverAddress
+                ++ path
+                ++ (if String.contains "?" path then
+                        "&"
+
+                    else
+                        "?"
+                   )
+                ++ "X-Plex-Token="
+                ++ token
+
+        _ =
+            Debug.log "url" url
+    in
     Http.request
-        { url = serverAddress ++ path ++ "?X-Plex-Token=" ++ token
+        { url = url
         , method = "GET"
         , headers = [ Http.header "Accept" "application/json" ]
         , body = Http.emptyBody
@@ -410,43 +502,57 @@ clientGetJson decoder path tagger { serverAddress, token } =
         }
 
 
+librariesDecoder : Decoder (List Library)
+librariesDecoder =
+    Decode.at [ "MediaContainer", "Directory" ] <| Decode.list libraryDecoder
+
+
 libraryDecoder : Decoder Library
 libraryDecoder =
-    Decode.fail ""
+    Decode.map8
+        (\typ key thumb title language uuid refreshing composite ->
+            { initialLibrary
+                | typ = typ
+                , key = key
+                , thumb = thumb
+                , title = title
+                , language = language
+                , uuid = uuid
+                , refreshing = refreshing
+                , composite = composite
+            }
+        )
+        (maybeString <| Decode.field "type" Decode.string)
+        (maybeString <| Decode.field "key" Decode.string)
+        (maybeString <| Decode.field "thumb" Decode.string)
+        (maybeString <| Decode.field "title" Decode.string)
+        (maybeString <| Decode.field "language" Decode.string)
+        (maybeString <| Decode.field "uuid" Decode.string)
+        (maybeFalse <| Decode.field "refreshing" Decode.bool)
+        (maybeString <| Decode.field "composite" Decode.string)
 
 
-getLibraries : String -> (Result Http.Error Library -> msg) -> Client -> Cmd msg
+getLibraries : String -> (Result Http.Error (List Library) -> msg) -> Client -> Cmd msg
 getLibraries =
-    clientGetJson libraryDecoder
+    clientGetJson librariesDecoder
 
 
-continueWatchingDecoder : Decoder Section
-continueWatchingDecoder =
+sectionsDecoder : Decoder (List Section)
+sectionsDecoder =
     Decode.at [ "MediaContainer", "Hub" ] <|
-        Decode.index 0 <|
-            Decode.map4
-                (\title size more data ->
-                    { title = title, size = size, more = more, data = List.map Leaf data }
+        Decode.list <|
+            Decode.map3
+                (\title more data ->
+                    { title = title, more = more, data = List.map Leaf data }
                 )
                 (Decode.field "title" Decode.string)
-                (Decode.field "size" Decode.int)
-                (Decode.field "more" Decode.bool)
-                (Decode.field "Metadata" <| Decode.list metadataDecoder)
+                (maybeFalse <| Decode.field "more" Decode.bool)
+                (maybeEmpty <| Decode.field "Metadata" <| Decode.list metadataDecoder)
 
 
-getContinueWatching : (Result Http.Error Section -> msg) -> Client -> Cmd msg
-getContinueWatching =
-    clientGetJson continueWatchingDecoder "/hubs/continueWatching"
-
-
-recentlyAddedDecoder : Decoder Section
-recentlyAddedDecoder =
-    Decode.fail ""
-
-
-getRecentlyAdded : (Result Http.Error Section -> msg) -> Client -> Cmd msg
-getRecentlyAdded =
-    clientGetJson recentlyAddedDecoder "/recentlyAdded"
+getSections : (Result Http.Error (List Section) -> msg) -> Client -> Cmd msg
+getSections =
+    clientGetJson sectionsDecoder "/hubs?size=12"
 
 
 firstAccountWithName decoder =

@@ -143,6 +143,10 @@ module ReactNative.Properties exposing
     , sectionSeparatorComponent
     , sections
     , secureTextEntry
+    , shadowColor
+    , shadowOffset
+    , shadowOpacity
+    , shadowRadius
     , shouldRasterizeIOS
     , showHideTransition
     , showsHorizontalScrollIndicator
@@ -1023,3 +1027,20 @@ testID =
 
 testOnly_pressed =
     property "testOnly_pressed" << Encode.bool
+
+
+shadowColor =
+    property "shadowColor" << Encode.string
+
+
+shadowOpacity =
+    property "shadowOpacity" << Encode.float
+
+
+shadowRadius =
+    property "shadowRadius" << Encode.float
+
+
+shadowOffset : { width : Float, height : Float } -> Attribute msg
+shadowOffset =
+    property "shadowOffset" << encode

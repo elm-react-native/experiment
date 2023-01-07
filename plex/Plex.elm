@@ -55,6 +55,8 @@ import ReactNative.Properties
         , placeholder
         , placeholderTextColor
         , secureTextEntry
+        , shadowColor
+        , shadowRadius
         , showsHorizontalScrollIndicator
         , size
         , source
@@ -81,9 +83,7 @@ type alias RemoteData data =
 
 
 type alias HomeModel =
-    { continueWatching : RemoteData Section
-    , recentlyAdded : RemoteData Section
-    , libraries : List (RemoteData Section)
+    { sections : RemoteData (List Section)
     , client : Client
     , account : Account
     , navKey : N.Key
@@ -117,8 +117,8 @@ type Msg
     | SignInInputToken String
     | SignInSubmit Client
     | SignInSubmitResponse (Result Http.Error Account)
-    | GotContinueWatching (Result Http.Error Section)
-    | GotRecentlyAdded (Result Http.Error Section)
+    | ReloadSections
+    | GotSections (Result Http.Error (List Section))
     | DismissKeyboard
     | ShowSection String
     | ShowEntity String String
@@ -135,8 +135,8 @@ signInSubmit =
     Api.getAccount SignInSubmitResponse
 
 
-getContinueWatching =
-    Api.getContinueWatching GotContinueWatching
+getSections =
+    Api.getSections GotSections
 
 
 saveClient client =
@@ -204,9 +204,7 @@ update msg model =
             case model of
                 SignIn { client, navKey } ->
                     ( Home
-                        { continueWatching = Nothing
-                        , recentlyAdded = Nothing
-                        , libraries = []
+                        { sections = Nothing
                         , account =
                             if account.thumb == "" then
                                 account
@@ -216,7 +214,7 @@ update msg model =
                         , client = client
                         , navKey = navKey
                         }
-                    , Cmd.batch [ saveClient client, getContinueWatching client ]
+                    , Cmd.batch [ saveClient client, getSections client ]
                     )
 
                 _ ->
@@ -242,20 +240,18 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
-        GotContinueWatching resp ->
-            ( case model of
+        ReloadSections ->
+            case model of
                 Home m ->
-                    Home { m | continueWatching = Just resp }
+                    ( Home { m | sections = Nothing }, getSections m.client )
 
                 _ ->
-                    model
-            , Cmd.none
-            )
+                    ( model, Cmd.none )
 
-        GotRecentlyAdded resp ->
+        GotSections resp ->
             ( case model of
                 Home m ->
-                    Home { m | recentlyAdded = Just resp }
+                    Home { m | sections = Just resp }
 
                 _ ->
                     model
@@ -415,7 +411,15 @@ signInScreen { client, navKey, submitting } =
 
 homeStyles =
     StyleSheet.create
-        { container = { height = "100%", backgroundColor = backgroundColor }
+        { loading =
+            { alignItems = "center"
+            , justifyContent = "center"
+            , height = "100%"
+            , width = "100%"
+            , backgroundColor = backgroundColor
+            }
+        , loadErrorText = { fontSize = 15, color = "white" }
+        , container = { height = "100%", backgroundColor = backgroundColor }
         , sectionContainer =
             { height = 180, paddingVertical = 5 }
         , sectionTitle =
@@ -423,7 +427,7 @@ homeStyles =
             , fontWeight = "bold"
             , color = "white"
             , marginLeft = 5
-            , marginBottom = 2
+            , marginBottom = 4
             }
         , sectionContent =
             { flexDirection = "row"
@@ -434,16 +438,17 @@ homeStyles =
             { width = "100%" }
         , itemContainer =
             { marginHorizontal = 5
-            , borderTopLeftRadius = 4
-            , borderTopRightRadius = 4
             , overflow = "hidden"
             , width = 100
-            , height = 149
+            , height = 148
+            }
+        , itemContainerBottomRadius =
+            { height = 148
             }
         , itemImage =
             { justifyContent = "flex-end"
             , width = 100
-            , height = 146
+            , height = 142
             }
         , itemImageAlt =
             { position = "absolute"
@@ -469,6 +474,7 @@ homeStyles =
             { alignItems = "center"
             , justifyContent = "flex-end"
             , height = 15
+            , overflow = "hidden"
             }
         , progress =
             { backgroundColor = themeColor
@@ -530,8 +536,8 @@ vidoePlayContainer handlePress =
         [ videoPlay handlePress ]
 
 
-itemView : Client -> Tree Metadata -> Html Msg
-itemView client item =
+itemView : Client -> Bool -> Tree Metadata -> Html Msg
+itemView client isContinueWatching item =
     let
         metadata =
             case item of
@@ -559,10 +565,16 @@ itemView client item =
             toFloat metadata.viewOffset / toFloat metadata.duration
     in
     touchableOpacity
-        [ style homeStyles.itemContainer
+        [ if isContinueWatching then
+            style homeStyles.itemContainer
+
+          else
+            style <| StyleSheet.compose homeStyles.itemContainer homeStyles.itemContainerBottomRadius
         , onPress <| Decode.succeed <| GotoEntity metadata.guid
         ]
-        [ view [ style homeStyles.itemImageAlt ] [ text [ style homeStyles.itemImageAltText ] [ str alt ] ]
+        [ view
+            [ style homeStyles.itemImageAlt ]
+            [ text [ style homeStyles.itemImageAltText ] [ str alt ] ]
         , imageBackground
             [ style homeStyles.itemImage
             , source
@@ -570,53 +582,92 @@ itemView client item =
                 , width = 480
                 , height = 719
                 }
-            , imageStyle { resizeMode = "cover" }
-            ]
-            [ vidoePlayContainer (Decode.succeed NoOp)
-            , itemLabel label
-            ]
-        , view [ style homeStyles.progress, style { width = percentFloat progress } ] []
-        ]
+            , if isContinueWatching then
+                imageStyle
+                    { borderTopLeftRadius = 4
+                    , borderTopRightRadius = 4
+                    }
 
-
-sectionView : Client -> RemoteData Section -> Html Msg
-sectionView client data =
-    case data of
-        Just (Ok section) ->
-            view [ style homeStyles.sectionContainer ]
-                [ text [ style homeStyles.sectionTitle ] [ str section.title ]
-                , scrollView
-                    [ contentContainerStyle homeStyles.sectionContent
-                    , showsHorizontalScrollIndicator False
-                    , horizontal True
-                    ]
-                    (List.map (itemView client) section.data)
+              else
+                imageStyle
+                    { borderRadius = 4
+                    }
+            ]
+          <|
+            if isContinueWatching then
+                [ vidoePlayContainer (Decode.succeed NoOp)
+                , itemLabel label
                 ]
 
-        Just (Err _) ->
-            text [] [ str "Load Error" ]
+            else
+                []
+        , if isContinueWatching then
+            view [ style homeStyles.progress, style { width = percentFloat progress } ] []
+
+          else
+            null
+        ]
+
+
+sectionView : Client -> Section -> Html Msg
+sectionView client section =
+    let
+        isContinueWatching =
+            section.title == "Continue Watching"
+    in
+    view [ style homeStyles.sectionContainer ]
+        [ text [ style homeStyles.sectionTitle ] [ str section.title ]
+        , scrollView
+            [ contentContainerStyle homeStyles.sectionContent
+            , showsHorizontalScrollIndicator False
+            , horizontal True
+            ]
+            (List.map (itemView client isContinueWatching) section.data)
+        ]
+
+
+retryGetSections s =
+    button [ title s, onPress <| Decode.succeed ReloadSections, color themeColor ] []
+
+
+homeScreen : HomeModel -> a -> Html Msg
+homeScreen model _ =
+    case model.sections of
+        Just (Ok ss) ->
+            let
+                sections =
+                    List.filter (\s -> (not <| List.isEmpty s.data) && s.title /= "On Deck") ss
+            in
+            if List.isEmpty sections then
+                view []
+                    [ image [ source <| require "./assets/norecords.png", style { width = 60, height = 80 } ] []
+                    , retryGetSections "Reload"
+                    ]
+
+            else
+                scrollView
+                    [ persistentScrollbar False
+                    , contentContainerStyle homeStyles.container
+                    , style { backgroundColor = backgroundColor }
+                    ]
+                <|
+                    List.map (sectionView model.client) <|
+                        sections
+
+        Just (Err err) ->
+            let
+                _ =
+                    Debug.log "err" err
+            in
+            view [ style homeStyles.loading ]
+                [ ionicon "alert-circle-outline" [ size 60, color "darkred" ]
+                , retryGetSections "Retry"
+                ]
 
         _ ->
-            null
-
-
-
---view
---    [ style homeStyles.sectionContent
---    , style homeStyles.sectionContentLoading
---    , style homeStyles.sectionContainer
---    ]
---    [ activityIndicator [] []
---    ]
-
-
-homeScreen model _ =
-    scrollView
-        [ persistentScrollbar False
-        , contentContainerStyle homeStyles.container
-        , style { backgroundColor = backgroundColor }
-        ]
-        (List.map (sectionView model.client) <| [ model.continueWatching, model.recentlyAdded ] ++ model.libraries)
+            view
+                [ style homeStyles.loading ]
+                [ activityIndicator [] [] ]
 
 
 avatarStyles size =
@@ -665,6 +716,7 @@ avatar account size =
             []
 
 
+accountScreen : HomeModel -> a -> Html Msg
 accountScreen model _ =
     view
         [ style
@@ -729,28 +781,33 @@ formatDuration duration =
 
 
 entityScreen : HomeModel -> { guid : String } -> Html Msg
-entityScreen { client, continueWatching } { guid } =
+entityScreen model { guid } =
     let
         maybeMeta =
-            case continueWatching of
-                Just (Ok section) ->
-                    section.data
+            case model.sections of
+                Just (Ok sections) ->
+                    sections
                         |> List.filterMap
-                            (\item ->
-                                let
-                                    metadata =
-                                        case item of
-                                            Branch meta _ ->
-                                                meta
+                            (\section ->
+                                section.data
+                                    |> List.filterMap
+                                        (\item ->
+                                            let
+                                                metadata =
+                                                    case item of
+                                                        Branch meta _ ->
+                                                            meta
 
-                                            Leaf meta ->
-                                                meta
-                                in
-                                if metadata.guid == guid then
-                                    Just metadata
+                                                        Leaf meta ->
+                                                            meta
+                                            in
+                                            if metadata.guid == guid then
+                                                Just metadata
 
-                                else
-                                    Nothing
+                                            else
+                                                Nothing
+                                        )
+                                    |> List.head
                             )
                         |> List.head
 
@@ -787,10 +844,11 @@ entityScreen { client, continueWatching } { guid } =
                 ]
                 [ image
                     [ source
-                        { uri = pathToAuthedUrl meta.thumb client
-                        , width = "100%"
-                        , height = 210
+                        { uri = pathToAuthedUrl meta.thumb model.client
+                        , width = 480
+                        , height = 719
                         }
+                    , style { height = 210, width = "100%" }
                     ]
                     []
                 , scrollView
