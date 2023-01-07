@@ -1,4 +1,5 @@
 /* eslint-disable */
+// @refresh reset
 import React from "react";
 import {
   ActivityIndicator,
