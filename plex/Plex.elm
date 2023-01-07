@@ -1,8 +1,9 @@
 module Plex exposing (..)
 
-import Api exposing (Account, Client, Library, Metadata, Section, Tree(..))
+import Api exposing (Account, Client, Library, Metadata, Section)
 import Browser
 import Browser.Navigation as N
+import Dict exposing (Dict)
 import Html exposing (Html)
 import Http
 import Json.Decode as Decode
@@ -65,6 +66,7 @@ import ReactNative.Properties
         , title
         )
 import ReactNative.Settings as Settings
+import ReactNative.StatusBar as StatusBar
 import ReactNative.StyleSheet as StyleSheet
 import ReactNative.Transforms exposing (rotate, scale, scaleY, transform, translateX)
 import Task exposing (Task)
@@ -82,8 +84,22 @@ type alias RemoteData data =
     Maybe (Result Http.Error data)
 
 
+type alias TVShow =
+    { info : Metadata
+    , seasons : List TVSeason
+    , selectedSeason : String
+    }
+
+
+type alias TVSeason =
+    { info : Metadata
+    , episodes : RemoteData (List Metadata)
+    }
+
+
 type alias HomeModel =
     { sections : RemoteData (List Section)
+    , tvShows : Dict String (Result Http.Error TVShow)
     , client : Client
     , account : Account
     , navKey : N.Key
@@ -119,11 +135,14 @@ type Msg
     | SignInSubmitResponse (Result Http.Error Account)
     | ReloadSections
     | GotSections (Result Http.Error (List Section))
+    | GotTVShow String String (Result Http.Error TVShow)
+    | GotEpisodes String String (Result Http.Error (List Metadata))
     | DismissKeyboard
     | ShowSection String
     | ShowEntity String String
     | GotoAccount
-    | GotoEntity String
+    | GotoEntity Bool Metadata
+    | ChangeSeason String String
     | SignOut
 
 
@@ -139,6 +158,23 @@ getSections =
     Api.getSections GotSections
 
 
+getTVShow : String -> String -> Client -> Cmd Msg
+getTVShow id seasonId client =
+    Api.getMetadata id client
+        |> Task.andThen
+            (\show ->
+                Api.getMetadataChildren id client
+                    |> Task.map (\seasons -> { info = show, seasons = List.map (\s -> { info = s, episodes = Nothing }) seasons, selectedSeason = seasonId })
+            )
+        |> Task.attempt (GotTVShow id seasonId)
+
+
+getEpisodes : String -> String -> Client -> Cmd Msg
+getEpisodes showId seasonId client =
+    Api.getMetadataChildren seasonId client
+        |> Task.attempt (GotEpisodes showId seasonId)
+
+
 saveClient client =
     Task.perform (always NoOp) <|
         Settings.set
@@ -149,6 +185,19 @@ saveClient client =
 
 pathToAuthedUrl path client =
     client.serverAddress ++ path ++ "?X-Plex-Token=" ++ client.token
+
+
+updateEpisodes : String -> Result Http.Error (List Metadata) -> List TVSeason -> List TVSeason
+updateEpisodes seasonId resp seasons =
+    List.map
+        (\season ->
+            if season.info.ratingKey == seasonId then
+                { season | episodes = Just resp }
+
+            else
+                season
+        )
+        seasons
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -212,6 +261,7 @@ update msg model =
                             else
                                 { account | thumb = pathToAuthedUrl account.thumb client }
                         , client = client
+                        , tvShows = Dict.empty
                         , navKey = navKey
                         }
                     , Cmd.batch [ saveClient client, getSections client ]
@@ -258,6 +308,38 @@ update msg model =
             , Cmd.none
             )
 
+        GotTVShow showId seasonId resp ->
+            case model of
+                Home m ->
+                    ( Home { m | tvShows = Dict.insert showId resp m.tvShows }
+                    , case resp of
+                        Ok _ ->
+                            getEpisodes showId seasonId m.client
+
+                        _ ->
+                            Cmd.none
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        GotEpisodes showId seasonId resp ->
+            case model of
+                Home m ->
+                    case Dict.get showId m.tvShows of
+                        Just (Ok show) ->
+                            let
+                                seasons =
+                                    updateEpisodes seasonId resp show.seasons
+                            in
+                            ( Home { m | tvShows = Dict.insert showId (Ok { show | seasons = seasons }) m.tvShows }, Cmd.none )
+
+                        _ ->
+                            ( model, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
         ShowSection sectionId ->
             ( model, Cmd.none )
 
@@ -272,10 +354,30 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
-        GotoEntity guid ->
+        GotoEntity isContinueWatching metadata ->
             case model of
                 Home m ->
-                    ( model, Nav.push m.navKey "entity" { guid = guid } )
+                    ( model
+                    , Cmd.batch
+                        [ Nav.push m.navKey "entity" { isContinueWatching = isContinueWatching, metadata = metadata }
+                        , if metadata.typ == "episode" then
+                            getTVShow metadata.grandparentRatingKey metadata.parentRatingKey m.client
+
+                          else if metadata.typ == "season" then
+                            getTVShow metadata.parentRatingKey metadata.ratingKey m.client
+
+                          else
+                            Cmd.none
+                        ]
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        ChangeSeason showId seasonId ->
+            case model of
+                Home m ->
+                    ( Home { m | tvShows = m.tvShows }, getTVShow showId seasonId m.client )
 
                 _ ->
                     ( model, Cmd.none )
@@ -483,6 +585,7 @@ homeStyles =
         }
 
 
+percentFloat : Float -> String
 percentFloat f =
     (String.fromInt <| ceiling <| f * 100) ++ "%"
 
@@ -536,23 +639,21 @@ vidoePlayContainer handlePress =
         [ videoPlay handlePress ]
 
 
-itemView : Client -> Bool -> Tree Metadata -> Html Msg
-itemView client isContinueWatching item =
+itemView : Client -> Bool -> Metadata -> Html Msg
+itemView client isContinueWatching metadata =
     let
-        metadata =
-            case item of
-                Branch meta _ ->
-                    meta
-
-                Leaf meta ->
-                    meta
-
         { label, thumb, alt } =
             case metadata.typ of
                 "episode" ->
                     { thumb = metadata.grandparentThumb
                     , label = "S" ++ String.fromInt metadata.parentIndex ++ ":E" ++ String.fromInt metadata.index
                     , alt = metadata.grandparentTitle
+                    }
+
+                "season" ->
+                    { thumb = metadata.thumb
+                    , label = "S" ++ String.fromInt metadata.parentIndex
+                    , alt = metadata.parentTitle
                     }
 
                 _ ->
@@ -570,7 +671,7 @@ itemView client isContinueWatching item =
 
           else
             style <| StyleSheet.compose homeStyles.itemContainer homeStyles.itemContainerBottomRadius
-        , onPress <| Decode.succeed <| GotoEntity metadata.guid
+        , onPress <| Decode.succeed <| GotoEntity isContinueWatching metadata
         ]
         [ view
             [ style homeStyles.itemImageAlt ]
@@ -613,7 +714,7 @@ sectionView : Client -> Section -> Html Msg
 sectionView client section =
     let
         isContinueWatching =
-            section.title == "Continue Watching"
+            section.hubIdentifier == "home.continue"
     in
     view [ style homeStyles.sectionContainer ]
         [ text [ style homeStyles.sectionTitle ] [ str section.title ]
@@ -636,7 +737,7 @@ homeScreen model _ =
         Just (Ok ss) ->
             let
                 sections =
-                    List.filter (\s -> (not <| List.isEmpty s.data) && s.title /= "On Deck") ss
+                    List.filter (\s -> (not <| List.isEmpty s.data) && s.hubIdentifier /= "home.ondeck") ss
             in
             if List.isEmpty sections then
                 view []
@@ -780,196 +881,331 @@ formatDuration duration =
         String.fromInt h ++ "h " ++ String.fromInt m ++ "m"
 
 
-entityScreen : HomeModel -> { guid : String } -> Html Msg
-entityScreen model { guid } =
+progressBar props p =
+    view
+        ([ style
+            { backgroundColor = "gray"
+            , height = 3
+            }
+         ]
+            ++ props
+        )
+        [ view
+            [ style
+                { width = percentFloat p
+                , backgroundColor = themeColor
+                , height = "100%"
+                }
+            ]
+            []
+        ]
+
+
+entityScreen : HomeModel -> { isContinueWatching : Bool, metadata : Metadata } -> Html Msg
+entityScreen model { isContinueWatching, metadata } =
     let
-        maybeMeta =
-            case model.sections of
-                Just (Ok sections) ->
-                    sections
-                        |> List.filterMap
-                            (\section ->
-                                section.data
-                                    |> List.filterMap
-                                        (\item ->
-                                            let
-                                                metadata =
-                                                    case item of
-                                                        Branch meta _ ->
-                                                            meta
+        client =
+            model.client
 
-                                                        Leaf meta ->
-                                                            meta
-                                            in
-                                            if metadata.guid == guid then
-                                                Just metadata
+        --season =
+        --    List.head <| List.filter (\s -> s.ratingKey == model.selectedSeason) model.seasons
+        { title, label, showProgress, showPlayButton, showEpisodes, episodes, seasonTitle } =
+            case metadata.typ of
+                "episode" ->
+                    { title = metadata.grandparentTitle
+                    , label = "S" ++ String.fromInt metadata.parentIndex ++ ":E" ++ String.fromInt metadata.index ++ " " ++ metadata.title
+                    , seasonTitle = "Season " ++ String.fromInt metadata.parentIndex
+                    , showProgress = isContinueWatching
+                    , showPlayButton = True
+                    , showEpisodes = True
+                    , episodes =
+                        case Dict.get metadata.grandparentRatingKey model.tvShows of
+                            Just (Ok show) ->
+                                case List.filter (\s -> s.info.ratingKey == metadata.parentRatingKey) show.seasons of
+                                    season :: [] ->
+                                        season.episodes
 
-                                            else
-                                                Nothing
-                                        )
-                                    |> List.head
-                            )
-                        |> List.head
+                                    _ ->
+                                        Nothing
+
+                            _ ->
+                                Nothing
+                    }
+
+                "season" ->
+                    { title = metadata.parentTitle
+                    , label = "S" ++ String.fromInt metadata.index
+                    , seasonTitle = "Season " ++ String.fromInt metadata.parentIndex
+                    , showProgress = False
+                    , showPlayButton = False
+                    , showEpisodes = True
+                    , episodes =
+                        case Dict.get metadata.parentRatingKey model.tvShows of
+                            Just (Ok show) ->
+                                case List.filter (\s -> s.info.ratingKey == metadata.ratingKey) show.seasons of
+                                    season :: [] ->
+                                        season.episodes
+
+                                    _ ->
+                                        Nothing
+
+                            _ ->
+                                Nothing
+                    }
+
+                "movie" ->
+                    { title = metadata.title
+                    , seasonTitle = ""
+                    , label = ""
+                    , showProgress = isContinueWatching
+                    , showPlayButton = True
+                    , showEpisodes = False
+                    , episodes = Nothing
+                    }
 
                 _ ->
-                    Nothing
+                    { title = metadata.title
+                    , seasonTitle = ""
+                    , label = ""
+                    , showProgress = False
+                    , showPlayButton = False
+                    , showEpisodes = True
+                    , episodes = Nothing
+                    }
     in
-    case maybeMeta of
-        Just meta ->
-            let
-                progress =
-                    toFloat meta.viewOffset / toFloat meta.duration
-
-                remainingDuration =
-                    formatDuration (meta.duration - meta.viewOffset) ++ " remaining"
-
-                { title, label } =
-                    case meta.typ of
-                        "episode" ->
-                            { title = meta.grandparentTitle
-                            , label = "S" ++ String.fromInt meta.parentIndex ++ ":E" ++ String.fromInt meta.index ++ " " ++ meta.title
-                            }
-
-                        _ ->
-                            { title = meta.title
-                            , label = ""
-                            }
-            in
-            view
+    view
+        [ style
+            { backgroundColor = backgroundColor
+            , width = "100%"
+            , height = "100%"
+            }
+        ]
+        [ image
+            [ source
+                { uri = pathToAuthedUrl metadata.thumb client
+                , width = 480
+                , height = 719
+                }
+            , style { height = 210, width = "100%" }
+            ]
+            []
+        , scrollView
+            [ contentContainerStyle
+                { paddingHorizontal = 10
+                }
+            ]
+            [ text
                 [ style
-                    { backgroundColor = backgroundColor
-                    , width = "100%"
-                    , height = "100%"
+                    { fontSize = 18
+                    , fontWeight = "bold"
+                    , color = "white"
+                    , marginTop = 10
                     }
                 ]
-                [ image
-                    [ source
-                        { uri = pathToAuthedUrl meta.thumb model.client
-                        , width = 480
-                        , height = 719
+                [ str title ]
+            , view [ style { flexDirection = "row", marginTop = 10 } ]
+                [ text
+                    [ style
+                        { color = "white"
+                        , fontSize = 12
                         }
-                    , style { height = 210, width = "100%" }
                     ]
-                    []
-                , scrollView
-                    [ contentContainerStyle { paddingHorizontal = 10 } ]
-                    [ text
+                    [ str <| String.slice 0 4 metadata.originallyAvailableAt ]
+                , if metadata.contentRating == "" then
+                    null
+
+                  else
+                    view
                         [ style
-                            { fontSize = 18
-                            , fontWeight = "bold"
-                            , color = "white"
-                            , marginTop = 10
+                            { backgroundColor = "gray"
+                            , borderRadius = 2
+                            , padding = 2
+                            , marginLeft = 2
+                            , alignItems = "center"
+                            , justifyContent = "center"
                             }
                         ]
-                        [ str title ]
-                    , view [ style { flexDirection = "row", marginTop = 10 } ]
                         [ text
                             [ style
                                 { color = "white"
-                                , fontSize = 12
-                                }
-                            ]
-                            [ str <| String.slice 0 4 meta.originallyAvailableAt ]
-                        , if meta.contentRating == "" then
-                            null
-
-                          else
-                            view
-                                [ style
-                                    { backgroundColor = "gray"
-                                    , borderRadius = 2
-                                    , padding = 2
-                                    , marginLeft = 2
-                                    , alignItems = "center"
-                                    , justifyContent = "center"
-                                    }
-                                ]
-                                [ text
-                                    [ style
-                                        { color = "white"
-                                        , fontSize = 8
-                                        , fontWeight = "bold"
-                                        }
-                                    ]
-                                    [ str meta.contentRating
-                                    ]
-                                ]
-                        , text [ style { color = "white", marginLeft = 2, fontSize = 12 } ] [ str <| formatDuration meta.duration ]
-                        ]
-                    , touchableOpacity []
-                        [ view
-                            [ style
-                                { justifyContent = "center"
-                                , alignItems = "center"
-                                , backgroundColor = "white"
-                                , borderRadius = 3
-                                , height = 35
-                                , marginTop = 15
-                                , flexDirection = "row"
-                                }
-                            ]
-                            [ text [ style { color = "black", fontSize = 30, top = 2, right = 2 } ] [ str "⏵" ]
-                            , text [ style { color = "black", fontWeight = "bold" } ] [ str " Resume" ]
-                            ]
-                        ]
-                    , if label == "" then
-                        null
-
-                      else
-                        text
-                            [ style
-                                { color = "white"
+                                , fontSize = 8
                                 , fontWeight = "bold"
-                                , fontSize = 15
-                                , marginTop = 10
                                 }
                             ]
-                            [ str label ]
-                    , view
+                            [ str metadata.contentRating
+                            ]
+                        ]
+                , if metadata.duration == 0 then
+                    null
+
+                  else
+                    text [ style { color = "white", marginLeft = 2, fontSize = 12 } ] [ str <| formatDuration metadata.duration ]
+                ]
+            , if showPlayButton then
+                touchableOpacity []
+                    [ view
                         [ style
-                            { flexDirection = "row"
+                            { justifyContent = "center"
                             , alignItems = "center"
-                            , justifyContent = "space-between"
-                            , marginTop =
-                                if label == "" then
-                                    20
+                            , backgroundColor = "white"
+                            , borderRadius = 3
+                            , height = 35
+                            , marginTop = 15
+                            , flexDirection = "row"
+                            }
+                        ]
+                        [ text [ style { color = "black", fontSize = 30, top = 2, right = 2 } ] [ str "⏵" ]
+                        , text [ style { color = "black", fontWeight = "bold" } ]
+                            [ str <|
+                                if isContinueWatching then
+                                    " Resume"
 
                                 else
-                                    10
+                                    "Play"
+                            ]
+                        ]
+                    ]
+
+              else
+                null
+            , if label == "" then
+                null
+
+              else
+                text
+                    [ style
+                        { color = "white"
+                        , fontWeight = "bold"
+                        , fontSize = 15
+                        , marginTop = 10
+                        }
+                    ]
+                    [ str label ]
+            , if showProgress then
+                let
+                    progress =
+                        toFloat metadata.viewOffset / toFloat metadata.duration
+
+                    remainingDuration =
+                        formatDuration (metadata.duration - metadata.viewOffset) ++ " remaining"
+                in
+                view
+                    [ style
+                        { flexDirection = "row"
+                        , alignItems = "center"
+                        , justifyContent = "space-between"
+                        , marginTop =
+                            if label == "" then
+                                20
+
+                            else
+                                10
+                        }
+                    ]
+                    [ view
+                        [ style
+                            { backgroundColor = "gray"
+                            , height = 3
+                            , flexGrow = 1
+                            , marginRight = 10
                             }
                         ]
                         [ view
                             [ style
-                                { backgroundColor = "gray"
-                                , height = 3
-                                , flexGrow = 1
-                                , marginRight = 10
+                                { width = percentFloat progress
+                                , backgroundColor = themeColor
+                                , height = "100%"
                                 }
                             ]
-                            [ view
+                            []
+                        ]
+                    , text [ style { color = "gray", fontSize = 9 } ] [ str remainingDuration ]
+                    ]
+
+              else
+                null
+            , text
+                [ style
+                    { fontSize = 12
+                    , color = "white"
+                    , marginTop = 5
+                    }
+                ]
+                [ str metadata.summary ]
+            , if showEpisodes then
+                case episodes of
+                    Just (Ok eps) ->
+                        view [ style { marginTop = 20 } ]
+                            [ text
                                 [ style
-                                    { width = percentFloat progress
-                                    , backgroundColor = themeColor
-                                    , height = "100%"
+                                    { fontWeight = "bold"
+                                    , color = "white"
                                     }
                                 ]
-                                []
-                            ]
-                        , text [ style { color = "gray", fontSize = 9 } ] [ str remainingDuration ]
-                        ]
-                    , text
-                        [ style
-                            { fontSize = 12
-                            , color = "white"
-                            , marginTop = 5
-                            }
-                        ]
-                        [ str meta.summary ]
-                    ]
-                ]
+                                [ str seasonTitle ]
+                            , view
+                                [ style
+                                    { marginBottom = StatusBar.currentHeight
+                                    }
+                                ]
+                                (List.map
+                                    (\ep ->
+                                        view []
+                                            [ view [ style { flexDirection = "row", marginTop = 15, alignItems = "center" } ]
+                                                [ imageBackground
+                                                    [ source
+                                                        { uri = pathToAuthedUrl ep.thumb client
+                                                        , width = 720
+                                                        , height = 404
+                                                        }
+                                                    , style { width = 122, height = 65, justifyContent = "flex-end" }
+                                                    , imageStyle { borderRadius = 4, resizeMode = "contain" }
+                                                    ]
+                                                    [ vidoePlayContainer (Decode.succeed NoOp)
+                                                    , if ep.viewOffset <= 0 then
+                                                        null
 
-        _ ->
-            null
+                                                      else
+                                                        progressBar [ style { width = 116, marginHorizontal = 3 } ] (toFloat ep.viewOffset / toFloat ep.duration)
+                                                    ]
+                                                , view [ style { marginLeft = 3 } ]
+                                                    [ text
+                                                        [ style
+                                                            { color = "white"
+                                                            , marginRight = 10
+                                                            }
+                                                        ]
+                                                        [ str <| String.fromInt ep.index ++ ". " ++ ep.title ]
+                                                    , text [ style { color = "gray", fontSize = 12, marginTop = 3 } ] [ str <| formatDuration ep.duration ]
+                                                    ]
+                                                ]
+                                            , text [ style { color = "gray", fontSize = 12, marginTop = 4 } ] [ str ep.summary ]
+                                            ]
+                                    )
+                                    eps
+                                )
+                            ]
+
+                    Just (Err _) ->
+                        view []
+                            [ text [] [ str "Load episode error" ]
+                            ]
+
+                    _ ->
+                        view
+                            [ style
+                                { height = 50
+                                , justifyContent = "center"
+                                , alignItems = "center"
+                                }
+                            ]
+                            [ activityIndicator [] [] ]
+
+              else
+                null
+            , view [ style { height = 70, width = "100%" } ] []
+            ]
+        ]
 
 
 root : Model -> Html Msg

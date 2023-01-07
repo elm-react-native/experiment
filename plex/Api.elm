@@ -301,8 +301,22 @@ metadataDecoder =
                 (maybeZero <| Decode.field "index" Decode.int)
                 (maybeZero <| Decode.field "parentIndex" Decode.int)
                 (maybeZero <| Decode.field "grandparentIndex" Decode.int)
+
+        decoder4 =
+            Decode.map4
+                (\data ratingKey parentRatingKey grandparentRatingKey ->
+                    { data
+                        | ratingKey = ratingKey
+                        , parentRatingKey = parentRatingKey
+                        , grandparentRatingKey = grandparentRatingKey
+                    }
+                )
+                decoder3
+                (maybeString <| Decode.field "ratingKey" Decode.string)
+                (maybeString <| Decode.field "parentRatingKey" Decode.string)
+                (maybeString <| Decode.field "grandparentRatingKey" Decode.string)
     in
-    decoder3
+    decoder4
 
 
 type alias Director =
@@ -414,13 +428,9 @@ type alias Setting =
 type alias Section =
     { title : String
     , more : Bool
-    , data : List (Tree Metadata)
+    , data : List Metadata
+    , hubIdentifier : String
     }
-
-
-type Tree a
-    = Branch a (List (Tree a))
-    | Leaf a
 
 
 type alias Client =
@@ -431,30 +441,37 @@ type alias Client =
 
 httpJsonBodyResolver : Decoder a -> Http.Response String -> Result Http.Error a
 httpJsonBodyResolver decoder resp =
-    case resp of
-        Http.GoodStatus_ m s ->
-            Decode.decodeString decoder s
-                |> Result.mapError (Decode.errorToString >> Http.BadBody)
+    let
+        res =
+            case resp of
+                Http.GoodStatus_ m s ->
+                    Decode.decodeString decoder s
+                        |> Result.mapError (Decode.errorToString >> Http.BadBody)
 
-        Http.BadUrl_ s ->
-            Err (Http.BadUrl s)
+                Http.BadUrl_ s ->
+                    Err (Http.BadUrl s)
 
-        Http.Timeout_ ->
-            Err Http.Timeout
+                Http.Timeout_ ->
+                    Err Http.Timeout
 
-        Http.NetworkError_ ->
-            Err Http.NetworkError
+                Http.NetworkError_ ->
+                    Err Http.NetworkError
 
-        Http.BadStatus_ m s ->
-            Decode.decodeString decoder s
-                -- just trying; if our decoder understands the response body, great
-                |> Result.mapError (\_ -> Http.BadStatus m.statusCode)
+                Http.BadStatus_ m s ->
+                    Decode.decodeString decoder s
+                        -- just trying; if our decoder understands the response body, great
+                        |> Result.mapError (\_ -> Http.BadStatus m.statusCode)
+
+        _ =
+            Debug.log "response" resp
+    in
+    res
 
 
 clientGetJsonTask : Decoder a -> String -> Client -> Task Http.Error a
 clientGetJsonTask decoder path { serverAddress, token } =
-    Http.task
-        { url =
+    let
+        url =
             serverAddress
                 ++ path
                 ++ (if String.contains path "?" then
@@ -465,6 +482,12 @@ clientGetJsonTask decoder path { serverAddress, token } =
                    )
                 ++ "X-Plex-Token="
                 ++ token
+
+        _ =
+            Debug.log "url" url
+    in
+    Http.task
+        { url = url
         , method = "GET"
         , headers = [ Http.header "Accept" "application/json" ]
         , body = Http.emptyBody
@@ -541,18 +564,37 @@ sectionsDecoder : Decoder (List Section)
 sectionsDecoder =
     Decode.at [ "MediaContainer", "Hub" ] <|
         Decode.list <|
-            Decode.map3
-                (\title more data ->
-                    { title = title, more = more, data = List.map Leaf data }
+            Decode.map4
+                (\hubIdentifier title more data ->
+                    { hubIdentifier = hubIdentifier, title = title, more = more, data = data }
                 )
+                (Decode.field "hubIdentifier" Decode.string)
                 (Decode.field "title" Decode.string)
                 (maybeFalse <| Decode.field "more" Decode.bool)
                 (maybeEmpty <| Decode.field "Metadata" <| Decode.list metadataDecoder)
 
 
+metadataListDecoder : Decoder (List Metadata)
+metadataListDecoder =
+    Decode.field "MediaContainer" <|
+        maybeEmpty <|
+            Decode.field "Metadata" <|
+                Decode.list metadataDecoder
+
+
 getSections : (Result Http.Error (List Section) -> msg) -> Client -> Cmd msg
 getSections =
     clientGetJson sectionsDecoder "/hubs?size=12"
+
+
+getMetadata : String -> Client -> Task Http.Error Metadata
+getMetadata key =
+    clientGetJsonTask (Decode.at [ "MediaContainer", "Metadata" ] <| Decode.index 0 <| metadataDecoder) ("/library/metadata/" ++ key)
+
+
+getMetadataChildren : String -> Client -> Task Http.Error (List Metadata)
+getMetadataChildren key =
+    clientGetJsonTask metadataListDecoder <| "/library/metadata/" ++ key ++ "/children"
 
 
 firstAccountWithName decoder =
