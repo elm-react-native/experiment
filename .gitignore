@@ -3,3 +3,4 @@ build/
 elm-stuff
 *.sublime-workspace
 samples/
+*.swp

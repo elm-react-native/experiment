@@ -658,3 +658,13 @@ settingsDecoder =
 getSettings : (Result Http.Error (List Setting) -> msg) -> Client -> Cmd msg
 getSettings =
     clientGetJson settingsDecoder "/settings"
+
+
+pathToAuthedUrl : String -> Client -> String
+pathToAuthedUrl path client =
+    client.serverAddress ++ path ++ "?X-Plex-Token=" ++ client.token
+
+
+initialClient : Client
+initialClient =
+    { serverAddress = "", token = "" }
