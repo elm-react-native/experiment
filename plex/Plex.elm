@@ -3,7 +3,7 @@ module Plex exposing (..)
 import Api exposing (Account, Client, Metadata, Section)
 import Browser
 import Browser.Navigation as N
-import Dict exposing (Dict)
+import Dict exposing (Dict, member)
 import Html exposing (Html)
 import Http
 import Json.Decode as Decode exposing (Decoder)
@@ -26,6 +26,7 @@ import ReactNative
         , touchableWithoutFeedback
         , view
         )
+import ReactNative.ActionSheetIOS as ActionSheetIOS
 import ReactNative.Alert as Alert
 import ReactNative.Events exposing (onChangeText, onPress)
 import ReactNative.Keyboard as Keyboard
@@ -131,6 +132,7 @@ type Msg
     | GotoAccount
     | GotoEntity Bool Metadata
     | ChangeSeason String String
+    | ShowPicker (List ( String, Msg ))
     | SignOut
 
 
@@ -459,7 +461,9 @@ update msg model =
         ChangeSeason showId seasonId ->
             case model of
                 Home m ->
-                    ( Home { m | tvShows = updateTVShow (\sh -> { sh | selectedSeason = seasonId }) showId m.tvShows }, getTVShow showId seasonId m.client )
+                    ( Home { m | tvShows = updateTVShow (\sh -> { sh | selectedSeason = seasonId }) showId m.tvShows }
+                    , getEpisodes showId seasonId m.client
+                    )
 
                 _ ->
                     ( model, Cmd.none )
@@ -476,6 +480,15 @@ update msg model =
 
         DismissKeyboard ->
             ( model, Task.perform (always NoOp) Keyboard.dismiss )
+
+        ShowPicker items ->
+            ( model
+            , ActionSheetIOS.pickAction (( "Cancel", NoOp ) :: items)
+                [ ActionSheetIOS.cancelButtonIndex 0
+                , ActionSheetIOS.tintColor themeColor
+                ]
+                |> Task.perform (Maybe.withDefault NoOp)
+            )
 
 
 
@@ -999,7 +1012,7 @@ entityScreen model { isContinueWatching, metadata } =
         client =
             model.client
 
-        { title, label, showProgress, showPlayButton, showId } =
+        { title, label, showProgress, showPlayButton, showId, showEpisodes } =
             case metadata.typ of
                 "episode" ->
                     { title = metadata.grandparentTitle
@@ -1007,6 +1020,7 @@ entityScreen model { isContinueWatching, metadata } =
                     , label = "S" ++ String.fromInt metadata.parentIndex ++ ":E" ++ String.fromInt metadata.index ++ " " ++ metadata.title
                     , showProgress = isContinueWatching
                     , showPlayButton = True
+                    , showEpisodes = True
                     }
 
                 "season" ->
@@ -1015,6 +1029,7 @@ entityScreen model { isContinueWatching, metadata } =
                     , label = "S" ++ String.fromInt metadata.index
                     , showProgress = False
                     , showPlayButton = False
+                    , showEpisodes = True
                     }
 
                 "show" ->
@@ -1023,6 +1038,7 @@ entityScreen model { isContinueWatching, metadata } =
                     , label = ""
                     , showProgress = False
                     , showPlayButton = False
+                    , showEpisodes = True
                     }
 
                 "movie" ->
@@ -1031,6 +1047,7 @@ entityScreen model { isContinueWatching, metadata } =
                     , label = ""
                     , showProgress = isContinueWatching
                     , showPlayButton = True
+                    , showEpisodes = False
                     }
 
                 _ ->
@@ -1039,28 +1056,8 @@ entityScreen model { isContinueWatching, metadata } =
                     , label = ""
                     , showProgress = False
                     , showPlayButton = False
+                    , showEpisodes = False
                     }
-
-        selectedSeason : Maybe TVSeason
-        selectedSeason =
-            case Dict.get showId model.tvShows of
-                Just (Ok show) ->
-                    if String.isEmpty show.selectedSeason then
-                        List.head show.seasons
-
-                    else
-                        List.head <| List.filter (\s -> s.info.ratingKey == show.selectedSeason) show.seasons
-
-                _ ->
-                    Nothing
-
-        { episodes, seasonTitle, showEpisodes } =
-            case selectedSeason of
-                Just season ->
-                    { showEpisodes = True, episodes = season.episodes, seasonTitle = "Season " ++ String.fromInt season.info.index }
-
-                _ ->
-                    { showEpisodes = False, episodes = Nothing, seasonTitle = "" }
     in
     view
         [ style
@@ -1222,62 +1219,97 @@ entityScreen model { isContinueWatching, metadata } =
                 ]
                 [ str metadata.summary ]
             , if showEpisodes then
-                case episodes of
-                    Just (Ok eps) ->
-                        view [ style { marginTop = 20 } ]
-                            [ text
-                                [ style
-                                    { fontWeight = "bold"
-                                    , color = "white"
-                                    }
-                                ]
-                                [ str seasonTitle ]
-                            , view
-                                [ style
-                                    { marginBottom = StatusBar.currentHeight
-                                    }
-                                ]
-                                (List.map
-                                    (\ep ->
-                                        view []
-                                            [ view [ style { flexDirection = "row", marginTop = 15, alignItems = "center" } ]
-                                                [ imageBackground
-                                                    [ source
-                                                        { uri = pathToAuthedUrl ep.thumb client
-                                                        , width = 720
-                                                        , height = 404
-                                                        }
-                                                    , style { width = 122, height = 65, justifyContent = "flex-end" }
-                                                    , imageStyle { borderRadius = 4, resizeMode = "contain" }
-                                                    ]
-                                                    [ vidoePlayContainer (Decode.succeed NoOp)
-                                                    , if ep.viewOffset <= 0 then
-                                                        null
-
-                                                      else
-                                                        progressBar [ style { width = 116, marginHorizontal = 3 } ] (toFloat ep.viewOffset / toFloat ep.duration)
-                                                    ]
-                                                , view [ style { marginLeft = 3 } ]
-                                                    [ text
-                                                        [ style
-                                                            { color = "white"
-                                                            , marginRight = 10
-                                                            }
-                                                        ]
-                                                        [ str <| String.fromInt ep.index ++ ". " ++ ep.title ]
-                                                    , text [ style { color = "gray", fontSize = 12, marginTop = 3 } ] [ str <| formatDuration ep.duration ]
-                                                    ]
-                                                ]
-                                            , text [ style { color = "gray", fontSize = 12, marginTop = 4 } ] [ str ep.summary ]
+                case Dict.get showId model.tvShows of
+                    Just (Ok show) ->
+                        case findSeason show.selectedSeason show of
+                            Just selectedSeason ->
+                                view [ style { marginTop = 20 } ]
+                                    [ touchableOpacity
+                                        [ onPress <|
+                                            Decode.succeed
+                                                (ShowPicker
+                                                    (List.map
+                                                        (\sz ->
+                                                            ( "Season" ++ String.fromInt sz.info.index, ChangeSeason showId sz.info.ratingKey )
+                                                        )
+                                                        show.seasons
+                                                    )
+                                                )
+                                        , style { flexDirection = "row", alignItems = "center" }
+                                        ]
+                                        [ text
+                                            [ style
+                                                { fontWeight = "bold"
+                                                , color = "white"
+                                                , marginRight = 5
+                                                }
                                             ]
-                                    )
-                                    eps
-                                )
-                            ]
+                                            [ str <| "Season " ++ String.fromInt selectedSeason.info.index ]
+                                        , ionicon "chevron-down-outline" [ size 12, color "white" ]
+                                        ]
+                                    , case selectedSeason.episodes of
+                                        Just (Ok eps) ->
+                                            view
+                                                [ style { marginTop = 20 } ]
+                                                (List.map
+                                                    (\ep ->
+                                                        view []
+                                                            [ view [ style { flexDirection = "row", marginTop = 15, alignItems = "center" } ]
+                                                                [ imageBackground
+                                                                    [ source
+                                                                        { uri = pathToAuthedUrl ep.thumb client
+                                                                        , width = 720
+                                                                        , height = 404
+                                                                        }
+                                                                    , style { width = 122, height = 65, justifyContent = "flex-end" }
+                                                                    , imageStyle { borderRadius = 4, resizeMode = "contain" }
+                                                                    ]
+                                                                    [ vidoePlayContainer (Decode.succeed NoOp)
+                                                                    , if ep.viewOffset <= 0 then
+                                                                        null
+
+                                                                      else
+                                                                        progressBar [ style { width = 116, marginHorizontal = 3 } ] (toFloat ep.viewOffset / toFloat ep.duration)
+                                                                    ]
+                                                                , view [ style { marginLeft = 3 } ]
+                                                                    [ text
+                                                                        [ style
+                                                                            { color = "white"
+                                                                            , marginRight = 10
+                                                                            }
+                                                                        ]
+                                                                        [ str <| String.fromInt ep.index ++ ". " ++ ep.title ]
+                                                                    , text [ style { color = "gray", fontSize = 12, marginTop = 3 } ] [ str <| formatDuration ep.duration ]
+                                                                    ]
+                                                                ]
+                                                            , text [ style { color = "gray", fontSize = 12, marginTop = 4 } ] [ str ep.summary ]
+                                                            ]
+                                                    )
+                                                    eps
+                                                )
+
+                                        Just (Err _) ->
+                                            view []
+                                                [ text [] [ str "Load episodes error" ]
+                                                ]
+
+                                        _ ->
+                                            view
+                                                [ style
+                                                    { height = 50
+                                                    , justifyContent = "center"
+                                                    , alignItems = "center"
+                                                    }
+                                                ]
+                                                [ activityIndicator [] [] ]
+                                    ]
+
+                            _ ->
+                                null
 
                     Just (Err _) ->
-                        view []
-                            [ text [] [ str "Load episode error" ]
+                        view [ style { marginTop = 20 } ]
+                            [ text [] [ str "Load show error" ]
                             ]
 
                     _ ->
@@ -1286,6 +1318,7 @@ entityScreen model { isContinueWatching, metadata } =
                                 { height = 50
                                 , justifyContent = "center"
                                 , alignItems = "center"
+                                , marginTop = 20
                                 }
                             ]
                             [ activityIndicator [] [] ]

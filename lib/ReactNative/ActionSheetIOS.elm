@@ -7,6 +7,7 @@ module ReactNative.ActionSheetIOS exposing
     , destructiveButtonIndices
     , disabledButtonIndices
     , message
+    , pickAction
     , show
     , tintColor
     , title
@@ -22,6 +23,34 @@ import Task exposing (Task)
 show : List String -> List Property -> Task Never Int
 show options props =
     Task.succeed 0
+
+
+pickAction : List ( String, msg ) -> List Property -> Task Never (Maybe msg)
+pickAction items props =
+    show (List.map Tuple.first items) props
+        |> Task.map
+            (\i ->
+                case memberAt i items of
+                    Just ( _, m ) ->
+                        Just m
+
+                    _ ->
+                        Nothing
+            )
+
+
+memberAt : Int -> List a -> Maybe a
+memberAt i xs =
+    case xs of
+        x :: xs2 ->
+            if i == 0 then
+                Just x
+
+            else
+                memberAt (i - 1) xs2
+
+        _ ->
+            Nothing
 
 
 type alias Property =
@@ -63,7 +92,7 @@ anchor =
 
 
 tintColor =
-    property "tintColor" << Encode.int
+    property "tintColor" << Encode.string
 
 
 disabledButtonIndices : List Int -> Property
