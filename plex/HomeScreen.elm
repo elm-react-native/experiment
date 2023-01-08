@@ -184,7 +184,7 @@ itemView client isContinueWatching metadata =
             else
                 []
         , if isContinueWatching then
-            progressBar [] <| toFloat metadata.viewOffset / toFloat metadata.duration
+            progressBar [] <| toFloat (Maybe.withDefault metadata.duration metadata.viewOffset) / toFloat metadata.duration
 
           else
             null

@@ -1,6 +1,6 @@
 module EntityScreen exposing (..)
 
-import Api exposing (Metadata)
+import Api exposing (Client, Metadata)
 import Components exposing (bottomPadding, progressBar, vidoePlayContainer)
 import Dict
 import Html exposing (Html)
@@ -32,6 +32,29 @@ import ReactNative.Properties
         )
 import Theme
 import Utils exposing (formatDuration)
+
+
+heroImage : String -> Client -> Html msg
+heroImage thumb client =
+    view
+        [ style
+            { shadowColor = "black"
+            , shadowRadius = 10
+            , shadowOpacity = 0.4
+            , shadowOffset = { width = 0, height = 5 }
+            }
+        ]
+        [ image
+            [ source
+                { uri = Api.pathToAuthedUrl thumb client
+                , width = 480
+                , height = 719
+                , cache = "force-cache"
+                }
+            , style { height = 210, width = "100%" }
+            ]
+            []
+        ]
 
 
 heroTitle : String -> Html msg
@@ -183,17 +206,25 @@ episodesView eps client =
                                 , height = 404
                                 , cache = "force-cache"
                                 }
-                            , style { width = 122, height = 65, justifyContent = "flex-end" }
+                            , style { width = 112, height = 63, justifyContent = "flex-end" }
                             , imageStyle { borderRadius = 4, resizeMode = "contain" }
                             ]
                             [ vidoePlayContainer (Decode.succeed NoOp)
-                            , if ep.viewOffset <= 0 then
-                                null
+                            , case ep.lastViewedAt of
+                                Just _ ->
+                                    progressBar []
+                                        (case ep.viewOffset of
+                                            Just viewOffset ->
+                                                toFloat viewOffset / toFloat ep.duration
 
-                              else
-                                progressBar [ style { width = 116, marginHorizontal = 3 } ] (toFloat ep.viewOffset / toFloat ep.duration)
+                                            _ ->
+                                                1
+                                        )
+
+                                _ ->
+                                    null
                             ]
-                        , view [ style { marginLeft = 3 } ]
+                        , view [ style { marginLeft = 5 } ]
                             [ text
                                 [ style
                                     { color = "white"
@@ -332,16 +363,7 @@ entityScreen model { isContinueWatching, metadata } =
             , height = "100%"
             }
         ]
-        [ image
-            [ source
-                { uri = Api.pathToAuthedUrl metadata.thumb client
-                , width = 480
-                , height = 719
-                , cache = "force-cache"
-                }
-            , style { height = 210, width = "100%" }
-            ]
-            []
+        [ heroImage metadata.thumb client
         , scrollView
             [ contentContainerStyle { paddingHorizontal = 10 } ]
             [ heroTitle title
@@ -357,7 +379,7 @@ entityScreen model { isContinueWatching, metadata } =
               else
                 heroLabel label
             , if showProgress then
-                heroProgressBar metadata.viewOffset metadata.duration label
+                heroProgressBar (Maybe.withDefault metadata.duration metadata.viewOffset) metadata.duration label
 
               else
                 null

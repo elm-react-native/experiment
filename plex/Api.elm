@@ -154,9 +154,9 @@ type alias Metadata =
     , primaryExtraKey : String
     , hasPremiumExtras : String
     , hasPremiumPrimaryExtra : String
-    , lastViewedAt : Int
-    , viewCount : Int
-    , viewOffset : Int
+    , lastViewedAt : Maybe Int
+    , viewCount : Maybe Int
+    , viewOffset : Maybe Int
     }
 
 
@@ -216,9 +216,9 @@ initialMetadata =
     , primaryExtraKey = ""
     , hasPremiumExtras = ""
     , hasPremiumPrimaryExtra = ""
-    , lastViewedAt = 0
-    , viewCount = 0
-    , viewOffset = 0
+    , lastViewedAt = Nothing
+    , viewCount = Nothing
+    , viewOffset = Nothing
     }
 
 
@@ -251,8 +251,8 @@ metadataDecoder : Decoder Metadata
 metadataDecoder =
     let
         decoder =
-            Decode.map8
-                (\summary guid typ thumb title duration grandparentTitle viewOffset ->
+            Decode.map7
+                (\summary guid typ thumb title duration grandparentTitle ->
                     { initialMetadata
                         | summary = summary
                         , guid = guid
@@ -261,7 +261,6 @@ metadataDecoder =
                         , title = title
                         , duration = duration
                         , grandparentTitle = grandparentTitle
-                        , viewOffset = viewOffset
                     }
                 )
                 (Decode.field "summary" Decode.string)
@@ -271,7 +270,6 @@ metadataDecoder =
                 (maybeString <| Decode.field "title" Decode.string)
                 (maybeZero <| Decode.field "duration" Decode.int)
                 (maybeString <| Decode.field "grandparentTitle" Decode.string)
-                (maybeZero <| Decode.field "viewOffset" Decode.int)
 
         decoder2 =
             Decode.map8
@@ -322,8 +320,18 @@ metadataDecoder =
                 (maybeString <| Decode.field "ratingKey" Decode.string)
                 (maybeString <| Decode.field "parentRatingKey" Decode.string)
                 (maybeString <| Decode.field "grandparentRatingKey" Decode.string)
+
+        decoder5 =
+            Decode.map4
+                (\data viewOffset lastViewedAt viewCount ->
+                    { data | viewOffset = viewOffset, lastViewedAt = lastViewedAt, viewCount = viewCount }
+                )
+                decoder4
+                (Decode.maybe <| Decode.field "viewOffset" Decode.int)
+                (Decode.maybe <| Decode.field "lastViewedAt" Decode.int)
+                (Decode.maybe <| Decode.field "viewCount" Decode.int)
     in
-    decoder4
+    decoder5
 
 
 type alias Director =
