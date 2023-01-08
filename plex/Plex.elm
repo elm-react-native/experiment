@@ -123,7 +123,7 @@ type Msg
     | SignInSubmitResponse (Result Http.Error Account)
     | ReloadSections
     | GotSections (Result Http.Error (List Section))
-    | GotTVShow String String (Result Http.Error TVShow)
+    | GotTVShow String (Result Http.Error TVShow)
     | GotEpisodes String String (Result Http.Error (List Metadata))
     | DismissKeyboard
     | ShowSection String
@@ -157,7 +157,14 @@ getTVShow id seasonId client =
                 Api.getMetadataChildren id client
                     |> Task.map (\seasons -> { info = show, seasons = List.map (\s -> { info = s, episodes = Nothing }) seasons, selectedSeason = seasonId })
             )
-        |> Task.attempt (GotTVShow id seasonId)
+        |> Task.attempt (GotTVShow id)
+
+
+getSeasons : Metadata -> String -> Client -> Cmd Msg
+getSeasons tvShowInfo seasonId client =
+    Api.getMetadataChildren tvShowInfo.ratingKey client
+        |> Task.map (\seasons -> { info = tvShowInfo, seasons = List.map (\s -> { info = s, episodes = Nothing }) seasons, selectedSeason = seasonId })
+        |> Task.attempt (GotTVShow tvShowInfo.ratingKey)
 
 
 getEpisodes : String -> String -> Client -> Cmd Msg
@@ -191,6 +198,41 @@ updateEpisodes seasonId resp seasons =
                 season
         )
         seasons
+
+
+updateTVShow : (TVShow -> TVShow) -> String -> Dict String (Result Http.Error TVShow) -> Dict String (Result Http.Error TVShow)
+updateTVShow fn showId tvShows =
+    case Dict.get showId tvShows of
+        Just (Ok show) ->
+            Dict.insert showId (Ok <| fn show) tvShows
+
+        _ ->
+            tvShows
+
+
+{-| fallback to first season when not find, return `Nothing` when seasons is empty
+-}
+findSeason : String -> TVShow -> Maybe TVSeason
+findSeason seasonId { seasons } =
+    let
+        find xs =
+            case xs of
+                x :: xs2 ->
+                    if x.info.ratingKey == seasonId then
+                        Just x
+
+                    else
+                        find xs2
+
+                _ ->
+                    Nothing
+    in
+    case find seasons of
+        Nothing ->
+            List.head seasons
+
+        sz ->
+            sz
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -248,7 +290,7 @@ update msg model =
                     ( Home
                         { sections = Nothing
                         , account =
-                            if account.thumb == "" then
+                            if String.isEmpty account.thumb then
                                 account
 
                             else
@@ -301,17 +343,27 @@ update msg model =
             , Cmd.none
             )
 
-        GotTVShow showId seasonId resp ->
+        GotTVShow showId resp ->
             case model of
                 Home m ->
-                    ( Home { m | tvShows = Dict.insert showId resp m.tvShows }
-                    , case resp of
-                        Ok _ ->
-                            getEpisodes showId seasonId m.client
+                    case resp of
+                        Ok respShow ->
+                            ( Home { m | tvShows = Dict.insert showId resp m.tvShows }
+                            , case findSeason respShow.selectedSeason respShow of
+                                Just season ->
+                                    case season.episodes of
+                                        Just (Ok _) ->
+                                            Cmd.none
+
+                                        _ ->
+                                            getEpisodes showId respShow.selectedSeason m.client
+
+                                _ ->
+                                    Cmd.none
+                            )
 
                         _ ->
-                            Cmd.none
-                    )
+                            ( model, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
@@ -350,14 +402,51 @@ update msg model =
         GotoEntity isContinueWatching metadata ->
             case model of
                 Home m ->
+                    let
+                        getEpisodesIfNotFetched : String -> TVShow -> Cmd Msg
+                        getEpisodesIfNotFetched seasonId show =
+                            let
+                                targetSeason =
+                                    findSeason seasonId show
+                            in
+                            case targetSeason of
+                                Just { episodes } ->
+                                    case episodes of
+                                        Just (Ok _) ->
+                                            Cmd.none
+
+                                        _ ->
+                                            getEpisodes metadata.grandparentKey metadata.parentKey m.client
+
+                                _ ->
+                                    Cmd.none
+                    in
                     ( model
                     , Cmd.batch
                         [ Nav.push m.navKey "entity" { isContinueWatching = isContinueWatching, metadata = metadata }
                         , if metadata.typ == "episode" then
-                            getTVShow metadata.grandparentRatingKey metadata.parentRatingKey m.client
+                            case Dict.get metadata.grandparentRatingKey m.tvShows of
+                                Just (Ok show) ->
+                                    getEpisodesIfNotFetched metadata.parentRatingKey show
+
+                                _ ->
+                                    getTVShow metadata.grandparentRatingKey metadata.parentRatingKey m.client
 
                           else if metadata.typ == "season" then
-                            getTVShow metadata.parentRatingKey metadata.ratingKey m.client
+                            case Dict.get metadata.parentRatingKey m.tvShows of
+                                Just (Ok show) ->
+                                    getEpisodesIfNotFetched metadata.parentRatingKey show
+
+                                _ ->
+                                    getTVShow metadata.parentRatingKey metadata.ratingKey m.client
+
+                          else if metadata.typ == "show" then
+                            case Dict.get metadata.ratingKey m.tvShows of
+                                Just (Ok show) ->
+                                    getEpisodesIfNotFetched "" show
+
+                                _ ->
+                                    getSeasons metadata "" m.client
 
                           else
                             Cmd.none
@@ -370,7 +459,7 @@ update msg model =
         ChangeSeason showId seasonId ->
             case model of
                 Home m ->
-                    ( Home { m | tvShows = m.tvShows }, getTVShow showId seasonId m.client )
+                    ( Home { m | tvShows = updateTVShow (\sh -> { sh | selectedSeason = seasonId }) showId m.tvShows }, getTVShow showId seasonId m.client )
 
                 _ ->
                     ( model, Cmd.none )
@@ -481,8 +570,8 @@ signInScreen { client, submitting } =
                 , let
                     buttonDisabled =
                         submitting
-                            || (client.serverAddress == "")
-                            || (client.token == "")
+                            || String.isEmpty client.serverAddress
+                            || String.isEmpty client.token
                   in
                   touchableOpacity
                     [ if buttonDisabled then
@@ -797,7 +886,7 @@ avatar account size =
         styles =
             avatarStyles size
     in
-    if account.thumb == "" then
+    if String.isEmpty account.thumb then
         view
             [ style styles.container ]
             [ text
@@ -910,71 +999,68 @@ entityScreen model { isContinueWatching, metadata } =
         client =
             model.client
 
-        --season =
-        --    List.head <| List.filter (\s -> s.ratingKey == model.selectedSeason) model.seasons
-        { title, label, showProgress, showPlayButton, showEpisodes, episodes, seasonTitle } =
+        { title, label, showProgress, showPlayButton, showId } =
             case metadata.typ of
                 "episode" ->
                     { title = metadata.grandparentTitle
+                    , showId = metadata.grandparentRatingKey
                     , label = "S" ++ String.fromInt metadata.parentIndex ++ ":E" ++ String.fromInt metadata.index ++ " " ++ metadata.title
-                    , seasonTitle = "Season " ++ String.fromInt metadata.parentIndex
                     , showProgress = isContinueWatching
                     , showPlayButton = True
-                    , showEpisodes = True
-                    , episodes =
-                        case Dict.get metadata.grandparentRatingKey model.tvShows of
-                            Just (Ok show) ->
-                                case List.filter (\s -> s.info.ratingKey == metadata.parentRatingKey) show.seasons of
-                                    season :: [] ->
-                                        season.episodes
-
-                                    _ ->
-                                        Nothing
-
-                            _ ->
-                                Nothing
                     }
 
                 "season" ->
                     { title = metadata.parentTitle
+                    , showId = metadata.parentRatingKey
                     , label = "S" ++ String.fromInt metadata.index
-                    , seasonTitle = "Season " ++ String.fromInt metadata.parentIndex
                     , showProgress = False
                     , showPlayButton = False
-                    , showEpisodes = True
-                    , episodes =
-                        case Dict.get metadata.parentRatingKey model.tvShows of
-                            Just (Ok show) ->
-                                case List.filter (\s -> s.info.ratingKey == metadata.ratingKey) show.seasons of
-                                    season :: [] ->
-                                        season.episodes
+                    }
 
-                                    _ ->
-                                        Nothing
-
-                            _ ->
-                                Nothing
+                "show" ->
+                    { title = metadata.title
+                    , showId = metadata.ratingKey
+                    , label = ""
+                    , showProgress = False
+                    , showPlayButton = False
                     }
 
                 "movie" ->
                     { title = metadata.title
-                    , seasonTitle = ""
+                    , showId = ""
                     , label = ""
                     , showProgress = isContinueWatching
                     , showPlayButton = True
-                    , showEpisodes = False
-                    , episodes = Nothing
                     }
 
                 _ ->
                     { title = metadata.title
-                    , seasonTitle = ""
+                    , showId = ""
                     , label = ""
                     , showProgress = False
                     , showPlayButton = False
-                    , showEpisodes = True
-                    , episodes = Nothing
                     }
+
+        selectedSeason : Maybe TVSeason
+        selectedSeason =
+            case Dict.get showId model.tvShows of
+                Just (Ok show) ->
+                    if String.isEmpty show.selectedSeason then
+                        List.head show.seasons
+
+                    else
+                        List.head <| List.filter (\s -> s.info.ratingKey == show.selectedSeason) show.seasons
+
+                _ ->
+                    Nothing
+
+        { episodes, seasonTitle, showEpisodes } =
+            case selectedSeason of
+                Just season ->
+                    { showEpisodes = True, episodes = season.episodes, seasonTitle = "Season " ++ String.fromInt season.info.index }
+
+                _ ->
+                    { showEpisodes = False, episodes = Nothing, seasonTitle = "" }
     in
     view
         [ style
@@ -1014,7 +1100,7 @@ entityScreen model { isContinueWatching, metadata } =
                         }
                     ]
                     [ str <| String.slice 0 4 metadata.originallyAvailableAt ]
-                , if metadata.contentRating == "" then
+                , if String.isEmpty metadata.contentRating then
                     null
 
                   else
@@ -1071,7 +1157,7 @@ entityScreen model { isContinueWatching, metadata } =
 
               else
                 null
-            , if label == "" then
+            , if String.isEmpty label then
                 null
 
               else
@@ -1098,7 +1184,7 @@ entityScreen model { isContinueWatching, metadata } =
                         , alignItems = "center"
                         , justifyContent = "space-between"
                         , marginTop =
-                            if label == "" then
+                            if String.isEmpty label then
                                 20
 
                             else
