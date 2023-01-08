@@ -1,7 +1,7 @@
 module HomeScreen exposing (..)
 
 import Api exposing (Client, Metadata, Section)
-import Components exposing (vidoePlayContainer)
+import Components exposing (progressBar, vidoePlayContainer)
 import Html exposing (Html)
 import Json.Decode as Decode
 import Model exposing (..)
@@ -106,10 +106,6 @@ homeStyles =
             , height = 15
             , overflow = "hidden"
             }
-        , progress =
-            { backgroundColor = Theme.themeColor
-            , height = 3
-            }
         }
 
 
@@ -147,9 +143,6 @@ itemView client isContinueWatching metadata =
                     , label = formatDuration metadata.duration
                     , alt = metadata.title
                     }
-
-        progress =
-            toFloat metadata.viewOffset / toFloat metadata.duration
     in
     touchableOpacity
         [ if isContinueWatching then
@@ -189,7 +182,7 @@ itemView client isContinueWatching metadata =
             else
                 []
         , if isContinueWatching then
-            view [ style homeStyles.progress, style { width = percentFloat progress } ] []
+            progressBar [] <| toFloat metadata.viewOffset / toFloat metadata.duration
 
           else
             null
