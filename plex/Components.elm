@@ -2,7 +2,7 @@ module Components exposing (..)
 
 import Html exposing (Html)
 import Json.Decode exposing (Decoder)
-import ReactNative exposing (image, ionicon, require, touchableOpacity, view)
+import ReactNative exposing (image, ionicon, require, str, text, touchableOpacity, view)
 import ReactNative.Events exposing (onPress)
 import ReactNative.Properties exposing (color, size, source, style)
 import Theme
@@ -81,3 +81,26 @@ favicon size =
 bottomPadding : Html msg
 bottomPadding =
     view [ style { height = 70, width = "100%" } ] []
+
+
+chip : String -> Html msg
+chip label =
+    view
+        [ style
+            { backgroundColor = "gray"
+            , borderRadius = 2
+            , padding = 2
+            , marginLeft = 2
+            , alignItems = "center"
+            , justifyContent = "center"
+            }
+        ]
+        [ text
+            [ style
+                { color = "white"
+                , fontSize = 8
+                , fontWeight = "bold"
+                }
+            ]
+            [ str label ]
+        ]

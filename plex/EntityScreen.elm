@@ -1,7 +1,7 @@
 module EntityScreen exposing (..)
 
 import Api exposing (Client, Metadata)
-import Components exposing (bottomPadding, progressBar, vidoePlayContainer)
+import Components exposing (bottomPadding, chip, progressBar, vidoePlayContainer)
 import Dict
 import Html exposing (Html)
 import Json.Decode as Decode
@@ -13,6 +13,7 @@ import ReactNative
         , imageBackground
         , ionicon
         , null
+        , require
         , scrollView
         , str
         , text
@@ -25,13 +26,14 @@ import ReactNative.Properties
         ( color
         , contentContainerStyle
         , imageStyle
+        , resizeMode
         , size
         , source
         , style
         , title
         )
 import Theme
-import Utils exposing (formatDuration)
+import Utils exposing (formatDuration, percentFloat)
 
 
 heroImage : String -> Client -> Html msg
@@ -77,6 +79,7 @@ heroInfo metadata =
             [ style
                 { color = "white"
                 , fontSize = 12
+                , marginRight = 4
                 }
             ]
             [ str <| String.slice 0 4 metadata.originallyAvailableAt ]
@@ -84,31 +87,36 @@ heroInfo metadata =
             null
 
           else
-            view
-                [ style
-                    { backgroundColor = "gray"
-                    , borderRadius = 2
-                    , padding = 2
-                    , marginLeft = 2
-                    , alignItems = "center"
-                    , justifyContent = "center"
-                    }
-                ]
-                [ text
-                    [ style
-                        { color = "white"
-                        , fontSize = 8
-                        , fontWeight = "bold"
-                        }
-                    ]
-                    [ str metadata.contentRating
-                    ]
-                ]
+            chip metadata.contentRating
+        , ratingView metadata.audienceRating metadata.audienceRatingImage
         , if metadata.typ == "show" || metadata.typ == "season" || metadata.duration == 0 then
             null
 
           else
-            text [ style { color = "white", marginLeft = 2, fontSize = 12 } ] [ str <| formatDuration metadata.duration ]
+            text [ style { color = "white", marginLeft = 4, fontSize = 12 } ] [ str <| formatDuration metadata.duration ]
+        ]
+
+
+ratingView score icon =
+    let
+        ( src, size ) =
+            case icon of
+                "rottentomatoes://image.rating.rotten" ->
+                    ( require "./assets/rottentomatoes.image.rating.rotten.png", { width = 15, height = 15 } )
+
+                "rottentomatoes://image.rating.upright" ->
+                    ( require "./assets/rottentomatoes.image.rating.upright.png", { width = 15, height = 15 } )
+
+                _ ->
+                    ( require "./assets/themoviedb.image.rating.png", { width = 30, height = 15 } )
+    in
+    view [ style { flexDirection = "row", marginLeft = 4 } ]
+        [ image
+            [ source src
+            , style size
+            ]
+            []
+        , text [ style { color = "white", fontSize = 12 } ] [ str <| percentFloat <| score / 10 ]
         ]
 
 

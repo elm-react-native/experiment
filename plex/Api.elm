@@ -108,8 +108,8 @@ type alias Metadata =
     , title : String --   The title of the item.
     , contentRating : String --   The content rating associated with the item.
     , summary : String -- A summary of the item.
-    , rating : String --  The rating for the item.
-    , audienceRating : String --  The audience rating for the item.
+    , rating : Float --  The rating for the item.
+    , audienceRating : Float --  The audience rating for the item.
     , skipCount : String --   The skip count.
     , year : Int --    The year the item was released.
     , tagline : String -- The tagline associated with the item.
@@ -170,8 +170,8 @@ initialMetadata =
     , title = ""
     , contentRating = ""
     , summary = ""
-    , rating = ""
-    , audienceRating = ""
+    , rating = 0
+    , audienceRating = 0
     , skipCount = ""
     , year = 0
     , tagline = ""
@@ -232,9 +232,14 @@ maybeString =
     maybeWithDefault ""
 
 
-maybeZero : Decoder number -> Decoder number
+maybeZero : Decoder Int -> Decoder Int
 maybeZero =
     maybeWithDefault 0
+
+
+maybeFloatZero : Decoder Float -> Decoder Float
+maybeFloatZero =
+    maybeWithDefault 0.0
 
 
 maybeFalse : Decoder Bool -> Decoder Bool
@@ -322,14 +327,26 @@ metadataDecoder =
                 (maybeString <| Decode.field "grandparentRatingKey" Decode.string)
 
         decoder5 =
-            Decode.map4
-                (\data viewOffset lastViewedAt viewCount ->
-                    { data | viewOffset = viewOffset, lastViewedAt = lastViewedAt, viewCount = viewCount }
+            Decode.map8
+                (\data viewOffset lastViewedAt viewCount rating ratingImage audienceRating audienceRatingImage ->
+                    { data
+                        | viewOffset = viewOffset
+                        , lastViewedAt = lastViewedAt
+                        , viewCount = viewCount
+                        , rating = rating
+                        , ratingImage = ratingImage
+                        , audienceRating = audienceRating
+                        , audienceRatingImage = audienceRatingImage
+                    }
                 )
                 decoder4
                 (Decode.maybe <| Decode.field "viewOffset" Decode.int)
                 (Decode.maybe <| Decode.field "lastViewedAt" Decode.int)
                 (Decode.maybe <| Decode.field "viewCount" Decode.int)
+                (maybeFloatZero <| Decode.field "rating" Decode.float)
+                (maybeString <| Decode.field "ratingImage" Decode.string)
+                (maybeFloatZero <| Decode.field "audienceRating" Decode.float)
+                (maybeString <| Decode.field "audienceRatingImage" Decode.string)
     in
     decoder5
 
