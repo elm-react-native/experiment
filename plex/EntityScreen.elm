@@ -44,6 +44,7 @@ heroImage thumb client =
             , shadowRadius = 10
             , shadowOpacity = 0.4
             , shadowOffset = { width = 0, height = 5 }
+            , backgroundColor = "black"
             }
         ]
         [ image
