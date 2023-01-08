@@ -224,7 +224,11 @@ seasonView selectedSeasonIndex show =
                         show.seasons
                     )
                 )
-        , style { flexDirection = "row", alignItems = "center" }
+        , style
+            { flexDirection = "row"
+            , alignItems = "center"
+            , alignSelf = "flex-start"
+            }
         ]
         [ text
             [ style
