@@ -53,6 +53,7 @@ type alias Library =
     }
 
 
+initialLibrary : Library
 initialLibrary =
     { allowSync = False
     , art = ""
@@ -159,6 +160,7 @@ type alias Metadata =
     }
 
 
+initialMetadata : Metadata
 initialMetadata =
     { ratingKey = ""
     , key = ""
@@ -220,22 +222,27 @@ initialMetadata =
     }
 
 
+maybeWithDefault : a -> Decoder a -> Decoder a
 maybeWithDefault defaultValue decoder =
     Decode.map (Maybe.withDefault defaultValue) <| Decode.maybe decoder
 
 
+maybeString : Decoder String -> Decoder String
 maybeString =
     maybeWithDefault ""
 
 
+maybeZero : Decoder number -> Decoder number
 maybeZero =
     maybeWithDefault 0
 
 
+maybeFalse : Decoder Bool -> Decoder Bool
 maybeFalse =
     maybeWithDefault False
 
 
+maybeEmpty : Decoder (List a) -> Decoder (List a)
 maybeEmpty =
     maybeWithDefault []
 
@@ -597,6 +604,7 @@ getMetadataChildren key =
     clientGetJsonTask metadataListDecoder <| "/library/metadata/" ++ key ++ "/children"
 
 
+firstAccountWithName : Decoder Account -> Decoder Account
 firstAccountWithName decoder =
     decoder
         |> Decode.list
@@ -642,6 +650,11 @@ getAccount =
     clientGetJson accountDecoder "/accounts"
 
 
-getSettings : Client -> Task Http.Error (List Setting)
-getSettings client =
-    Task.fail Http.NetworkError
+settingsDecoder : Decoder (List Setting)
+settingsDecoder =
+    Decode.fail "todo"
+
+
+getSettings : (Result Http.Error (List Setting) -> msg) -> Client -> Cmd msg
+getSettings =
+    clientGetJson settingsDecoder "/settings"

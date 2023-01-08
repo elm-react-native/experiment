@@ -1,29 +1,24 @@
 module Plex exposing (..)
 
-import Api exposing (Account, Client, Library, Metadata, Section)
+import Api exposing (Account, Client, Metadata, Section)
 import Browser
 import Browser.Navigation as N
 import Dict exposing (Dict)
 import Html exposing (Html)
 import Http
-import Json.Decode as Decode
+import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import ReactNative
     exposing
         ( activityIndicator
         , button
-        , fragment
         , image
         , imageBackground
         , ionicon
         , keyboardAvoidingView
         , null
-        , pressable
         , require
-        , safeAreaView
         , scrollView
-        , sectionList
-        , statusBar
         , str
         , text
         , textInput
@@ -35,13 +30,9 @@ import ReactNative.Alert as Alert
 import ReactNative.Events exposing (onChangeText, onPress)
 import ReactNative.Keyboard as Keyboard
 import ReactNative.Navigation as Nav exposing (screen, stackNavigator)
-import ReactNative.Navigation.CardStyleInterpolators as CardStyleInterpolators
-import ReactNative.Navigation.Listeners as Listeners
-import ReactNative.Platform as Platform
 import ReactNative.Properties
     exposing
-        ( barStyle
-        , behavior
+        ( behavior
         , color
         , component
         , componentModel
@@ -56,8 +47,6 @@ import ReactNative.Properties
         , placeholder
         , placeholderTextColor
         , secureTextEntry
-        , shadowColor
-        , shadowRadius
         , showsHorizontalScrollIndicator
         , size
         , source
@@ -68,8 +57,7 @@ import ReactNative.Properties
 import ReactNative.Settings as Settings
 import ReactNative.StatusBar as StatusBar
 import ReactNative.StyleSheet as StyleSheet
-import ReactNative.Transforms exposing (rotate, scale, scaleY, transform, translateX)
-import Task exposing (Task)
+import Task
 
 
 
@@ -146,14 +134,17 @@ type Msg
     | SignOut
 
 
+initialClient : { serverAddress : String, token : String }
 initialClient =
     { serverAddress = "", token = "" }
 
 
+signInSubmit : Client -> Cmd Msg
 signInSubmit =
     Api.getAccount SignInSubmitResponse
 
 
+getSections : Client -> Cmd Msg
 getSections =
     Api.getSections GotSections
 
@@ -175,6 +166,7 @@ getEpisodes showId seasonId client =
         |> Task.attempt (GotEpisodes showId seasonId)
 
 
+saveClient : Client -> Cmd Msg
 saveClient client =
     Task.perform (always NoOp) <|
         Settings.set
@@ -183,6 +175,7 @@ saveClient client =
             ]
 
 
+pathToAuthedUrl : String -> Client -> String
 pathToAuthedUrl path client =
     client.serverAddress ++ path ++ "?X-Plex-Token=" ++ client.token
 
@@ -282,7 +275,7 @@ update msg model =
                                 Http.BadStatus 401 ->
                                     "Token is invalid or expired."
 
-                                e ->
+                                _ ->
                                     "Network error."
                     in
                     ( SignIn { m | submitting = False }, Task.perform (always NoOp) <| Alert.alert errMessage [] )
@@ -340,10 +333,10 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
-        ShowSection sectionId ->
+        ShowSection _ ->
             ( model, Cmd.none )
 
-        ShowEntity sectionId entityId ->
+        ShowEntity _ _ ->
             ( model, Cmd.none )
 
         GotoAccount ->
@@ -400,10 +393,12 @@ update msg model =
 -- VIEW
 
 
+themeColor : String
 themeColor =
     "#EBAF00"
 
 
+backgroundColor : String
 backgroundColor =
     "#2c2c2c"
 
@@ -448,7 +443,7 @@ signInStyles =
 
 
 signInScreen : SignInModel -> Html Msg
-signInScreen { client, navKey, submitting } =
+signInScreen { client, submitting } =
     touchableWithoutFeedback
         [ onPress <| Decode.succeed DismissKeyboard
         ]
@@ -590,6 +585,7 @@ percentFloat f =
     (String.fromInt <| ceiling <| f * 100) ++ "%"
 
 
+itemLabel : String -> Html msg
 itemLabel label =
     imageBackground
         [ style homeStyles.itemLabelBackground
@@ -601,6 +597,7 @@ itemLabel label =
         ]
 
 
+videoPlay : Decoder msg -> Html msg
 videoPlay handlePress =
     view
         [ style
@@ -624,6 +621,7 @@ videoPlay handlePress =
         ]
 
 
+vidoePlayContainer : Decoder msg -> Html msg
 vidoePlayContainer handlePress =
     view
         [ style
@@ -727,6 +725,7 @@ sectionView client section =
         ]
 
 
+retryGetSections : String -> Html Msg
 retryGetSections s =
     button [ title s, onPress <| Decode.succeed ReloadSections, color themeColor ] []
 
@@ -792,6 +791,7 @@ avatarStyles size =
         }
 
 
+avatar : Account -> b -> Html msg
 avatar account size =
     let
         styles =
@@ -845,6 +845,7 @@ accountScreen model _ =
         ]
 
 
+favicon : a -> Html msg
 favicon size =
     image
         [ source <| require "./assets/plex-favicon.png"
@@ -853,10 +854,12 @@ favicon size =
         []
 
 
+quotRem : Int -> Int -> ( Int, Int )
 quotRem a b =
     ( a // b, remainderBy b a )
 
 
+formatDuration : Int -> String
 formatDuration duration =
     let
         ( h, ms ) =
@@ -881,14 +884,14 @@ formatDuration duration =
         String.fromInt h ++ "h " ++ String.fromInt m ++ "m"
 
 
+progressBar : List (Html.Attribute msg) -> Float -> Html msg
 progressBar props p =
     view
-        ([ style
+        (style
             { backgroundColor = "gray"
             , height = 3
             }
-         ]
-            ++ props
+            :: props
         )
         [ view
             [ style
@@ -1259,6 +1262,7 @@ root model =
                 ]
 
 
+subs : a -> Sub msg
 subs _ =
     Sub.none
 
