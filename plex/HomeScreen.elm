@@ -162,6 +162,7 @@ itemView client isContinueWatching metadata =
                 { uri = Api.pathToAuthedUrl thumb client
                 , width = 480
                 , height = 719
+                , cache = "force-cache"
                 }
             , if isContinueWatching then
                 imageStyle

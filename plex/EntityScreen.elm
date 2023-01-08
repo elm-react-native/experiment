@@ -181,6 +181,7 @@ episodesView eps client =
                                 { uri = Api.pathToAuthedUrl ep.thumb client
                                 , width = 720
                                 , height = 404
+                                , cache = "force-cache"
                                 }
                             , style { width = 122, height = 65, justifyContent = "flex-end" }
                             , imageStyle { borderRadius = 4, resizeMode = "contain" }
@@ -332,6 +333,7 @@ entityScreen model { isContinueWatching, metadata } =
                 { uri = Api.pathToAuthedUrl metadata.thumb client
                 , width = 480
                 , height = 719
+                , cache = "force-cache"
                 }
             , style { height = 210, width = "100%" }
             ]
