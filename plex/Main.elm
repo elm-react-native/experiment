@@ -1,4 +1,4 @@
-module Plex exposing (..)
+module Main exposing (..)
 
 import AccountScreen exposing (accountScreen, avatar)
 import Api exposing (Client, Metadata, initialClient)
