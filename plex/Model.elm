@@ -1,6 +1,6 @@
 module Model exposing (..)
 
-import Api exposing (Account, Client, Metadata, Section)
+import Api exposing (Account, Client, Library, Metadata, Section)
 import Browser.Navigation as N
 import Dict exposing (Dict)
 import Http
@@ -27,12 +27,17 @@ type alias TVSeason =
     }
 
 
+type alias LibrarySection =
+    { info : Library, data : RemoteData (List Metadata) }
+
+
 type alias HomeModel =
     { sections : RemoteData (List Section)
     , tvShows : Dict String (Result Http.Error TVShow)
     , client : Client
     , account : Account
     , navKey : N.Key
+    , libraries : Dict String LibrarySection
     }
 
 
@@ -51,6 +56,8 @@ type Msg
     | SignInSubmitResponse (Result Http.Error Account)
     | ReloadSections
     | GotSections (Result Http.Error (List Section))
+    | GotLibraries (Result Http.Error (List Library))
+    | GotLibrarySection String LibrarySection
     | GotTVShow String (Result Http.Error TVShow)
     | GotEpisodes String String (Result Http.Error (List Metadata))
     | DismissKeyboard
@@ -86,3 +93,17 @@ findSeason seasonId { seasons } =
 
         sz ->
             sz
+
+
+updateTVShow : (TVShow -> TVShow) -> String -> Dict String (Result Http.Error TVShow) -> Dict String (Result Http.Error TVShow)
+updateTVShow fn showId tvShows =
+    case Dict.get showId tvShows of
+        Just (Ok show) ->
+            Dict.insert showId (Ok <| fn show) tvShows
+
+        _ ->
+            tvShows
+
+
+updateSelectedSeason seasonId showId tvShows =
+    updateTVShow (\sh -> { sh | selectedSeason = seasonId }) showId tvShows

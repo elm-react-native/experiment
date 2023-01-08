@@ -76,3 +76,8 @@ favicon size =
         , style { width = size, height = size }
         ]
         []
+
+
+bottomPadding : Html msg
+bottomPadding =
+    view [ style { height = 70, width = "100%" } ] []

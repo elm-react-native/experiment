@@ -1,7 +1,7 @@
 module Main exposing (..)
 
 import AccountScreen exposing (accountScreen, avatar)
-import Api exposing (Client, Metadata, initialClient)
+import Api exposing (Client, Library, Metadata, initialClient)
 import Browser
 import Browser.Navigation as N
 import Components exposing (favicon)
@@ -46,6 +46,23 @@ getSections =
     Api.getSections GotSections
 
 
+getLibraries : Client -> Cmd Msg
+getLibraries =
+    Api.getLibraries GotLibraries
+
+
+getLibrarySection : Client -> Library -> Cmd Msg
+getLibrarySection client lib =
+    Api.getLibrary lib.key
+        (\data ->
+            GotLibrarySection lib.key <|
+                { info = lib
+                , data = Just data
+                }
+        )
+        client
+
+
 getTVShow : String -> String -> Client -> Cmd Msg
 getTVShow id seasonId client =
     Api.getMetadata id client
@@ -59,6 +76,10 @@ getTVShow id seasonId client =
 
 getSeasons : Metadata -> String -> Client -> Cmd Msg
 getSeasons tvShowInfo seasonId client =
+    let
+        _ =
+            Debug.log "getSeasons" tvShowInfo
+    in
     Api.getMetadataChildren tvShowInfo.ratingKey client
         |> Task.map (\seasons -> { info = tvShowInfo, seasons = List.map (\s -> { info = s, episodes = Nothing }) seasons, selectedSeason = seasonId })
         |> Task.attempt (GotTVShow tvShowInfo.ratingKey)
@@ -90,16 +111,6 @@ updateEpisodes seasonId resp seasons =
                 season
         )
         seasons
-
-
-updateTVShow : (TVShow -> TVShow) -> String -> Dict String (Result Http.Error TVShow) -> Dict String (Result Http.Error TVShow)
-updateTVShow fn showId tvShows =
-    case Dict.get showId tvShows of
-        Just (Ok show) ->
-            Dict.insert showId (Ok <| fn show) tvShows
-
-        _ ->
-            tvShows
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -165,8 +176,9 @@ update msg model =
                         , client = client
                         , tvShows = Dict.empty
                         , navKey = navKey
+                        , libraries = Dict.empty
                         }
-                    , Cmd.batch [ saveClient client, getSections client ]
+                    , Cmd.batch [ saveClient client, getSections client, getLibraries client ]
                     )
 
                 _ ->
@@ -210,6 +222,33 @@ update msg model =
             , Cmd.none
             )
 
+        GotLibraries (Ok libs) ->
+            case model of
+                Home m ->
+                    ( Home
+                        { m
+                            | libraries =
+                                libs
+                                    |> List.map (\lib -> ( lib.key, { info = lib, data = Nothing } ))
+                                    |> Dict.fromList
+                        }
+                    , Cmd.batch <| List.map (getLibrarySection m.client) libs
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        GotLibraries (Err _) ->
+            ( model, Task.perform (always NoOp) <| Alert.alert "Fetch libraries failed." [] )
+
+        GotLibrarySection libraryId resp ->
+            case model of
+                Home m ->
+                    ( Home { m | libraries = Dict.insert libraryId resp m.libraries }, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
         GotTVShow showId resp ->
             case model of
                 Home m ->
@@ -223,7 +262,7 @@ update msg model =
                                             Cmd.none
 
                                         _ ->
-                                            getEpisodes showId respShow.selectedSeason m.client
+                                            getEpisodes showId season.info.ratingKey m.client
 
                                 _ ->
                                     Cmd.none
@@ -277,46 +316,55 @@ update msg model =
                                     findSeason seasonId show
                             in
                             case targetSeason of
-                                Just { episodes } ->
+                                Just { info, episodes } ->
                                     case episodes of
                                         Just (Ok _) ->
                                             Cmd.none
 
                                         _ ->
-                                            getEpisodes metadata.grandparentKey metadata.parentKey m.client
+                                            getEpisodes show.info.ratingKey info.ratingKey m.client
 
                                 _ ->
                                     Cmd.none
                     in
-                    ( model
+                    ( case metadata.typ of
+                        "episode" ->
+                            Home { m | tvShows = updateSelectedSeason metadata.parentRatingKey metadata.grandparentRatingKey m.tvShows }
+
+                        "season" ->
+                            Home { m | tvShows = updateSelectedSeason metadata.ratingKey metadata.parentRatingKey m.tvShows }
+
+                        _ ->
+                            model
                     , Cmd.batch
                         [ Nav.push m.navKey "entity" { isContinueWatching = isContinueWatching, metadata = metadata }
-                        , if metadata.typ == "episode" then
-                            case Dict.get metadata.grandparentRatingKey m.tvShows of
-                                Just (Ok show) ->
-                                    getEpisodesIfNotFetched metadata.parentRatingKey show
+                        , case metadata.typ of
+                            "episode" ->
+                                case Dict.get metadata.grandparentRatingKey m.tvShows of
+                                    Just (Ok show) ->
+                                        getEpisodesIfNotFetched metadata.parentRatingKey show
 
-                                _ ->
-                                    getTVShow metadata.grandparentRatingKey metadata.parentRatingKey m.client
+                                    _ ->
+                                        getTVShow metadata.grandparentRatingKey metadata.parentRatingKey m.client
 
-                          else if metadata.typ == "season" then
-                            case Dict.get metadata.parentRatingKey m.tvShows of
-                                Just (Ok show) ->
-                                    getEpisodesIfNotFetched metadata.parentRatingKey show
+                            "season" ->
+                                case Dict.get metadata.parentRatingKey m.tvShows of
+                                    Just (Ok show) ->
+                                        getEpisodesIfNotFetched metadata.parentRatingKey show
 
-                                _ ->
-                                    getTVShow metadata.parentRatingKey metadata.ratingKey m.client
+                                    _ ->
+                                        getTVShow metadata.parentRatingKey metadata.ratingKey m.client
 
-                          else if metadata.typ == "show" then
-                            case Dict.get metadata.ratingKey m.tvShows of
-                                Just (Ok show) ->
-                                    getEpisodesIfNotFetched "" show
+                            "show" ->
+                                case Dict.get metadata.ratingKey m.tvShows of
+                                    Just (Ok show) ->
+                                        getEpisodesIfNotFetched "" show
 
-                                _ ->
-                                    getSeasons metadata "" m.client
+                                    _ ->
+                                        getSeasons metadata "" m.client
 
-                          else
-                            Cmd.none
+                            _ ->
+                                Cmd.none
                         ]
                     )
 
@@ -326,9 +374,7 @@ update msg model =
         ChangeSeason showId seasonId ->
             case model of
                 Home m ->
-                    ( Home { m | tvShows = updateTVShow (\sh -> { sh | selectedSeason = seasonId }) showId m.tvShows }
-                    , getEpisodes showId seasonId m.client
-                    )
+                    ( Home { m | tvShows = updateSelectedSeason seasonId showId m.tvShows }, getEpisodes showId seasonId m.client )
 
                 _ ->
                     ( model, Cmd.none )

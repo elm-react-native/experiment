@@ -1,7 +1,8 @@
 module HomeScreen exposing (..)
 
 import Api exposing (Client, Metadata, Section)
-import Components exposing (progressBar, vidoePlayContainer)
+import Components exposing (bottomPadding, progressBar, vidoePlayContainer)
+import Dict
 import Html exposing (Html)
 import Json.Decode as Decode
 import Model exposing (..)
@@ -49,7 +50,7 @@ homeStyles =
             , backgroundColor = Theme.backgroundColor
             }
         , loadErrorText = { fontSize = 15, color = "white" }
-        , container = { height = "100%", backgroundColor = Theme.backgroundColor }
+        , container = { backgroundColor = Theme.backgroundColor }
         , sectionContainer =
             { height = 180, paddingVertical = 5 }
         , sectionTitle =
@@ -189,21 +190,40 @@ itemView client isContinueWatching metadata =
         ]
 
 
-sectionView : Client -> Section -> Html Msg
-sectionView client section =
-    let
-        isContinueWatching =
-            section.hubIdentifier == "home.continue"
-    in
+sectionContainer : String -> List (Html Msg) -> Html Msg
+sectionContainer title children =
     view [ style homeStyles.sectionContainer ]
-        [ text [ style homeStyles.sectionTitle ] [ str section.title ]
+        [ text [ style homeStyles.sectionTitle ] [ str title ]
         , scrollView
             [ contentContainerStyle homeStyles.sectionContent
             , showsHorizontalScrollIndicator False
             , horizontal True
             ]
-            (List.map (itemView client isContinueWatching) section.data)
+            children
         ]
+
+
+sectionView : Client -> Section -> Html Msg
+sectionView client section =
+    sectionContainer section.title <|
+        List.map (itemView client <| section.hubIdentifier == "home.continue") section.data
+
+
+librarySectionView : Client -> LibrarySection -> Html Msg
+librarySectionView client { info, data } =
+    sectionContainer info.title <|
+        case data of
+            Just (Ok metadata) ->
+                List.map (itemView client False) metadata
+
+            Just (Err _) ->
+                [ text [] [ str "Load Error" ] ]
+
+            _ ->
+                [ view
+                    [ style homeStyles.loading ]
+                    [ activityIndicator [] [] ]
+                ]
 
 
 retryGetSections : String -> Html Msg
@@ -218,6 +238,9 @@ homeScreen model _ =
             let
                 sections =
                     List.filter (\s -> (not <| List.isEmpty s.data) && s.hubIdentifier /= "home.ondeck") ss
+
+                librarySections =
+                    Dict.values model.libraries
             in
             if List.isEmpty sections then
                 view []
@@ -232,8 +255,9 @@ homeScreen model _ =
                     , style { backgroundColor = Theme.backgroundColor }
                     ]
                 <|
-                    List.map (sectionView model.client) <|
-                        sections
+                    List.map (sectionView model.client) sections
+                        ++ List.map (librarySectionView model.client) librarySections
+                        ++ [ bottomPadding ]
 
         Just (Err err) ->
             let

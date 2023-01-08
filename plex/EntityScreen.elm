@@ -1,7 +1,7 @@
 module EntityScreen exposing (..)
 
 import Api exposing (Metadata)
-import Components exposing (progressBar, vidoePlayContainer)
+import Components exposing (bottomPadding, progressBar, vidoePlayContainer)
 import Dict
 import Html exposing (Html)
 import Json.Decode as Decode
@@ -81,7 +81,7 @@ heroInfo metadata =
                     [ str metadata.contentRating
                     ]
                 ]
-        , if metadata.duration == 0 then
+        , if metadata.typ == "show" || metadata.typ == "season" || metadata.duration == 0 then
             null
 
           else
@@ -382,8 +382,3 @@ entityScreen model { isContinueWatching, metadata } =
             , bottomPadding
             ]
         ]
-
-
-bottomPadding : Html msg
-bottomPadding =
-    view [ style { height = 70, width = "100%" } ] []

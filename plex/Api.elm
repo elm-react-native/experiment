@@ -526,7 +526,16 @@ clientGetJson decoder path tagger { serverAddress, token } =
         , method = "GET"
         , headers = [ Http.header "Accept" "application/json" ]
         , body = Http.emptyBody
-        , expect = Http.expectJson tagger decoder
+        , expect =
+            Http.expectJson
+                (\resp ->
+                    let
+                        _ =
+                            Debug.log "response" resp
+                    in
+                    tagger resp
+                )
+                decoder
         , timeout = Nothing
         , tracker = Nothing
         }
@@ -562,9 +571,9 @@ libraryDecoder =
         (maybeString <| Decode.field "composite" Decode.string)
 
 
-getLibraries : String -> (Result Http.Error (List Library) -> msg) -> Client -> Cmd msg
+getLibraries : (Result Http.Error (List Library) -> msg) -> Client -> Cmd msg
 getLibraries =
-    clientGetJson librariesDecoder
+    clientGetJson librariesDecoder "/library/sections"
 
 
 sectionsDecoder : Decoder (List Section)
@@ -602,6 +611,11 @@ getMetadata key =
 getMetadataChildren : String -> Client -> Task Http.Error (List Metadata)
 getMetadataChildren key =
     clientGetJsonTask metadataListDecoder <| "/library/metadata/" ++ key ++ "/children"
+
+
+getLibrary : String -> (Result Http.Error (List Metadata) -> msg) -> Client -> Cmd msg
+getLibrary key =
+    clientGetJson metadataListDecoder <| "/library/sections/" ++ key ++ "/all"
 
 
 firstAccountWithName : Decoder Account -> Decoder Account
