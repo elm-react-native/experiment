@@ -251,16 +251,36 @@ heroProgressBar viewOffset duration label =
         ]
 
 
-heroSummary : String -> Html msg
-heroSummary summary =
-    text
-        [ style
-            { fontSize = 12
-            , color = "white"
-            , marginTop = 5
-            }
-        ]
-        [ str summary ]
+heroSummary : RemoteData TVShow -> Metadata -> Html msg
+heroSummary tvShow metadata =
+    let
+        summary =
+            if metadata.typ == "show" then
+                metadata.summary
+
+            else if metadata.typ == "episode" || metadata.typ == "season" then
+                case tvShow of
+                    Just (Ok { info }) ->
+                        info.summary
+
+                    _ ->
+                        ""
+
+            else
+                metadata.summary
+    in
+    if String.isEmpty summary then
+        null
+
+    else
+        text
+            [ style
+                { fontSize = 12
+                , color = "white"
+                , marginTop = 5
+                }
+            ]
+            [ str summary ]
 
 
 episodesView : List Metadata -> Api.Client -> Html Msg
@@ -395,7 +415,7 @@ entityScreen model { isContinueWatching, metadata } =
                 "season" ->
                     { title = metadata.parentTitle
                     , showId = metadata.parentRatingKey
-                    , label = "Season " ++ String.fromInt metadata.index
+                    , label = ""
                     , showProgress = False
                     , showPlayButton = False
                     , showEpisodes = True
@@ -459,7 +479,7 @@ entityScreen model { isContinueWatching, metadata } =
 
               else
                 null
-            , heroSummary metadata.summary
+            , heroSummary tvShow metadata
             , if showEpisodes then
                 case tvShow of
                     Just (Ok show) ->
