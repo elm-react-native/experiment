@@ -457,7 +457,18 @@ root model =
                         { presentation = "formSheet"
                         , headerShown = False
                         }
-                    , getId (\{ params } -> params.guid)
+                    , getId
+                        (\{ params } ->
+                            case params.metadata.typ of
+                                "episode" ->
+                                    params.metadata.grandparentRatingKey
+
+                                "season" ->
+                                    params.metadata.parentRatingKey
+
+                                _ ->
+                                    params.metadata.ratingKey
+                        )
                     , component entityScreen
                     ]
                     []
