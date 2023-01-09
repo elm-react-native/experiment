@@ -49,7 +49,7 @@ type Model
 
 type Msg
     = NoOp
-    | GotoSignIn
+    | GotoSignIn (Maybe Client)
     | SignInInputAddress String
     | SignInInputToken String
     | SignInSubmit Client

@@ -1,7 +1,7 @@
 module EntityScreen exposing (..)
 
 import Api exposing (Client, Metadata)
-import Components exposing (bottomPadding, chip, progressBar, vidoePlayContainer)
+import Components exposing (bottomPadding, chip, progressBar, videoPlayContainer)
 import Dict
 import Html exposing (Html)
 import Json.Decode as Decode
@@ -73,24 +73,87 @@ heroTitle title =
         [ str title ]
 
 
-heroInfo : Metadata -> Html msg
-heroInfo metadata =
+heroInfo : RemoteData TVShow -> Metadata -> Html msg
+heroInfo tvShow metadata =
+    let
+        { originallyAvailableAt, contentRating, audienceRating, audienceRatingImage, duration } =
+            case metadata.typ of
+                "show" ->
+                    { originallyAvailableAt = metadata.originallyAvailableAt
+                    , contentRating = metadata.contentRating
+                    , audienceRating = metadata.audienceRating
+                    , audienceRatingImage = metadata.audienceRatingImage
+                    , duration = 0
+                    }
+
+                "season" ->
+                    case tvShow of
+                        Just (Ok { info }) ->
+                            { originallyAvailableAt = info.originallyAvailableAt
+                            , contentRating = info.contentRating
+                            , audienceRating = info.audienceRating
+                            , audienceRatingImage = info.audienceRatingImage
+                            , duration = 0
+                            }
+
+                        _ ->
+                            { originallyAvailableAt = ""
+                            , contentRating = ""
+                            , audienceRating = 0
+                            , audienceRatingImage = ""
+                            , duration = 0
+                            }
+
+                "episode" ->
+                    case tvShow of
+                        Just (Ok { info }) ->
+                            { originallyAvailableAt = metadata.originallyAvailableAt
+                            , contentRating = info.contentRating
+                            , audienceRating = info.audienceRating
+                            , audienceRatingImage = info.audienceRatingImage
+                            , duration = metadata.duration
+                            }
+
+                        _ ->
+                            { originallyAvailableAt = metadata.originallyAvailableAt
+                            , contentRating = metadata.contentRating
+                            , audienceRating = 0
+                            , audienceRatingImage = ""
+                            , duration = metadata.duration
+                            }
+
+                _ ->
+                    { originallyAvailableAt = metadata.originallyAvailableAt
+                    , contentRating = metadata.contentRating
+                    , audienceRating = metadata.audienceRating
+                    , audienceRatingImage = metadata.audienceRatingImage
+                    , duration = metadata.duration
+                    }
+    in
     view [ style { flexDirection = "row", marginTop = 10 } ]
-        [ text
-            [ style
-                { color = "white"
-                , fontSize = 12
-                , marginRight = 4
-                }
-            ]
-            [ str <| String.slice 0 4 metadata.originallyAvailableAt ]
-        , if String.isEmpty metadata.contentRating then
+        [ if String.isEmpty originallyAvailableAt then
             null
 
           else
-            chip metadata.contentRating
-        , ratingView metadata.audienceRating metadata.audienceRatingImage
-        , if metadata.typ == "show" || metadata.typ == "season" || metadata.duration == 0 then
+            text
+                [ style
+                    { color = "white"
+                    , fontSize = 12
+                    , marginRight = 4
+                    }
+                ]
+                [ str <| String.slice 0 4 originallyAvailableAt ]
+        , if String.isEmpty contentRating then
+            null
+
+          else
+            chip contentRating
+        , if audienceRating == 0 then
+            null
+
+          else
+            ratingView audienceRating audienceRatingImage
+        , if duration == 0 then
             null
 
           else
@@ -218,7 +281,7 @@ episodesView eps client =
                             , style { width = 112, height = 63, justifyContent = "flex-end" }
                             , imageStyle { borderRadius = 4, resizeMode = "contain" }
                             ]
-                            [ vidoePlayContainer (Decode.succeed NoOp)
+                            [ videoPlayContainer 15 (Decode.succeed NoOp)
                             , case ep.lastViewedAt of
                                 Just _ ->
                                     progressBar []
@@ -332,7 +395,7 @@ entityScreen model { isContinueWatching, metadata } =
                 "season" ->
                     { title = metadata.parentTitle
                     , showId = metadata.parentRatingKey
-                    , label = "S" ++ String.fromInt metadata.index
+                    , label = "Season " ++ String.fromInt metadata.index
                     , showProgress = False
                     , showPlayButton = False
                     , showEpisodes = True
@@ -364,6 +427,10 @@ entityScreen model { isContinueWatching, metadata } =
                     , showPlayButton = False
                     , showEpisodes = False
                     }
+
+        tvShow : RemoteData TVShow
+        tvShow =
+            Dict.get showId model.tvShows
     in
     view
         [ style
@@ -376,7 +443,7 @@ entityScreen model { isContinueWatching, metadata } =
         , scrollView
             [ contentContainerStyle { paddingHorizontal = 10 } ]
             [ heroTitle title
-            , heroInfo metadata
+            , heroInfo tvShow metadata
             , if showPlayButton then
                 heroPlayButton isContinueWatching
 
@@ -394,7 +461,7 @@ entityScreen model { isContinueWatching, metadata } =
                 null
             , heroSummary metadata.summary
             , if showEpisodes then
-                case Dict.get showId model.tvShows of
+                case tvShow of
                     Just (Ok show) ->
                         seasonsView show client
 

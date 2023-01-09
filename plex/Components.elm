@@ -9,12 +9,12 @@ import Theme
 import Utils exposing (percentFloat)
 
 
-videoPlay : Decoder msg -> Html msg
-videoPlay handlePress =
+videoPlay : Int -> Decoder msg -> Html msg
+videoPlay iconSize handlePress =
     view
         [ style
             { backgroundColor = "rgba(0,0,0,0.6)"
-            , borderRadius = 15
+            , borderRadius = iconSize
             , borderColor = "white"
             , borderWidth = 1
             }
@@ -22,19 +22,19 @@ videoPlay handlePress =
         [ touchableOpacity
             [ onPress handlePress
             , style
-                { width = 28
-                , height = 28
+                { width = iconSize * 2 - 2
+                , height = iconSize * 2 - 2
                 , justifyContent = "center"
                 , alignItems = "center"
-                , left = 1
+                , left = toFloat iconSize / 15
                 }
             ]
-            [ ionicon "play" [ color "white", size 15 ] ]
+            [ ionicon "play" [ color "white", size iconSize ] ]
         ]
 
 
-vidoePlayContainer : Decoder msg -> Html msg
-vidoePlayContainer handlePress =
+videoPlayContainer : Int -> Decoder msg -> Html msg
+videoPlayContainer iconSize handlePress =
     view
         [ style
             { position = "absolute"
@@ -46,7 +46,7 @@ vidoePlayContainer handlePress =
             , justifyContent = "center"
             }
         ]
-        [ videoPlay handlePress ]
+        [ videoPlay iconSize handlePress ]
 
 
 progressBar : List (Html.Attribute msg) -> Float -> Html msg

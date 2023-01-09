@@ -471,33 +471,42 @@ type alias Client =
     }
 
 
+logResponse resp =
+    --let
+    --    _ =
+    --        Debug.log "response" resp
+    --in
+    resp
+
+
+logUrl url =
+    let
+        _ =
+            Debug.log "url" url
+    in
+    url
+
+
 httpJsonBodyResolver : Decoder a -> Http.Response String -> Result Http.Error a
 httpJsonBodyResolver decoder resp =
-    let
-        res =
-            case resp of
-                Http.GoodStatus_ m s ->
-                    Decode.decodeString decoder s
-                        |> Result.mapError (Decode.errorToString >> Http.BadBody)
+    case logResponse resp of
+        Http.GoodStatus_ m s ->
+            Decode.decodeString decoder s
+                |> Result.mapError (Decode.errorToString >> Http.BadBody)
 
-                Http.BadUrl_ s ->
-                    Err (Http.BadUrl s)
+        Http.BadUrl_ s ->
+            Err (Http.BadUrl s)
 
-                Http.Timeout_ ->
-                    Err Http.Timeout
+        Http.Timeout_ ->
+            Err Http.Timeout
 
-                Http.NetworkError_ ->
-                    Err Http.NetworkError
+        Http.NetworkError_ ->
+            Err Http.NetworkError
 
-                Http.BadStatus_ m s ->
-                    Decode.decodeString decoder s
-                        -- just trying; if our decoder understands the response body, great
-                        |> Result.mapError (\_ -> Http.BadStatus m.statusCode)
-
-        _ =
-            Debug.log "response" resp
-    in
-    res
+        Http.BadStatus_ m s ->
+            Decode.decodeString decoder s
+                -- just trying; if our decoder understands the response body, great
+                |> Result.mapError (\_ -> Http.BadStatus m.statusCode)
 
 
 clientGetJsonTask : Decoder a -> String -> Client -> Task Http.Error a
@@ -514,12 +523,9 @@ clientGetJsonTask decoder path { serverAddress, token } =
                    )
                 ++ "X-Plex-Token="
                 ++ token
-
-        _ =
-            Debug.log "url" url
     in
     Http.task
-        { url = url
+        { url = logUrl url
         , method = "GET"
         , headers = [ Http.header "Accept" "application/json" ]
         , body = Http.emptyBody
@@ -542,25 +548,13 @@ clientGetJson decoder path tagger { serverAddress, token } =
                    )
                 ++ "X-Plex-Token="
                 ++ token
-
-        _ =
-            Debug.log "url" url
     in
     Http.request
-        { url = url
+        { url = logUrl url
         , method = "GET"
         , headers = [ Http.header "Accept" "application/json" ]
         , body = Http.emptyBody
-        , expect =
-            Http.expectJson
-                (\resp ->
-                    let
-                        _ =
-                            Debug.log "response" resp
-                    in
-                    tagger resp
-                )
-                decoder
+        , expect = Http.expectJson (logResponse >> tagger) decoder
         , timeout = Nothing
         , tracker = Nothing
         }

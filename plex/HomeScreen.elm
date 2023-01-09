@@ -1,7 +1,7 @@
 module HomeScreen exposing (..)
 
 import Api exposing (Client, Metadata, Section)
-import Components exposing (bottomPadding, progressBar, vidoePlayContainer)
+import Components exposing (bottomPadding, progressBar, videoPlayContainer)
 import Dict
 import Html exposing (Html)
 import Json.Decode as Decode
@@ -177,7 +177,7 @@ itemView client isContinueWatching metadata =
             ]
           <|
             if isContinueWatching then
-                [ vidoePlayContainer (Decode.succeed NoOp)
+                [ videoPlayContainer 30 (Decode.succeed NoOp)
                 , itemLabel label
                 ]
 

@@ -29,10 +29,7 @@ import Theme
 init : N.Key -> ( Model, Cmd Msg )
 init key =
     ( Initial key
-    , Task.map2 (\token serverAddress -> { token = token, serverAddress = serverAddress })
-        (Settings.get "token" Decode.string)
-        (Settings.get "serverAddress" Decode.string)
-        |> Task.attempt (Result.map SignInSubmit >> Result.withDefault GotoSignIn)
+    , loadClient
     )
 
 
@@ -91,6 +88,14 @@ getEpisodes showId seasonId client =
         |> Task.attempt (GotEpisodes showId seasonId)
 
 
+loadClient : Cmd Msg
+loadClient =
+    Task.map2 Client
+        (Settings.get "token" Decode.string)
+        (Settings.get "serverAddress" Decode.string)
+        |> Task.attempt (Result.toMaybe >> GotoSignIn)
+
+
 saveClient : Client -> Cmd Msg
 saveClient client =
     Task.perform (always NoOp) <|
@@ -119,10 +124,15 @@ update msg model =
         NoOp ->
             ( model, Cmd.none )
 
-        GotoSignIn ->
+        GotoSignIn savedClient ->
             case model of
                 Initial key ->
-                    ( SignIn { client = initialClient, navKey = key, submitting = False }, Cmd.none )
+                    case savedClient of
+                        Just client ->
+                            ( SignIn { client = client, navKey = key, submitting = True }, signInSubmit client )
+
+                        _ ->
+                            ( SignIn { client = initialClient, navKey = key, submitting = False }, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
@@ -153,9 +163,6 @@ update msg model =
 
         SignInSubmit client ->
             case model of
-                Initial key ->
-                    ( SignIn { client = client, navKey = key, submitting = True }, signInSubmit client )
-
                 SignIn m ->
                     ( SignIn { m | client = client, submitting = True }, signInSubmit client )
 
@@ -199,7 +206,7 @@ update msg model =
                                 _ ->
                                     "Network error."
                     in
-                    ( SignIn { m | submitting = False }, Task.perform (always NoOp) <| Alert.alert errMessage [] )
+                    ( SignIn { m | submitting = False }, Alert.showAlert (always NoOp) errMessage [] )
 
                 _ ->
                     ( model, Cmd.none )
