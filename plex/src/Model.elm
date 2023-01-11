@@ -38,7 +38,6 @@ type alias HomeModel =
     , account : Account
     , navKey : N.Key
     , libraries : Dict String LibrarySection
-    , playingVideo : Maybe String
     }
 
 

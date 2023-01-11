@@ -13,18 +13,26 @@ import Http
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Model exposing (..)
-import ReactNative exposing (fragment, null, touchableOpacity, touchableWithoutFeedback, view)
+import ReactNative exposing (fragment, ionicon, null, touchableOpacity, touchableWithoutFeedback, view)
 import ReactNative.ActionSheetIOS as ActionSheetIOS
 import ReactNative.Alert as Alert
 import ReactNative.Events exposing (onPress)
 import ReactNative.Keyboard as Keyboard
 import ReactNative.Navigation as Nav exposing (screen, stackNavigator)
-import ReactNative.Properties exposing (component, componentModel, getId, name, options, source, style)
+import ReactNative.Properties exposing (color, component, componentModel, getId, name, options, size, source, style)
 import ReactNative.Settings as Settings
 import SignInScreen exposing (signInScreen)
 import Task
 import Theme
-import Video exposing (video)
+import Video
+    exposing
+        ( controls
+        , fullscreen
+        , fullscreenAutorotate
+        , fullscreenOrientation
+        , onFullscreenPlayerDidDismiss
+        , video
+        )
 
 
 init : N.Key -> ( Model, Cmd Msg )
@@ -185,7 +193,6 @@ update msg model =
                         , tvShows = Dict.empty
                         , navKey = navKey
                         , libraries = Dict.empty
-                        , playingVideo = Nothing
                         }
                     , Cmd.batch [ saveClient client, getSections client, getLibraries client ]
                     )
@@ -413,7 +420,7 @@ update msg model =
         PlayVideo ratingKey ->
             case model of
                 Home m ->
-                    ( Home { m | playingVideo = Just ratingKey }, Cmd.none )
+                    ( model, Nav.push m.navKey "video" { ratingKey = ratingKey } )
 
                 _ ->
                     ( model, Cmd.none )
@@ -421,7 +428,7 @@ update msg model =
         StopPlayVideo ->
             case model of
                 Home m ->
-                    ( Home { m | playingVideo = Nothing }, Cmd.none )
+                    ( model, Nav.push m.navKey "home" {} )
 
                 _ ->
                     ( model, Cmd.none )
@@ -437,6 +444,40 @@ videoUri ratingKey client =
         ++ ratingKey
         ++ "&protocol=hls&X-Plex-Model=bundled&X-Plex-Device=iOS&X-Plex-Token="
         ++ client.token
+
+
+videoScreen : HomeModel -> { ratingKey : String } -> Html Msg
+videoScreen m { ratingKey } =
+    view
+        [ style
+            { flex = 1
+            , justifyContent = "center"
+            , alignItems = "center"
+            , backgroundColor = "black"
+            , position = "absolute"
+            , top = 0
+            , left = 0
+            , bottom = 0
+            , right = 0
+            }
+        ]
+        [ video
+            [ source { uri = videoUri ratingKey m.client }
+            , controls True
+            , fullscreen True
+            , fullscreenOrientation "landscape"
+            , fullscreenAutorotate True
+            , onFullscreenPlayerDidDismiss <| Decode.succeed StopPlayVideo
+            , style
+                { position = "absolute"
+                , top = 0
+                , left = 0
+                , bottom = 0
+                , right = 0
+                }
+            ]
+            []
+        ]
 
 
 root : Model -> Html Msg
@@ -499,45 +540,17 @@ root model =
                         , component entityScreen
                         ]
                         []
+                    , screen
+                        [ name "video"
+                        , options
+                            { presentation = "fullScreenModal"
+                            , headerShown = False
+                            , autoHideHomeIndicator = True
+                            }
+                        , component videoScreen
+                        ]
+                        []
                     ]
-                , case m.playingVideo of
-                    Just ratingKey ->
-                        view
-                            [ style
-                                { backgroundColor = "black"
-                                , position = "absolute"
-                                , top = 0
-                                , left = 0
-                                , bottom = 0
-                                , right = 0
-                                }
-                            ]
-                            [ touchableWithoutFeedback
-                                [ style
-                                    { position = "absolute"
-                                    , top = 0
-                                    , left = 0
-                                    , bottom = 0
-                                    , right = 0
-                                    }
-                                , onPress (Decode.succeed StopPlayVideo)
-                                ]
-                                [ video
-                                    [ style
-                                        { position = "absolute"
-                                        , top = 0
-                                        , left = 0
-                                        , bottom = 0
-                                        , right = 0
-                                        }
-                                    , source { uri = videoUri ratingKey m.client }
-                                    ]
-                                    []
-                                ]
-                            ]
-
-                    Nothing ->
-                        null
                 ]
 
 

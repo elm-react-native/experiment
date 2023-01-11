@@ -1,5 +1,6 @@
 module ReactNative.Events exposing
-    ( onAccessibilityAction
+    ( on
+    , onAccessibilityAction
     , onAccessibilityEscape
     , onAccessibilityTap
     , onBlur
@@ -39,8 +40,12 @@ module ReactNative.Events exposing
     )
 
 import Html exposing (Attribute)
-import Html.Events exposing (on)
+import Html.Events
 import Json.Decode as Decode
+
+
+on =
+    Html.Events.on
 
 
 onPress =
