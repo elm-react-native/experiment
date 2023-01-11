@@ -1,6 +1,6 @@
-./build.sh plex/Main.elm
+elm make ./Plex/src/Main.elm --output build/elm.js
 if [ $? -eq 0 ]; then
-    cp -r ./plex/assets ./template-project/
+    node ./patch/patch.js ./Plex/App.jsx
 else
     exit $?
 fi

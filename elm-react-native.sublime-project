@@ -24,7 +24,7 @@
   ],
   "settings": {
     "build_on_save": false,
-    "elm_entry_file": "plex/Main.elm",
+    "elm_entry_file": "Plex/src/Main.elm",
     "LSP": {
       "LSP-typescript": {
         "enabled": false

@@ -48,6 +48,7 @@ import {
   ToastAndroid,
   LayoutAnimation,
   UIManager,
+  LogBox,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
@@ -58,6 +59,8 @@ import {
 } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+
+LogBox.ignoreLogs(["Compiled in DEV mode."]);
 
 const navigationRef = createNavigationContainerRef();
 

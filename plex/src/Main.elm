@@ -13,17 +13,18 @@ import Http
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Model exposing (..)
-import ReactNative exposing (null, touchableOpacity)
+import ReactNative exposing (fragment, null, touchableOpacity, touchableWithoutFeedback, view)
 import ReactNative.ActionSheetIOS as ActionSheetIOS
 import ReactNative.Alert as Alert
 import ReactNative.Events exposing (onPress)
 import ReactNative.Keyboard as Keyboard
 import ReactNative.Navigation as Nav exposing (screen, stackNavigator)
-import ReactNative.Properties exposing (component, componentModel, getId, name, options)
+import ReactNative.Properties exposing (component, componentModel, getId, name, options, source, style)
 import ReactNative.Settings as Settings
 import SignInScreen exposing (signInScreen)
 import Task
 import Theme
+import Video exposing (video)
 
 
 init : N.Key -> ( Model, Cmd Msg )
@@ -184,6 +185,7 @@ update msg model =
                         , tvShows = Dict.empty
                         , navKey = navKey
                         , libraries = Dict.empty
+                        , playingVideo = Nothing
                         }
                     , Cmd.batch [ saveClient client, getSections client, getLibraries client ]
                     )
@@ -408,9 +410,33 @@ update msg model =
                 |> Task.perform (Maybe.withDefault NoOp)
             )
 
+        PlayVideo ratingKey ->
+            case model of
+                Home m ->
+                    ( Home { m | playingVideo = Just ratingKey }, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        StopPlayVideo ->
+            case model of
+                Home m ->
+                    ( Home { m | playingVideo = Nothing }, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
 
 
 -- VIEW
+
+
+videoUri ratingKey client =
+    client.serverAddress
+        ++ "/video/:/transcode/universal/start.m3u8?path=%2Flibrary%2Fmetadata%2F"
+        ++ ratingKey
+        ++ "&protocol=hls&X-Plex-Model=bundled&X-Plex-Device=iOS&X-Plex-Token="
+        ++ client.token
 
 
 root : Model -> Html Msg
@@ -423,55 +449,95 @@ root model =
             signInScreen m
 
         Home m ->
-            stackNavigator "Main" [ componentModel m ] <|
-                [ screen
-                    [ name "home"
-                    , options
-                        { headerTitle = "Home"
-                        , headerLeft = \_ -> favicon 20
-                        , headerRight =
-                            \_ ->
-                                touchableOpacity
-                                    [ onPress <| Decode.succeed GotoAccount ]
-                                    [ avatar m.account 24 ]
-                        , headerTintColor = "white"
-                        , headerStyle = { backgroundColor = Theme.backgroundColor }
-                        }
-                    , component homeScreen
-                    ]
-                    []
-                , screen
-                    [ name "account"
-                    , options
-                        { headerTitle = ""
-                        , headerBackTitle = m.account.name
-                        , headerTintColor = "white"
-                        , headerStyle = { backgroundColor = Theme.backgroundColor }
-                        }
-                    , component accountScreen
-                    ]
-                    []
-                , screen
-                    [ name "entity"
-                    , options
-                        { presentation = "formSheet"
-                        , headerShown = False
-                        }
-                    , getId
-                        (\{ params } ->
-                            case params.metadata.typ of
-                                "episode" ->
-                                    params.metadata.grandparentRatingKey
+            fragment []
+                [ stackNavigator "Main" [ componentModel m ] <|
+                    [ screen
+                        [ name "home"
+                        , options
+                            { headerTitle = "Home"
+                            , headerLeft = \_ -> favicon 20
+                            , headerRight =
+                                \_ ->
+                                    touchableOpacity
+                                        [ onPress <| Decode.succeed GotoAccount ]
+                                        [ avatar m.account 24 ]
+                            , headerTintColor = "white"
+                            , headerStyle = { backgroundColor = Theme.backgroundColor }
+                            }
+                        , component homeScreen
+                        ]
+                        []
+                    , screen
+                        [ name "account"
+                        , options
+                            { headerTitle = ""
+                            , headerBackTitle = m.account.name
+                            , headerTintColor = "white"
+                            , headerStyle = { backgroundColor = Theme.backgroundColor }
+                            }
+                        , component accountScreen
+                        ]
+                        []
+                    , screen
+                        [ name "entity"
+                        , options
+                            { presentation = "formSheet"
+                            , headerShown = False
+                            }
+                        , getId
+                            (\{ params } ->
+                                case params.metadata.typ of
+                                    "episode" ->
+                                        params.metadata.grandparentRatingKey
 
-                                "season" ->
-                                    params.metadata.parentRatingKey
+                                    "season" ->
+                                        params.metadata.parentRatingKey
 
-                                _ ->
-                                    params.metadata.ratingKey
-                        )
-                    , component entityScreen
+                                    _ ->
+                                        params.metadata.ratingKey
+                            )
+                        , component entityScreen
+                        ]
+                        []
                     ]
-                    []
+                , case m.playingVideo of
+                    Just ratingKey ->
+                        view
+                            [ style
+                                { backgroundColor = "black"
+                                , position = "absolute"
+                                , top = 0
+                                , left = 0
+                                , bottom = 0
+                                , right = 0
+                                }
+                            ]
+                            [ touchableWithoutFeedback
+                                [ style
+                                    { position = "absolute"
+                                    , top = 0
+                                    , left = 0
+                                    , bottom = 0
+                                    , right = 0
+                                    }
+                                , onPress (Decode.succeed StopPlayVideo)
+                                ]
+                                [ video
+                                    [ style
+                                        { position = "absolute"
+                                        , top = 0
+                                        , left = 0
+                                        , bottom = 0
+                                        , right = 0
+                                        }
+                                    , source { uri = videoUri ratingKey m.client }
+                                    ]
+                                    []
+                                ]
+                            ]
+
+                    Nothing ->
+                        null
                 ]
 
 

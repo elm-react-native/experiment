@@ -38,6 +38,7 @@ type alias HomeModel =
     , account : Account
     , navKey : N.Key
     , libraries : Dict String LibrarySection
+    , playingVideo : Maybe String
     }
 
 
@@ -67,6 +68,8 @@ type Msg
     | GotoEntity Bool Metadata
     | ChangeSeason String String
     | ShowPicker (List ( String, Msg ))
+    | PlayVideo String
+    | StopPlayVideo
     | SignOut
 
 

@@ -10,6 +10,7 @@ import ReactNative
     exposing
         ( activityIndicator
         , button
+        , fragment
         , image
         , imageBackground
         , ionicon
@@ -38,6 +39,7 @@ import ReactNative.Properties
 import ReactNative.StyleSheet as StyleSheet
 import Theme
 import Utils exposing (formatDuration, percentFloat)
+import Video exposing (video)
 
 
 homeStyles =
@@ -125,24 +127,34 @@ itemLabel label =
 itemView : Client -> Bool -> Metadata -> Html Msg
 itemView client isContinueWatching metadata =
     let
-        { label, thumb, alt } =
+        { label, thumb, alt, videoRatingKey } =
             case metadata.typ of
                 "episode" ->
                     { thumb = metadata.grandparentThumb
                     , label = "S" ++ String.fromInt metadata.parentIndex ++ ":E" ++ String.fromInt metadata.index
                     , alt = metadata.grandparentTitle
+                    , videoRatingKey = metadata.ratingKey
                     }
 
                 "season" ->
                     { thumb = metadata.thumb
                     , label = "S" ++ String.fromInt metadata.parentIndex
                     , alt = metadata.parentTitle
+                    , videoRatingKey = ""
+                    }
+
+                "movie" ->
+                    { thumb = metadata.thumb
+                    , label = formatDuration metadata.duration
+                    , alt = metadata.title
+                    , videoRatingKey = metadata.ratingKey
                     }
 
                 _ ->
                     { thumb = metadata.thumb
                     , label = formatDuration metadata.duration
                     , alt = metadata.title
+                    , videoRatingKey = ""
                     }
     in
     touchableOpacity
@@ -177,7 +189,7 @@ itemView client isContinueWatching metadata =
             ]
           <|
             if isContinueWatching then
-                [ videoPlayContainer 30 (Decode.succeed NoOp)
+                [ videoPlayContainer 30 (Decode.succeed <| PlayVideo videoRatingKey)
                 , itemLabel label
                 ]
 
@@ -250,15 +262,17 @@ homeScreen model _ =
                     ]
 
             else
-                scrollView
-                    [ persistentScrollbar False
-                    , contentContainerStyle homeStyles.container
-                    , style { backgroundColor = Theme.backgroundColor }
+                fragment []
+                    [ scrollView
+                        [ persistentScrollbar False
+                        , contentContainerStyle homeStyles.container
+                        , style { backgroundColor = Theme.backgroundColor }
+                        ]
+                      <|
+                        List.map (sectionView model.client) sections
+                            ++ List.map (librarySectionView model.client) librarySections
+                            ++ [ bottomPadding ]
                     ]
-                <|
-                    List.map (sectionView model.client) sections
-                        ++ List.map (librarySectionView model.client) librarySections
-                        ++ [ bottomPadding ]
 
         Just (Err err) ->
             let
