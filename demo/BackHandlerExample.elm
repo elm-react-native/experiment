@@ -43,7 +43,7 @@ update msg model =
             , Alert.showAlert AlertMsg
                 "Hold on!"
                 [ Alert.message "Are you sure you want to go back?"
-                , Alert.buttons_titles [ "Cancel", "YES" ]
+                , Alert.buttons [ "Cancel", "YES" ]
                 ]
             )
 

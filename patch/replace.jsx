@@ -236,6 +236,12 @@ var $author$project$ReactNative$Alert$alert = F2(
               onPress: () => { callback(_Scheduler_succeed(btn.onPress)) },
             });
           }
+        } else if (k === "button") {
+          buttons = buttons || [];
+          buttons.push({
+            ...v,
+            onPress: () => { callback(_Scheduler_succeed(v.onPress)) },
+          });
         } else if (k === "message") {
           message = v;
         } else {
@@ -246,6 +252,14 @@ var $author$project$ReactNative$Alert$alert = F2(
           }
         }
       }
+
+      if (!buttons) {
+        buttons = [{
+          style: "default",
+          onPress: () => { callback(_Scheduler_succeed($author$project$ReactNative$Alert$Ok)) },
+        }];
+      }
+
       Alert.alert(title, message, buttons, options);
     });
   });
@@ -285,6 +299,15 @@ var $author$project$ReactNative$Navigation$push = F3(
     return A2($elm$core$Task$perform, $elm$core$Basics$never, _Scheduler_binding(function() {
       if (k.isReady()) {
         k.dispatch(StackActions.push(s, p));
+      }
+    }));
+  });
+
+var $author$project$ReactNative$Navigation$pop = F2(
+  function (n, key) {
+    return A2($elm$core$Task$perform, $elm$core$Basics$never, _Scheduler_binding(function() {
+      if (key.isReady()) {
+        key.dispatch(StackActions.pop(n));
       }
     }));
   });

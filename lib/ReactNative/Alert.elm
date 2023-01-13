@@ -5,14 +5,13 @@ module ReactNative.Alert exposing
     , alert
     , button
     , buttons
-    , buttons_titles
-    , cancel
+    , cancelButton
     , cancelable
     , defaultValue
-    , destructive
+    , destructiveButton
     , keyboardType
     , message
-    , ok
+    , okButton
     , prompt
     , promptType
     , showAlert
@@ -34,6 +33,7 @@ type Msg
     | Negative String
     | Destructive String
     | Dismiss
+    | Ok
     | Prompt String String
 
 
@@ -48,6 +48,10 @@ prompt title props =
 
 
 showAlert tagger title props =
+    let
+        _ =
+            Ok
+    in
     alert title props
         |> Task.perform tagger
 
@@ -110,8 +114,8 @@ createButton style text onPress =
     { style = style, text = text, onPress = onPress }
 
 
-buttons_titles : List String -> Property
-buttons_titles titles =
+buttons : List String -> Property
+buttons titles =
     case titles of
         [] ->
             property "buttons" <| encode []
@@ -135,16 +139,6 @@ buttons_titles titles =
                     ]
 
 
-buttons : List Button -> Property
-buttons btns =
-    property "buttons" <| encode btns
-
-
-button : Button -> Property
-button btn =
-    property "button" <| encode btn
-
-
 ok text =
     createButton "default" text (Positive text)
 
@@ -155,3 +149,20 @@ cancel text =
 
 destructive text =
     createButton "destructive" text (Destructive text)
+
+
+button : Button -> Property
+button btn =
+    property "button" <| encode btn
+
+
+okButton =
+    button << ok
+
+
+cancelButton =
+    button << cancel
+
+
+destructiveButton =
+    button << destructive

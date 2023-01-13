@@ -54,7 +54,7 @@ update msg model =
             ( model
             , showAlert "Alert Title"
                 [ Alert.message "My Alert Msg"
-                , Alert.buttons_titles [ "Cancel", "OK" ]
+                , Alert.buttons [ "Cancel", "OK" ]
                 ]
             )
 
@@ -62,7 +62,7 @@ update msg model =
             ( model
             , showAlert "Alert Title"
                 [ Alert.message "My Alert Msg"
-                , Alert.buttons_titles [ "Ask me later", "Cancel", "OK" ]
+                , Alert.buttons [ "Ask me later", "Cancel", "OK" ]
                 ]
             )
 
@@ -70,10 +70,8 @@ update msg model =
             ( model
             , showAlert "Alert title"
                 [ Alert.message "My Alert Msg"
-                , Alert.buttons
-                    [ Alert.ok "OK"
-                    , Alert.destructive "DELETE"
-                    ]
+                , Alert.okButton "OK"
+                , Alert.destructiveButton "DELETE"
                 , Alert.cancelable True
                 , Alert.userInterfaceStyle "light"
                 ]
