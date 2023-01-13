@@ -24,15 +24,7 @@ import ReactNative.Settings as Settings
 import SignInScreen exposing (signInScreen)
 import Task
 import Theme
-import Video
-    exposing
-        ( controls
-        , fullscreen
-        , fullscreenAutorotate
-        , fullscreenOrientation
-        , onFullscreenPlayerDidDismiss
-        , video
-        )
+import VideoScreen exposing (videoScreen)
 
 
 init : N.Key -> ( Model, Cmd Msg )
@@ -425,10 +417,19 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
+        PlayVideoError error ->
+            ( model
+            , Alert.showAlert (always StopPlayVideo) "Unable to play" [ Alert.message error ]
+            )
+
         StopPlayVideo ->
             case model of
                 Home m ->
-                    ( model, Nav.push m.navKey "home" {} )
+                    let
+                        _ =
+                            Debug.log "goBack" "should go back"
+                    in
+                    ( model, Nav.goBack m.navKey )
 
                 _ ->
                     ( model, Cmd.none )
@@ -436,48 +437,6 @@ update msg model =
 
 
 -- VIEW
-
-
-videoUri ratingKey client =
-    client.serverAddress
-        ++ "/video/:/transcode/universal/start.m3u8?path=%2Flibrary%2Fmetadata%2F"
-        ++ ratingKey
-        ++ "&protocol=hls&X-Plex-Model=bundled&X-Plex-Device=iOS&X-Plex-Token="
-        ++ client.token
-
-
-videoScreen : HomeModel -> { ratingKey : String } -> Html Msg
-videoScreen m { ratingKey } =
-    view
-        [ style
-            { flex = 1
-            , justifyContent = "center"
-            , alignItems = "center"
-            , backgroundColor = "black"
-            , position = "absolute"
-            , top = 0
-            , left = 0
-            , bottom = 0
-            , right = 0
-            }
-        ]
-        [ video
-            [ source { uri = videoUri ratingKey m.client }
-            , controls True
-            , fullscreen True
-            , fullscreenOrientation "landscape"
-            , fullscreenAutorotate True
-            , onFullscreenPlayerDidDismiss <| Decode.succeed StopPlayVideo
-            , style
-                { position = "absolute"
-                , top = 0
-                , left = 0
-                , bottom = 0
-                , right = 0
-                }
-            ]
-            []
-        ]
 
 
 root : Model -> Html Msg

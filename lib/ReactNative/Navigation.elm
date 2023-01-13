@@ -44,8 +44,13 @@ push k s p =
 
 
 goBack : Key -> Cmd msg
-goBack key =
-    back key 1
+goBack =
+    pop 1
+
+
+pop : Int -> Key -> Cmd msg
+pop n key =
+    back key n
 
 
 popToTop : Key -> Cmd msg

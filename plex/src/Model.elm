@@ -68,6 +68,7 @@ type Msg
     | ChangeSeason String String
     | ShowPicker (List ( String, Msg ))
     | PlayVideo String
+    | PlayVideoError String
     | StopPlayVideo
     | SignOut
 

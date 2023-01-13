@@ -36,8 +36,21 @@ paused =
 
 
 onFullscreenPlayerWillDismiss =
-    on "onFullscreenPlayerWillDismiss"
+    on "fullscreenPlayerWillDismiss"
 
 
 onFullscreenPlayerDidDismiss =
-    on "onFullscreenPlayerDidDismiss"
+    on "fullscreenPlayerDidDismiss"
+
+
+onError =
+    on "error"
+
+
+onErrorMessage : (String -> msg) -> Attribute msg
+onErrorMessage tagger =
+    on "error" <| Decode.map tagger <| Decode.at [ "error", "localizedDescription" ] Decode.string
+
+
+onSeek =
+    on "seek"
