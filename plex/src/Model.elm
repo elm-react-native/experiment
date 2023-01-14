@@ -67,7 +67,7 @@ type Msg
     | GotoEntity Bool Metadata
     | ChangeSeason String String
     | ShowPicker (List ( String, Msg ))
-    | PlayVideo String
+    | PlayVideo String (Maybe Int)
     | PlayVideoError String
     | StopPlayVideo
     | SignOut

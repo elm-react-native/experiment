@@ -1,4 +1,4 @@
-module Video exposing (controls, fullscreen, fullscreenAutorotate, fullscreenOrientation, onError, onErrorMessage, onFullscreenPlayerDidDismiss, onFullscreenPlayerWillDismiss, onSeek, paused, video)
+module Video exposing (contentStartTime, controls, disableDisconnectError, fullscreen, fullscreenAutorotate, fullscreenOrientation, minLoadRetryCount, onError, onErrorMessage, onFullscreenPlayerDidDismiss, onFullscreenPlayerWillDismiss, onSeek, paused, pictureInPicture, playWhenInactive, preventsDisplaySleepDuringVideoPlayback, progressUpdateInterval, rate, repeat, seekOnStart, video)
 
 import Html exposing (Attribute, Html, node)
 import Json.Decode as Decode
@@ -29,6 +29,46 @@ fullscreenOrientation =
 
 paused =
     property "paused" << Encode.bool
+
+
+playWhenInactive =
+    property "playWhenInactive" << Encode.bool
+
+
+pictureInPicture =
+    property "pictureInPicture" << Encode.bool
+
+
+preventsDisplaySleepDuringVideoPlayback =
+    property "preventsDisplaySleepDuringVideoPlayback" << Encode.bool
+
+
+progressUpdateInterval =
+    property "progressUpdateInterval" << Encode.float
+
+
+rate =
+    property "rate" << Encode.float
+
+
+repeat =
+    property "repeat" << Encode.bool
+
+
+minLoadRetryCount =
+    property "minLoadRetryCount" << Encode.int
+
+
+disableDisconnectError =
+    property "disableDisconnectError" << Encode.bool
+
+
+contentStartTime =
+    property "contentStartTime" << Encode.int
+
+
+seekOnStart =
+    property "seekOnStart" << Encode.int
 
 
 

@@ -409,10 +409,10 @@ update msg model =
                 |> Task.perform (Maybe.withDefault NoOp)
             )
 
-        PlayVideo ratingKey ->
+        PlayVideo ratingKey viewOffset ->
             case model of
                 Home m ->
-                    ( model, Nav.push m.navKey "video" { ratingKey = ratingKey } )
+                    ( model, Nav.push m.navKey "video" { ratingKey = ratingKey, viewOffset = viewOffset } )
 
                 _ ->
                     ( model, Cmd.none )

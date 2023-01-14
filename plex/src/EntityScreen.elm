@@ -184,9 +184,9 @@ ratingView score icon =
         ]
 
 
-heroPlayButton : String -> Bool -> Html Msg
-heroPlayButton ratingKey isContinueWatching =
-    touchableOpacity [ onPress <| Decode.succeed <| PlayVideo ratingKey ]
+heroPlayButton : String -> Maybe Int -> Bool -> Html Msg
+heroPlayButton ratingKey viewOffset isContinueWatching =
+    touchableOpacity [ onPress <| Decode.succeed <| PlayVideo ratingKey viewOffset ]
         [ view
             [ style
                 { justifyContent = "center"
@@ -301,7 +301,7 @@ episodesView eps client =
                             , style { width = 112, height = 63, justifyContent = "flex-end" }
                             , imageStyle { borderRadius = 4, resizeMode = "contain" }
                             ]
-                            [ videoPlayContainer 15 (Decode.succeed <| PlayVideo ep.ratingKey)
+                            [ videoPlayContainer 15 (Decode.succeed <| PlayVideo ep.ratingKey ep.viewOffset)
                             , case ep.lastViewedAt of
                                 Just _ ->
                                     progressBar []
@@ -465,7 +465,7 @@ entityScreen model { isContinueWatching, metadata } =
             [ heroTitle title
             , heroInfo tvShow metadata
             , if showPlayButton then
-                heroPlayButton metadata.ratingKey isContinueWatching
+                heroPlayButton metadata.ratingKey metadata.viewOffset isContinueWatching
 
               else
                 null

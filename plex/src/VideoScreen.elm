@@ -3,17 +3,22 @@ module VideoScreen exposing (videoScreen)
 import Html exposing (Html)
 import Json.Decode as Decode
 import Json.Encode as Encode
+import Maybe
 import Model exposing (HomeModel, Msg(..))
 import ReactNative exposing (fragment, ionicon, null, touchableOpacity, touchableWithoutFeedback, view)
 import ReactNative.Properties exposing (color, component, componentModel, getId, name, options, size, source, style)
 import Video
     exposing
-        ( controls
+        ( contentStartTime
+        , controls
         , fullscreen
         , fullscreenAutorotate
         , fullscreenOrientation
         , onErrorMessage
         , onFullscreenPlayerDidDismiss
+        , pictureInPicture
+        , playWhenInactive
+        , seekOnStart
         , video
         )
 
@@ -22,12 +27,12 @@ videoUri ratingKey client =
     client.serverAddress
         ++ "/video/:/transcode/universal/start.m3u8?path=%2Flibrary%2Fmetadata%2F"
         ++ ratingKey
-        ++ "&protocol=hls&X-Plex-Model=bundled&X-Plex-Device=iOS&X-Plex-Token="
+        ++ "&fastSeek=1&protocol=hls&X-Plex-Model=bundled&X-Plex-Device=iOS&X-Plex-Token="
         ++ client.token
 
 
-videoScreen : HomeModel -> { ratingKey : String } -> Html Msg
-videoScreen m { ratingKey } =
+videoScreen : HomeModel -> { ratingKey : String, viewOffset : Maybe Int } -> Html Msg
+videoScreen m { ratingKey, viewOffset } =
     view
         [ style
             { flex = 1
@@ -49,6 +54,9 @@ videoScreen m { ratingKey } =
             , fullscreenAutorotate True
             , onErrorMessage PlayVideoError
             , onFullscreenPlayerDidDismiss <| Decode.succeed StopPlayVideo
+            , playWhenInactive True
+            , pictureInPicture True
+            , seekOnStart (Maybe.withDefault 0 viewOffset)
             , style
                 { position = "absolute"
                 , top = 0

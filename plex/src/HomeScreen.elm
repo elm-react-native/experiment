@@ -127,13 +127,14 @@ itemLabel label =
 itemView : Client -> Bool -> Metadata -> Html Msg
 itemView client isContinueWatching metadata =
     let
-        { label, thumb, alt, videoRatingKey } =
+        { label, thumb, alt, videoRatingKey, viewOffset } =
             case metadata.typ of
                 "episode" ->
                     { thumb = metadata.grandparentThumb
                     , label = "S" ++ String.fromInt metadata.parentIndex ++ ":E" ++ String.fromInt metadata.index
                     , alt = metadata.grandparentTitle
                     , videoRatingKey = metadata.ratingKey
+                    , viewOffset = metadata.viewOffset
                     }
 
                 "season" ->
@@ -141,6 +142,7 @@ itemView client isContinueWatching metadata =
                     , label = "S" ++ String.fromInt metadata.parentIndex
                     , alt = metadata.parentTitle
                     , videoRatingKey = ""
+                    , viewOffset = Nothing
                     }
 
                 "movie" ->
@@ -148,6 +150,7 @@ itemView client isContinueWatching metadata =
                     , label = formatDuration metadata.duration
                     , alt = metadata.title
                     , videoRatingKey = metadata.ratingKey
+                    , viewOffset = metadata.viewOffset
                     }
 
                 _ ->
@@ -155,6 +158,7 @@ itemView client isContinueWatching metadata =
                     , label = formatDuration metadata.duration
                     , alt = metadata.title
                     , videoRatingKey = ""
+                    , viewOffset = Nothing
                     }
     in
     touchableOpacity
@@ -189,7 +193,7 @@ itemView client isContinueWatching metadata =
             ]
           <|
             if isContinueWatching then
-                [ videoPlayContainer 30 (Decode.succeed <| PlayVideo videoRatingKey)
+                [ videoPlayContainer 30 (Decode.succeed <| PlayVideo videoRatingKey viewOffset)
                 , itemLabel label
                 ]
 
