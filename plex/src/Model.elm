@@ -4,6 +4,7 @@ import Api exposing (Account, Client, Library, Metadata, Section)
 import Browser.Navigation as N
 import Dict exposing (Dict)
 import Http
+import ReactNative.Dimensions as Dimensions
 
 
 type alias SignInModel =
@@ -68,6 +69,7 @@ type Msg
     | ChangeSeason String String
     | ShowPicker (List ( String, Msg ))
     | PlayVideo String (Maybe Int)
+    | PlayVideoSetupDone { ratingKey : String, viewOffset : Maybe Int, screenMetrics : Dimensions.DisplayMetrics }
     | PlayVideoError String
     | StopPlayVideo
     | SignOut

@@ -16,6 +16,7 @@ import Model exposing (..)
 import ReactNative exposing (fragment, ionicon, null, touchableOpacity, touchableWithoutFeedback, view)
 import ReactNative.ActionSheetIOS as ActionSheetIOS
 import ReactNative.Alert as Alert
+import ReactNative.Dimensions as Dimensions
 import ReactNative.Events exposing (onPress)
 import ReactNative.Keyboard as Keyboard
 import ReactNative.Navigation as Nav exposing (screen, stackNavigator)
@@ -409,10 +410,28 @@ update msg model =
                 |> Task.perform (Maybe.withDefault NoOp)
             )
 
+        PlayVideoSetupDone args ->
+            case model of
+                Home m ->
+                    ( model, Nav.push m.navKey "video" args )
+
+                _ ->
+                    ( model, Cmd.none )
+
         PlayVideo ratingKey viewOffset ->
             case model of
                 Home m ->
-                    ( model, Nav.push m.navKey "video" { ratingKey = ratingKey, viewOffset = viewOffset } )
+                    ( model
+                    , Dimensions.getScreen
+                        |> Task.perform
+                            (\screenMetrics ->
+                                PlayVideoSetupDone
+                                    { ratingKey = ratingKey
+                                    , viewOffset = viewOffset
+                                    , screenMetrics = screenMetrics
+                                    }
+                            )
+                    )
 
                 _ ->
                     ( model, Cmd.none )
