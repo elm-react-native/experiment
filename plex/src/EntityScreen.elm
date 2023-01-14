@@ -1,4 +1,4 @@
-module EntityScreen exposing (..)
+module EntityScreen exposing (entityScreen, episodesView, heroImage, heroInfo, heroLabel, heroPlayButton, heroProgressBar, heroSummary, heroTitle, ratingView, seasonView, seasonsView)
 
 import Api exposing (Client, Metadata)
 import Components exposing (bottomPadding, chip, progressBar, videoPlayContainer)

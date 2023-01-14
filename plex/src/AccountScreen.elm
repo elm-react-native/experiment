@@ -1,4 +1,4 @@
-module AccountScreen exposing (..)
+module AccountScreen exposing (accountScreen, avatar, avatarStyles)
 
 import Api exposing (Account, Client, Metadata, Section)
 import Browser

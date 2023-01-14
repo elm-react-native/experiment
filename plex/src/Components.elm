@@ -1,4 +1,4 @@
-module Components exposing (..)
+module Components exposing (bottomPadding, chip, favicon, progressBar, videoPlay, videoPlayContainer)
 
 import Html exposing (Html)
 import Json.Decode exposing (Decoder)

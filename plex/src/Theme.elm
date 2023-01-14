@@ -1,4 +1,4 @@
-module Theme exposing (..)
+module Theme exposing (backgroundColor, themeColor)
 
 import Utils exposing (quotRem)
 

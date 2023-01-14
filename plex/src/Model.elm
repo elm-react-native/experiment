@@ -1,4 +1,4 @@
-module Model exposing (..)
+module Model exposing (HomeModel, LibrarySection, Model(..), Msg(..), RemoteData, SignInModel, TVSeason, TVShow, findSeason, updateSelectedSeason, updateTVShow)
 
 import Api exposing (Account, Client, Library, Metadata, Section)
 import Browser.Navigation as N

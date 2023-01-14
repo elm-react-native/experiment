@@ -1,4 +1,4 @@
-module Video exposing (..)
+module Video exposing (controls, fullscreen, fullscreenAutorotate, fullscreenOrientation, onError, onErrorMessage, onFullscreenPlayerDidDismiss, onFullscreenPlayerWillDismiss, onSeek, paused, video)
 
 import Html exposing (Attribute, Html, node)
 import Json.Decode as Decode

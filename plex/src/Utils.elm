@@ -1,4 +1,4 @@
-module Utils exposing (..)
+module Utils exposing (formatDuration, percentFloat, quotRem)
 
 
 percentFloat : Float -> String

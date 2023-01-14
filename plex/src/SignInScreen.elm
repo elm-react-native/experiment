@@ -1,4 +1,4 @@
-module SignInScreen exposing (..)
+module SignInScreen exposing (signInScreen, signInStyles)
 
 import AccountScreen exposing (accountScreen, avatar)
 import Api exposing (Client, Metadata)

@@ -1,4 +1,4 @@
-module HomeScreen exposing (..)
+module HomeScreen exposing (homeScreen, homeStyles, itemLabel, itemView, librarySectionView, retryGetSections, sectionContainer, sectionView)
 
 import Api exposing (Client, Metadata, Section)
 import Components exposing (bottomPadding, progressBar, videoPlayContainer)
