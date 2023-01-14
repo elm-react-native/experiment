@@ -1,6 +1,6 @@
 {
   "type": "application",
-  "source-directories": ["lib", "demo", "Plex/src"],
+  "source-directories": ["lib", "demo", "plex/src"],
   "elm-version": "0.19.1",
   "dependencies": {
     "direct": {
