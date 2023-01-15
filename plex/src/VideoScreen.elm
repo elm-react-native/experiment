@@ -10,6 +10,8 @@ import ReactNative exposing (fragment, ionicon, null, touchableOpacity, touchabl
 import ReactNative.Dimensions as Dimensions
 import ReactNative.Platform as Platform
 import ReactNative.Properties exposing (color, component, componentModel, getId, name, options, size, source, style)
+import ReactNative.StyleSheet as StyleSheet
+import Time
 import Video
     exposing
         ( contentStartTime
@@ -18,10 +20,13 @@ import Video
         , fullscreenAutorotate
         , fullscreenOrientation
         , onBuffer
+        , onEnd
         , onErrorMessage
         , onFullscreenPlayerDidDismiss
+        , onFullscreenPlayerWillDismiss
         , onPlaybackStateChanged
         , onProgress
+        , onReadyForDisplay
         , pictureInPicture
         , playWhenInactive
         , progressUpdateInterval
@@ -30,8 +35,8 @@ import Video
         )
 
 
-videoUri : String -> String -> Api.Client -> Dimensions.DisplayMetrics -> String
-videoUri ratingKey sessionId client screenMetrics =
+videoUri : VideoPlayer -> Api.Client -> String
+videoUri { ratingKey, sessionId, screenMetrics } client =
     Api.pathToAuthedUrl "/video/:/transcode/universal/start.m3u8" client
         ++ ("&path=%2Flibrary%2Fmetadata%2F" ++ ratingKey)
         ++ "&fastSeek=1"
@@ -53,51 +58,36 @@ videoUri ratingKey sessionId client screenMetrics =
         ++ ("&X-Pler-Session-Identifier=" ++ sessionId)
 
 
-videoScreen :
-    HomeModel
-    ->
-        { ratingKey : String
-        , viewOffset : Maybe Int
-        }
-    -> Html Msg
-videoScreen m { ratingKey, viewOffset } =
-    view
-        [ style
-            { flex = 1
-            , justifyContent = "center"
-            , alignItems = "center"
-            , backgroundColor = "black"
-            , position = "absolute"
+styles =
+    StyleSheet.create
+        { fullscreen =
+            { position = "absolute"
             , top = 0
             , left = 0
             , bottom = 0
             , right = 0
             }
-        ]
-        [ if isVideoUrlReady m.videoPlayer then
-            video
-                [ source { uri = videoUri ratingKey m.videoPlayer.sessionId m.client m.videoPlayer.screenMetrics }
-                , controls True
-                , fullscreen True
-                , fullscreenOrientation "landscape"
-                , fullscreenAutorotate True
-                , playWhenInactive True
-                , pictureInPicture True
-                , seekOnStart (Maybe.withDefault 0 viewOffset)
-                , onErrorMessage PlayVideoError
-                , onPlaybackStateChanged OnVideoPlaybackStateChanged
-                , onBuffer OnVideoBuffer
-                , onProgress (\p -> OnVideoProgress p.currentTime)
-                , style
-                    { position = "absolute"
-                    , top = 0
-                    , left = 0
-                    , bottom = 0
-                    , right = 0
-                    }
-                ]
-                []
+        }
 
-          else
-            null
-        ]
+
+videoScreen : HomeModel -> () -> Html Msg
+videoScreen m _ =
+    if isVideoUrlReady m.videoPlayer then
+        video
+            [ source { uri = videoUri m.videoPlayer m.client }
+            , controls True
+            , fullscreenOrientation "landscape"
+            , fullscreenAutorotate True
+            , playWhenInactive True
+            , pictureInPicture True
+            , seekOnStart m.videoPlayer.initialPlaybackTime
+            , onErrorMessage PlayVideoError
+            , onEnd <| Decode.succeed OnVideoEnd
+            , onBuffer OnVideoBuffer
+            , onProgress (\p -> OnVideoProgress p.currentTime)
+            , style styles.fullscreen
+            ]
+            []
+
+    else
+        null

@@ -1,4 +1,4 @@
-module Video exposing (PlayerProgress, contentStartTime, controls, disableDisconnectError, fullscreen, fullscreenAutorotate, fullscreenOrientation, minLoadRetryCount, onBuffer, onEnd, onError, onErrorMessage, onFullscreenPlayerDidDismiss, onFullscreenPlayerWillDismiss, onLoad, onPlaybackStateChanged, onProgress, onSeek, paused, pictureInPicture, playWhenInactive, playerProgressDecoder, preventsDisplaySleepDuringVideoPlayback, progressUpdateInterval, rate, repeat, seekOnStart, video)
+module Video exposing (PlayerProgress, contentStartTime, controls, disableDisconnectError, fullscreen, fullscreenAutorotate, fullscreenOrientation, minLoadRetryCount, onBuffer, onEnd, onError, onErrorMessage, onFullscreenPlayerDidDismiss, onFullscreenPlayerWillDismiss, onLoad, onPlaybackStateChanged, onProgress, onReadyForDisplay, onSeek, paused, pictureInPicture, playWhenInactive, playerProgressDecoder, preventsDisplaySleepDuringVideoPlayback, progressUpdateInterval, rate, repeat, seekOnStart, video)
 
 import Html exposing (Attribute, Html, node)
 import Json.Decode as Decode exposing (Decoder)

@@ -39,6 +39,8 @@ type alias VideoPlayer =
     , duration : Int
     , ratingKey : String
     , playbackTime : Int
+    , isBuffering : Bool
+    , initialPlaybackTime : Int
     }
 
 
@@ -55,7 +57,14 @@ type alias HomeModel =
 
 initialVideoPlayer : VideoPlayer
 initialVideoPlayer =
-    { sessionId = "", screenMetrics = Dimensions.initialDisplayMetrics, duration = 0, ratingKey = "", playbackTime = 0 }
+    { sessionId = ""
+    , screenMetrics = Dimensions.initialDisplayMetrics
+    , duration = 0
+    , ratingKey = ""
+    , playbackTime = 0
+    , isBuffering = False
+    , initialPlaybackTime = 0
+    }
 
 
 isVideoUrlReady : VideoPlayer -> Bool
@@ -96,7 +105,6 @@ type Msg
     | GotPlaySessionId String
     | GotScreenMetrics Dimensions.DisplayMetrics
     | StopPlayVideo
-    | OnVideoPlaybackStateChanged Bool
     | OnVideoBuffer Bool
     | OnVideoProgress Int
     | OnVideoEnd

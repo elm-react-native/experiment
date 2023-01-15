@@ -459,9 +459,17 @@ update msg model =
         PlayVideo ratingKey viewOffset duration ->
             case model of
                 Home ({ navKey, videoPlayer } as m) ->
-                    ( Home { m | videoPlayer = { videoPlayer | duration = duration, ratingKey = ratingKey } }
+                    ( Home
+                        { m
+                            | videoPlayer =
+                                { videoPlayer
+                                    | duration = duration
+                                    , ratingKey = ratingKey
+                                    , initialPlaybackTime = Maybe.withDefault 0 viewOffset
+                                }
+                        }
                     , Cmd.batch
-                        [ Nav.push navKey "video" { ratingKey = ratingKey, viewOffset = viewOffset }
+                        [ Nav.push navKey "video" ()
                         , if videoPlayer.screenMetrics == Dimensions.initialDisplayMetrics then
                             Task.perform GotScreenMetrics Dimensions.getScreen
 
@@ -509,19 +517,13 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
-        OnVideoPlaybackStateChanged isPlaying ->
-            let
-                _ =
-                    Debug.log "isPlaying" isPlaying
-            in
-            ( model, Cmd.none )
-
         OnVideoBuffer isBuffering ->
-            let
-                _ =
-                    Debug.log "isBuffering" isBuffering
-            in
-            ( model, Cmd.none )
+            case model of
+                Home ({ videoPlayer } as m) ->
+                    ( Home { m | videoPlayer = { videoPlayer | isBuffering = isBuffering } }, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
 
         OnVideoProgress time ->
             case model of
@@ -534,7 +536,9 @@ update msg model =
         OnVideoEnd ->
             case model of
                 Home ({ client, videoPlayer } as m) ->
-                    ( Home { m | videoPlayer = initialVideoPlayer }, Cmd.batch [ getSections m.client, savePlaybackTime videoPlayer client ] )
+                    ( Home { m | videoPlayer = initialVideoPlayer }
+                    , Cmd.batch [ getSections m.client, savePlaybackTime videoPlayer client ]
+                    )
 
                 _ ->
                     ( model, Cmd.none )
@@ -620,7 +624,9 @@ root model =
                             , autoHideHomeIndicator = True
                             }
                         , component videoScreen
-                        , Nav.listeners [ Listeners.blur <| Decode.succeed <| OnVideoEnd ]
+                        , Nav.listeners
+                            [ Listeners.beforeRemove <| Decode.succeed <| OnVideoEnd
+                            ]
                         ]
                         []
                     ]
