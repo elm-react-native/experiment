@@ -127,7 +127,7 @@ itemLabel label =
 itemView : Client -> Bool -> Metadata -> Html Msg
 itemView client isContinueWatching metadata =
     let
-        { label, thumb, alt, videoRatingKey, viewOffset } =
+        { label, thumb, alt, videoRatingKey, viewOffset, duration } =
             case metadata.typ of
                 "episode" ->
                     { thumb = metadata.grandparentThumb
@@ -135,6 +135,7 @@ itemView client isContinueWatching metadata =
                     , alt = metadata.grandparentTitle
                     , videoRatingKey = metadata.ratingKey
                     , viewOffset = metadata.viewOffset
+                    , duration = metadata.duration
                     }
 
                 "season" ->
@@ -143,6 +144,7 @@ itemView client isContinueWatching metadata =
                     , alt = metadata.parentTitle
                     , videoRatingKey = ""
                     , viewOffset = Nothing
+                    , duration = 0
                     }
 
                 "movie" ->
@@ -151,6 +153,7 @@ itemView client isContinueWatching metadata =
                     , alt = metadata.title
                     , videoRatingKey = metadata.ratingKey
                     , viewOffset = metadata.viewOffset
+                    , duration = metadata.duration
                     }
 
                 _ ->
@@ -159,6 +162,7 @@ itemView client isContinueWatching metadata =
                     , alt = metadata.title
                     , videoRatingKey = ""
                     , viewOffset = Nothing
+                    , duration = 0
                     }
     in
     touchableOpacity
@@ -193,7 +197,7 @@ itemView client isContinueWatching metadata =
             ]
           <|
             if isContinueWatching then
-                [ videoPlayContainer 30 (Decode.succeed <| PlayVideo videoRatingKey viewOffset)
+                [ videoPlayContainer 30 (Decode.succeed <| PlayVideo videoRatingKey viewOffset duration)
                 , itemLabel label
                 ]
 

@@ -1,10 +1,11 @@
-module Model exposing (HomeModel, LibrarySection, Model(..), Msg(..), RemoteData, SignInModel, TVSeason, TVShow, findSeason, updateSelectedSeason, updateTVShow)
+module Model exposing (HomeModel, LibrarySection, Model(..), Msg(..), RemoteData, SignInModel, TVSeason, TVShow, VideoPlayer, findSeason, initialVideoPlayer, isVideoUrlReady, updateSelectedSeason, updateTVShow)
 
 import Api exposing (Account, Client, Library, Metadata, Section)
 import Browser.Navigation as N
 import Dict exposing (Dict)
 import Http
 import ReactNative.Dimensions as Dimensions
+import Time
 
 
 type alias SignInModel =
@@ -32,6 +33,15 @@ type alias LibrarySection =
     { info : Library, data : RemoteData (List Metadata) }
 
 
+type alias VideoPlayer =
+    { sessionId : String
+    , screenMetrics : Dimensions.DisplayMetrics
+    , duration : Int
+    , ratingKey : String
+    , playbackTime : Int
+    }
+
+
 type alias HomeModel =
     { sections : RemoteData (List Section)
     , tvShows : Dict String (Result Http.Error TVShow)
@@ -39,7 +49,19 @@ type alias HomeModel =
     , account : Account
     , navKey : N.Key
     , libraries : Dict String LibrarySection
+    , videoPlayer : VideoPlayer
     }
+
+
+initialVideoPlayer : VideoPlayer
+initialVideoPlayer =
+    { sessionId = "", screenMetrics = Dimensions.initialDisplayMetrics, duration = 0, ratingKey = "", playbackTime = 0 }
+
+
+isVideoUrlReady : VideoPlayer -> Bool
+isVideoUrlReady videoPlayer =
+    (not <| String.isEmpty videoPlayer.sessionId)
+        && (videoPlayer.screenMetrics /= Dimensions.initialDisplayMetrics)
 
 
 type Model
@@ -56,6 +78,7 @@ type Msg
     | SignInSubmit Client
     | SignInSubmitResponse (Result Http.Error Account)
     | ReloadSections
+    | GotClientId String
     | GotSections (Result Http.Error (List Section))
     | GotLibraries (Result Http.Error (List Library))
     | GotLibrarySection String LibrarySection
@@ -68,10 +91,16 @@ type Msg
     | GotoEntity Bool Metadata
     | ChangeSeason String String
     | ShowPicker (List ( String, Msg ))
-    | PlayVideo String (Maybe Int)
-    | PlayVideoSetupDone { ratingKey : String, viewOffset : Maybe Int, screenMetrics : Dimensions.DisplayMetrics }
+    | PlayVideo String (Maybe Int) Int
     | PlayVideoError String
+    | GotPlaySessionId String
+    | GotScreenMetrics Dimensions.DisplayMetrics
     | StopPlayVideo
+    | OnVideoPlaybackStateChanged Bool
+    | OnVideoBuffer Bool
+    | OnVideoProgress Int
+    | OnVideoEnd
+    | SaveVideoPlayback Time.Posix
     | SignOut
 
 

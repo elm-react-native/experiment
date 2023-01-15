@@ -5,7 +5,7 @@ import Html exposing (Html)
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Maybe
-import Model exposing (HomeModel, Msg(..))
+import Model exposing (HomeModel, Msg(..), VideoPlayer, isVideoUrlReady)
 import ReactNative exposing (fragment, ionicon, null, touchableOpacity, touchableWithoutFeedback, view)
 import ReactNative.Dimensions as Dimensions
 import ReactNative.Platform as Platform
@@ -17,22 +17,28 @@ import Video
         , fullscreen
         , fullscreenAutorotate
         , fullscreenOrientation
+        , onBuffer
         , onErrorMessage
         , onFullscreenPlayerDidDismiss
+        , onPlaybackStateChanged
+        , onProgress
         , pictureInPicture
         , playWhenInactive
+        , progressUpdateInterval
         , seekOnStart
         , video
         )
 
 
-videoUri : String -> Api.Client -> Dimensions.DisplayMetrics -> String
-videoUri ratingKey client screenMetrics =
-    client.serverAddress
-        ++ "/video/:/transcode/universal/start.m3u8?path=%2Flibrary%2Fmetadata%2F"
-        ++ ratingKey
-        ++ "&fastSeek=1&mediaBufferSize=102400&protocol=hls&X-Plex-Model=bundled"
-        ++ ("X-Plex-Device-Screen-Resolution=" ++ String.fromFloat screenMetrics.width ++ "x" ++ String.fromFloat screenMetrics.height)
+videoUri : String -> String -> Api.Client -> Dimensions.DisplayMetrics -> String
+videoUri ratingKey sessionId client screenMetrics =
+    Api.pathToAuthedUrl "/video/:/transcode/universal/start.m3u8" client
+        ++ ("&path=%2Flibrary%2Fmetadata%2F" ++ ratingKey)
+        ++ "&fastSeek=1"
+        ++ "&mediaBufferSize=102400"
+        ++ "&protocol=hls"
+        ++ "&X-Plex-Model=bundled"
+        ++ ("&X-Plex-Device-Screen-Resolution=" ++ String.fromFloat screenMetrics.width ++ "x" ++ String.fromFloat screenMetrics.height)
         ++ (if Platform.os == "ios" then
                 "&X-Plex-Device=iOS"
 
@@ -43,10 +49,18 @@ videoUri ratingKey client screenMetrics =
                 ""
            )
         ++ ("&X-Plex-Token=" ++ client.token)
+        ++ ("&X-Plex-Client-Identifier=" ++ client.id)
+        ++ ("&X-Pler-Session-Identifier=" ++ sessionId)
 
 
-videoScreen : HomeModel -> { ratingKey : String, viewOffset : Maybe Int, screenMetrics : Dimensions.DisplayMetrics } -> Html Msg
-videoScreen m { ratingKey, viewOffset, screenMetrics } =
+videoScreen :
+    HomeModel
+    ->
+        { ratingKey : String
+        , viewOffset : Maybe Int
+        }
+    -> Html Msg
+videoScreen m { ratingKey, viewOffset } =
     view
         [ style
             { flex = 1
@@ -60,24 +74,30 @@ videoScreen m { ratingKey, viewOffset, screenMetrics } =
             , right = 0
             }
         ]
-        [ video
-            [ source { uri = videoUri ratingKey m.client screenMetrics }
-            , controls True
-            , fullscreen True
-            , fullscreenOrientation "landscape"
-            , fullscreenAutorotate True
-            , onErrorMessage PlayVideoError
-            , onFullscreenPlayerDidDismiss <| Decode.succeed StopPlayVideo
-            , playWhenInactive True
-            , pictureInPicture True
-            , seekOnStart (Maybe.withDefault 0 viewOffset)
-            , style
-                { position = "absolute"
-                , top = 0
-                , left = 0
-                , bottom = 0
-                , right = 0
-                }
-            ]
-            []
+        [ if isVideoUrlReady m.videoPlayer then
+            video
+                [ source { uri = videoUri ratingKey m.videoPlayer.sessionId m.client m.videoPlayer.screenMetrics }
+                , controls True
+                , fullscreen True
+                , fullscreenOrientation "landscape"
+                , fullscreenAutorotate True
+                , playWhenInactive True
+                , pictureInPicture True
+                , seekOnStart (Maybe.withDefault 0 viewOffset)
+                , onErrorMessage PlayVideoError
+                , onPlaybackStateChanged OnVideoPlaybackStateChanged
+                , onBuffer OnVideoBuffer
+                , onProgress (\p -> OnVideoProgress p.currentTime)
+                , style
+                    { position = "absolute"
+                    , top = 0
+                    , left = 0
+                    , bottom = 0
+                    , right = 0
+                    }
+                ]
+                []
+
+          else
+            null
         ]

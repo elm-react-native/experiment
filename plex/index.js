@@ -1,3 +1,5 @@
+// @refresh reset
+
 import React from 'react';
 import {AppRegistry} from 'react-native';
 import App from './App';
@@ -13,6 +15,8 @@ AppRegistry.registerComponent(appName, () => () => (
 ));
 
 const VideoPlayer = props => {
+  // console.log('VideoPlayer props: ', props);
+
   const ref = React.useRef(null);
 
   React.useEffect(() => {
@@ -27,5 +31,10 @@ const VideoPlayer = props => {
       ref.current.dismissFullscreenPlayer();
     }
   }, [props.fullscreen]);
+  React.useEffect(() => {
+    if (props.seekOnStart) {
+      ref.current.seek(props.seekOnStart / 1000);
+    }
+  }, []);
   return <Video ref={ref} {...props} />;
 };

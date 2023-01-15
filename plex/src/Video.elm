@@ -1,7 +1,7 @@
-module Video exposing (contentStartTime, controls, disableDisconnectError, fullscreen, fullscreenAutorotate, fullscreenOrientation, minLoadRetryCount, onError, onErrorMessage, onFullscreenPlayerDidDismiss, onFullscreenPlayerWillDismiss, onSeek, paused, pictureInPicture, playWhenInactive, preventsDisplaySleepDuringVideoPlayback, progressUpdateInterval, rate, repeat, seekOnStart, video)
+module Video exposing (PlayerProgress, contentStartTime, controls, disableDisconnectError, fullscreen, fullscreenAutorotate, fullscreenOrientation, minLoadRetryCount, onBuffer, onEnd, onError, onErrorMessage, onFullscreenPlayerDidDismiss, onFullscreenPlayerWillDismiss, onLoad, onPlaybackStateChanged, onProgress, onSeek, paused, pictureInPicture, playWhenInactive, playerProgressDecoder, preventsDisplaySleepDuringVideoPlayback, progressUpdateInterval, rate, repeat, seekOnStart, video)
 
 import Html exposing (Attribute, Html, node)
-import Json.Decode as Decode
+import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import ReactNative.Events exposing (on)
 import ReactNative.Properties exposing (property)
@@ -44,7 +44,7 @@ preventsDisplaySleepDuringVideoPlayback =
 
 
 progressUpdateInterval =
-    property "progressUpdateInterval" << Encode.float
+    property "progressUpdateInterval" << Encode.int
 
 
 rate =
@@ -94,3 +94,48 @@ onErrorMessage tagger =
 
 onSeek =
     on "seek"
+
+
+onEnd =
+    on "end"
+
+
+onLoad =
+    on "load"
+
+
+onReadyForDisplay =
+    on "readyForDisplay"
+
+
+type alias PlayerProgress =
+    { currentTime : Int
+    , playableDuration : Int
+    , seekableDuration : Int
+    }
+
+
+playerProgressDecoder : Decoder PlayerProgress
+playerProgressDecoder =
+    Decode.map3
+        (\currentTime playableDuration seekableDuration ->
+            PlayerProgress (round <| currentTime * 1000) (round <| playableDuration * 1000) (round <| seekableDuration * 1000)
+        )
+        (Decode.field "currentTime" Decode.float)
+        (Decode.field "playableDuration" Decode.float)
+        (Decode.field "seekableDuration" Decode.float)
+
+
+onProgress : (PlayerProgress -> msg) -> Attribute msg
+onProgress tagger =
+    on "progress" <| Decode.map tagger <| playerProgressDecoder
+
+
+onBuffer : (Bool -> msg) -> Attribute msg
+onBuffer tagger =
+    on "buffer" <| Decode.map tagger <| Decode.field "isBuffering" Decode.bool
+
+
+onPlaybackStateChanged : (Bool -> msg) -> Attribute msg
+onPlaybackStateChanged tagger =
+    on "playbackStateChanged" <| Decode.map tagger <| Decode.field "isPlaying" Decode.bool

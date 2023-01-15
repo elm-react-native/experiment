@@ -1,9 +1,10 @@
-module Api exposing (Account, Client, Country, Director, Genre, Guid, Library, Location, Media, MediaPart, Metadata, Rating, Role, Section, Setting, Writer, accountDecoder, clientGetJson, clientGetJsonTask, firstAccountWithName, getAccount, getLibraries, getLibrary, getMetadata, getMetadataChildren, getSections, getSettings, httpJsonBodyResolver, initialClient, initialLibrary, initialMetadata, librariesDecoder, libraryDecoder, logResponse, logUrl, maybeEmpty, maybeFalse, maybeFloatZero, maybeString, maybeWithDefault, maybeZero, metadataDecoder, metadataListDecoder, pathToAuthedUrl, sectionsDecoder, settingsDecoder)
+module Api exposing (Account, Client, Country, Director, Genre, Guid, Library, Location, Media, MediaPart, Metadata, Rating, Role, Section, Setting, TimelineRequest, TimelineResponse, Writer, accountDecoder, clientGetJson, clientGetJsonTask, firstAccountWithName, getAccount, getLibraries, getLibrary, getMetadata, getMetadataChildren, getSections, getSettings, httpJsonBodyResolver, initialClient, initialLibrary, initialMetadata, librariesDecoder, libraryDecoder, logResponse, logUrl, metadataDecoder, metadataListDecoder, pathToAuthedUrl, playerTimeline, sectionsDecoder, settingsDecoder, timelineResponseDecoder)
 
 import Http
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode exposing (Value)
 import Task exposing (Task)
+import Utils exposing (maybeEmptyList, maybeEmptyString, maybeFalse, maybeFloatZero, maybeZero)
 
 
 
@@ -222,36 +223,6 @@ initialMetadata =
     }
 
 
-maybeWithDefault : a -> Decoder a -> Decoder a
-maybeWithDefault defaultValue decoder =
-    Decode.map (Maybe.withDefault defaultValue) <| Decode.maybe decoder
-
-
-maybeString : Decoder String -> Decoder String
-maybeString =
-    maybeWithDefault ""
-
-
-maybeZero : Decoder Int -> Decoder Int
-maybeZero =
-    maybeWithDefault 0
-
-
-maybeFloatZero : Decoder Float -> Decoder Float
-maybeFloatZero =
-    maybeWithDefault 0.0
-
-
-maybeFalse : Decoder Bool -> Decoder Bool
-maybeFalse =
-    maybeWithDefault False
-
-
-maybeEmpty : Decoder (List a) -> Decoder (List a)
-maybeEmpty =
-    maybeWithDefault []
-
-
 metadataDecoder : Decoder Metadata
 metadataDecoder =
     let
@@ -272,9 +243,9 @@ metadataDecoder =
                 (Decode.field "guid" Decode.string)
                 (Decode.field "type" Decode.string)
                 (Decode.field "thumb" Decode.string)
-                (maybeString <| Decode.field "title" Decode.string)
+                (maybeEmptyString <| Decode.field "title" Decode.string)
                 (maybeZero <| Decode.field "duration" Decode.int)
-                (maybeString <| Decode.field "grandparentTitle" Decode.string)
+                (maybeEmptyString <| Decode.field "grandparentTitle" Decode.string)
 
         decoder2 =
             Decode.map8
@@ -290,13 +261,13 @@ metadataDecoder =
                     }
                 )
                 decoder
-                (maybeString <| Decode.field "grandparentTitle" Decode.string)
-                (maybeString <| Decode.field "grandparentThumb" Decode.string)
-                (maybeString <| Decode.field "parentTitle" Decode.string)
-                (maybeString <| Decode.field "parentThumb" Decode.string)
-                (maybeString <| Decode.field "tagline" Decode.string)
-                (maybeString <| Decode.field "contentRating" Decode.string)
-                (maybeString <| Decode.field "originallyAvailableAt" Decode.string)
+                (maybeEmptyString <| Decode.field "grandparentTitle" Decode.string)
+                (maybeEmptyString <| Decode.field "grandparentThumb" Decode.string)
+                (maybeEmptyString <| Decode.field "parentTitle" Decode.string)
+                (maybeEmptyString <| Decode.field "parentThumb" Decode.string)
+                (maybeEmptyString <| Decode.field "tagline" Decode.string)
+                (maybeEmptyString <| Decode.field "contentRating" Decode.string)
+                (maybeEmptyString <| Decode.field "originallyAvailableAt" Decode.string)
 
         decoder3 =
             Decode.map4
@@ -322,9 +293,9 @@ metadataDecoder =
                     }
                 )
                 decoder3
-                (maybeString <| Decode.field "ratingKey" Decode.string)
-                (maybeString <| Decode.field "parentRatingKey" Decode.string)
-                (maybeString <| Decode.field "grandparentRatingKey" Decode.string)
+                (maybeEmptyString <| Decode.field "ratingKey" Decode.string)
+                (maybeEmptyString <| Decode.field "parentRatingKey" Decode.string)
+                (maybeEmptyString <| Decode.field "grandparentRatingKey" Decode.string)
 
         decoder5 =
             Decode.map8
@@ -344,9 +315,9 @@ metadataDecoder =
                 (Decode.maybe <| Decode.field "lastViewedAt" Decode.int)
                 (Decode.maybe <| Decode.field "viewCount" Decode.int)
                 (maybeFloatZero <| Decode.field "rating" Decode.float)
-                (maybeString <| Decode.field "ratingImage" Decode.string)
+                (maybeEmptyString <| Decode.field "ratingImage" Decode.string)
                 (maybeFloatZero <| Decode.field "audienceRating" Decode.float)
-                (maybeString <| Decode.field "audienceRatingImage" Decode.string)
+                (maybeEmptyString <| Decode.field "audienceRatingImage" Decode.string)
     in
     decoder5
 
@@ -468,6 +439,7 @@ type alias Section =
 type alias Client =
     { token : String
     , serverAddress : String
+    , id : String
     }
 
 
@@ -580,14 +552,14 @@ libraryDecoder =
                 , composite = composite
             }
         )
-        (maybeString <| Decode.field "type" Decode.string)
-        (maybeString <| Decode.field "key" Decode.string)
-        (maybeString <| Decode.field "thumb" Decode.string)
-        (maybeString <| Decode.field "title" Decode.string)
-        (maybeString <| Decode.field "language" Decode.string)
-        (maybeString <| Decode.field "uuid" Decode.string)
+        (maybeEmptyString <| Decode.field "type" Decode.string)
+        (maybeEmptyString <| Decode.field "key" Decode.string)
+        (maybeEmptyString <| Decode.field "thumb" Decode.string)
+        (maybeEmptyString <| Decode.field "title" Decode.string)
+        (maybeEmptyString <| Decode.field "language" Decode.string)
+        (maybeEmptyString <| Decode.field "uuid" Decode.string)
         (maybeFalse <| Decode.field "refreshing" Decode.bool)
-        (maybeString <| Decode.field "composite" Decode.string)
+        (maybeEmptyString <| Decode.field "composite" Decode.string)
 
 
 getLibraries : (Result Http.Error (List Library) -> msg) -> Client -> Cmd msg
@@ -606,13 +578,13 @@ sectionsDecoder =
                 (Decode.field "hubIdentifier" Decode.string)
                 (Decode.field "title" Decode.string)
                 (maybeFalse <| Decode.field "more" Decode.bool)
-                (maybeEmpty <| Decode.field "Metadata" <| Decode.list metadataDecoder)
+                (maybeEmptyList <| Decode.field "Metadata" <| Decode.list metadataDecoder)
 
 
 metadataListDecoder : Decoder (List Metadata)
 metadataListDecoder =
     Decode.field "MediaContainer" <|
-        maybeEmpty <|
+        maybeEmptyList <|
             Decode.field "Metadata" <|
                 Decode.list metadataDecoder
 
@@ -683,6 +655,42 @@ getAccount =
     clientGetJson accountDecoder "/accounts"
 
 
+type alias TimelineRequest =
+    { ratingKey : String
+    , time : Int
+    , duration : Int
+    , state : String
+    }
+
+
+type alias TimelineResponse =
+    { playbackState : String, viewOffset : Int, skipCount : Int, viewCount : Int }
+
+
+timelineResponseDecoder : Decoder TimelineResponse
+timelineResponseDecoder =
+    Decode.map4 TimelineResponse
+        (Decode.field "playbackState" <| Decode.string)
+        (Decode.field "viewOffset" <| Decode.int)
+        (Decode.field "skipCount" <| Decode.int)
+        (Decode.field "viewCount" <| Decode.int)
+
+
+playerTimeline : TimelineRequest -> (Result Http.Error TimelineResponse -> msg) -> Client -> Cmd msg
+playerTimeline { ratingKey, state, time, duration } tagger client =
+    let
+        uri =
+            "/:/timeline"
+                ++ ("?ratingKey=" ++ ratingKey)
+                ++ ("&key=%2Flibrary%2Fmetadata%2F" ++ ratingKey)
+                ++ ("&state=" ++ state)
+                ++ ("&time=" ++ String.fromInt time)
+                ++ ("&duration=" ++ String.fromInt duration)
+                ++ ("&X-Plex-Client-Identifier=" ++ client.id)
+    in
+    clientGetJson timelineResponseDecoder uri tagger client
+
+
 settingsDecoder : Decoder (List Setting)
 settingsDecoder =
     Decode.fail "todo"
@@ -700,4 +708,4 @@ pathToAuthedUrl path client =
 
 initialClient : Client
 initialClient =
-    { serverAddress = "", token = "" }
+    { serverAddress = "", token = "", id = "" }

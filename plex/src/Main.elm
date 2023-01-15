@@ -13,6 +13,7 @@ import Http
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Model exposing (..)
+import Random
 import ReactNative exposing (fragment, ionicon, null, touchableOpacity, touchableWithoutFeedback, view)
 import ReactNative.ActionSheetIOS as ActionSheetIOS
 import ReactNative.Alert as Alert
@@ -20,11 +21,14 @@ import ReactNative.Dimensions as Dimensions
 import ReactNative.Events exposing (onPress)
 import ReactNative.Keyboard as Keyboard
 import ReactNative.Navigation as Nav exposing (screen, stackNavigator)
+import ReactNative.Navigation.Listeners as Listeners
 import ReactNative.Properties exposing (color, component, componentModel, getId, name, options, size, source, style)
 import ReactNative.Settings as Settings
 import SignInScreen exposing (signInScreen)
 import Task
 import Theme
+import Time
+import Utils
 import VideoScreen exposing (videoScreen)
 
 
@@ -90,11 +94,24 @@ getEpisodes showId seasonId client =
         |> Task.attempt (GotEpisodes showId seasonId)
 
 
+savePlaybackTime : VideoPlayer -> Client -> Cmd Msg
+savePlaybackTime player client =
+    Api.playerTimeline
+        { ratingKey = player.ratingKey
+        , state = "playing"
+        , time = player.playbackTime
+        , duration = player.duration
+        }
+        (always NoOp)
+        client
+
+
 loadClient : Cmd Msg
 loadClient =
-    Task.map2 Client
+    Task.map3 Client
         (Settings.get "token" Decode.string)
         (Settings.get "serverAddress" Decode.string)
+        (Settings.get "clientId" <| Utils.maybeEmptyString Decode.string)
         |> Task.attempt (Result.toMaybe >> GotoSignIn)
 
 
@@ -104,6 +121,7 @@ saveClient client =
         Settings.set
             [ ( "serverAddress", Encode.string client.serverAddress )
             , ( "token", Encode.string client.token )
+            , ( "clientId", Encode.string client.id )
             ]
 
 
@@ -131,10 +149,21 @@ update msg model =
                 Initial key ->
                     case savedClient of
                         Just client ->
-                            ( SignIn { client = client, navKey = key, submitting = True }, signInSubmit client )
+                            ( SignIn { client = client, navKey = key, submitting = True }
+                            , Cmd.batch
+                                [ signInSubmit client
+                                , if String.isEmpty client.id then
+                                    Random.generate GotClientId Utils.generateIdentifier
+
+                                  else
+                                    Cmd.none
+                                ]
+                            )
 
                         _ ->
-                            ( SignIn { client = initialClient, navKey = key, submitting = False }, Cmd.none )
+                            ( SignIn { client = initialClient, navKey = key, submitting = False }
+                            , Random.generate GotClientId Utils.generateIdentifier
+                            )
 
                 _ ->
                     ( model, Cmd.none )
@@ -186,6 +215,7 @@ update msg model =
                         , tvShows = Dict.empty
                         , navKey = navKey
                         , libraries = Dict.empty
+                        , videoPlayer = initialVideoPlayer
                         }
                     , Cmd.batch [ saveClient client, getSections client, getLibraries client ]
                     )
@@ -390,9 +420,9 @@ update msg model =
 
         SignOut ->
             case model of
-                Home m ->
+                Home ({ client } as m) ->
                     ( SignIn { client = m.client, navKey = m.navKey, submitting = False }
-                    , saveClient { serverAddress = "", token = "" }
+                    , saveClient { client | token = "" }
                     )
 
                 _ ->
@@ -410,27 +440,39 @@ update msg model =
                 |> Task.perform (Maybe.withDefault NoOp)
             )
 
-        PlayVideoSetupDone args ->
+        GotScreenMetrics screenMetrics ->
             case model of
-                Home m ->
-                    ( model, Nav.push m.navKey "video" args )
+                Home ({ videoPlayer } as m) ->
+                    ( Home { m | videoPlayer = { videoPlayer | screenMetrics = screenMetrics } }, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
 
-        PlayVideo ratingKey viewOffset ->
+        GotPlaySessionId sessionId ->
             case model of
-                Home m ->
-                    ( model
-                    , Dimensions.getScreen
-                        |> Task.perform
-                            (\screenMetrics ->
-                                PlayVideoSetupDone
-                                    { ratingKey = ratingKey
-                                    , viewOffset = viewOffset
-                                    , screenMetrics = screenMetrics
-                                    }
-                            )
+                Home ({ videoPlayer } as m) ->
+                    ( Home { m | videoPlayer = { videoPlayer | sessionId = sessionId } }, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        PlayVideo ratingKey viewOffset duration ->
+            case model of
+                Home ({ navKey, videoPlayer } as m) ->
+                    ( Home { m | videoPlayer = { videoPlayer | duration = duration, ratingKey = ratingKey } }
+                    , Cmd.batch
+                        [ Nav.push navKey "video" { ratingKey = ratingKey, viewOffset = viewOffset }
+                        , if videoPlayer.screenMetrics == Dimensions.initialDisplayMetrics then
+                            Task.perform GotScreenMetrics Dimensions.getScreen
+
+                          else
+                            Cmd.none
+                        , if String.isEmpty videoPlayer.sessionId then
+                            Random.generate GotPlaySessionId Utils.generateIdentifier
+
+                          else
+                            Cmd.none
+                        ]
                     )
 
                 _ ->
@@ -448,7 +490,59 @@ update msg model =
                         _ =
                             Debug.log "goBack" "should go back"
                     in
-                    ( model, Nav.goBack m.navKey )
+                    ( model
+                    , Cmd.batch
+                        [ Nav.goBack m.navKey
+                        , savePlaybackTime m.videoPlayer m.client
+                        , getSections m.client
+                        ]
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        GotClientId id ->
+            case model of
+                SignIn ({ client } as m) ->
+                    ( SignIn <| { m | client = { client | id = id } }, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        OnVideoPlaybackStateChanged isPlaying ->
+            let
+                _ =
+                    Debug.log "isPlaying" isPlaying
+            in
+            ( model, Cmd.none )
+
+        OnVideoBuffer isBuffering ->
+            let
+                _ =
+                    Debug.log "isBuffering" isBuffering
+            in
+            ( model, Cmd.none )
+
+        OnVideoProgress time ->
+            case model of
+                Home ({ videoPlayer } as m) ->
+                    ( Home { m | videoPlayer = { videoPlayer | playbackTime = time } }, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        OnVideoEnd ->
+            case model of
+                Home ({ client, videoPlayer } as m) ->
+                    ( Home { m | videoPlayer = initialVideoPlayer }, Cmd.batch [ getSections m.client, savePlaybackTime videoPlayer client ] )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        SaveVideoPlayback _ ->
+            case model of
+                Home ({ client, videoPlayer } as m) ->
+                    ( model, savePlaybackTime videoPlayer client )
 
                 _ ->
                     ( model, Cmd.none )
@@ -526,15 +620,25 @@ root model =
                             , autoHideHomeIndicator = True
                             }
                         , component videoScreen
+                        , Nav.listeners [ Listeners.blur <| Decode.succeed <| OnVideoEnd ]
                         ]
                         []
                     ]
                 ]
 
 
-subs : a -> Sub msg
-subs _ =
-    Sub.none
+subs : Model -> Sub Msg
+subs model =
+    case model of
+        Home m ->
+            if isVideoUrlReady m.videoPlayer then
+                Time.every (10 * 1000) SaveVideoPlayback
+
+            else
+                Sub.none
+
+        _ ->
+            Sub.none
 
 
 main : Program () Model Msg
