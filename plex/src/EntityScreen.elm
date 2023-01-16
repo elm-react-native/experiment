@@ -340,12 +340,14 @@ seasonView selectedSeasonIndex show =
         [ onPress <|
             Decode.succeed
                 (ShowPicker
-                    (List.map
-                        (\sz ->
-                            ( "Season" ++ String.fromInt sz.info.index, ChangeSeason show.info.ratingKey sz.info.ratingKey )
-                        )
-                        show.seasons
-                    )
+                    { items =
+                        List.map
+                            (\sz ->
+                                ( "Season" ++ String.fromInt sz.info.index, ChangeSeason show.info.ratingKey sz.info.ratingKey )
+                            )
+                            show.seasons
+                    , selectedIndex = selectedSeasonIndex - 1
+                    }
                 )
         , style
             { flexDirection = "row"

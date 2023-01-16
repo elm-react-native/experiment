@@ -1,15 +1,19 @@
 // @refresh reset
 
 import React from 'react';
-import {AppRegistry} from 'react-native';
+import {AppRegistry, Platform} from 'react-native';
 import App from './App';
 import {name as appName} from './app.json';
+import {Picker, PickerIOS} from '@react-native-picker/picker';
 import Video from 'react-native-video';
 
 AppRegistry.registerComponent(appName, () => () => (
   <App
     resolveComponent={tag => {
       if (tag === 'Video') return VideoPlayer;
+      if (tag === 'Picker') {
+        return [Picker, Picker.Item];
+      }
     }}
   />
 ));

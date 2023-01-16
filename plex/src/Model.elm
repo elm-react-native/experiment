@@ -99,7 +99,7 @@ type Msg
     | GotoAccount
     | GotoEntity Bool Metadata
     | ChangeSeason String String
-    | ShowPicker (List ( String, Msg ))
+    | ShowPicker { items : List ( String, Msg ), selectedIndex : Int }
     | PlayVideo String (Maybe Int) Int
     | PlayVideoError String
     | GotPlaySessionId String

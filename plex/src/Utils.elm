@@ -1,8 +1,13 @@
-module Utils exposing (charAt, formatDuration, generateIdentifier, maybeEmptyList, maybeEmptyString, maybeFalse, maybeFloatZero, maybeWithDefault, maybeZero, percentFloat, quotRem)
+module Utils exposing (charAt, elementAt, formatDuration, generateIdentifier, maybeEmptyList, maybeEmptyString, maybeFalse, maybeFloatZero, maybeWithDefault, maybeZero, percentFloat, quotRem)
 
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import Random
+
+
+elementAt : Int -> List a -> Maybe a
+elementAt n xs =
+    List.head <| List.drop n xs
 
 
 charAt : Int -> String -> Maybe Char

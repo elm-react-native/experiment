@@ -13,6 +13,7 @@ import Http
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Model exposing (..)
+import PickerScreen exposing (pickerScreen)
 import Random
 import ReactNative exposing (fragment, ionicon, null, touchableOpacity, touchableWithoutFeedback, view)
 import ReactNative.ActionSheetIOS as ActionSheetIOS
@@ -413,7 +414,13 @@ update msg model =
         ChangeSeason showId seasonId ->
             case model of
                 Home m ->
-                    ( Home { m | tvShows = updateSelectedSeason seasonId showId m.tvShows }, getEpisodes showId seasonId m.client )
+                    let
+                        _ =
+                            Debug.log "ChangeSeason" seasonId
+                    in
+                    ( Home { m | tvShows = updateSelectedSeason seasonId showId m.tvShows }
+                    , Cmd.batch [ Nav.goBack m.navKey, getEpisodes showId seasonId m.client ]
+                    )
 
                 _ ->
                     ( model, Cmd.none )
@@ -431,14 +438,20 @@ update msg model =
         DismissKeyboard ->
             ( model, Task.perform (always NoOp) Keyboard.dismiss )
 
-        ShowPicker items ->
-            ( model
-            , ActionSheetIOS.pickAction (( "Cancel", NoOp ) :: items)
-                [ ActionSheetIOS.cancelButtonIndex 0
-                , ActionSheetIOS.tintColor Theme.themeColor
-                ]
-                |> Task.perform (Maybe.withDefault NoOp)
-            )
+        ShowPicker args ->
+            case model of
+                Home m ->
+                    ( model
+                    , Nav.push m.navKey "picker" args
+                      --, ActionSheetIOS.pickAction (( "Cancel", NoOp ) :: items)
+                      --    [ ActionSheetIOS.cancelButtonIndex 0
+                      --    , ActionSheetIOS.tintColor Theme.themeColor
+                      --    ]
+                      --    |> Task.perform (Maybe.withDefault NoOp)
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
 
         GotScreenMetrics screenMetrics ->
             case model of
@@ -614,6 +627,15 @@ root model =
                                         params.metadata.ratingKey
                             )
                         , component entityScreen
+                        ]
+                        []
+                    , screen
+                        [ name "picker"
+                        , options
+                            { presentation = "transparentModal"
+                            , headerShown = False
+                            }
+                        , component pickerScreen
                         ]
                         []
                     , screen

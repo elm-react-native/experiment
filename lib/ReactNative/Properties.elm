@@ -170,6 +170,7 @@ module ReactNative.Properties exposing
     , supportedOrientations
     , testID
     , testOnly_pressed
+    , themeVariant
     , thumbColor
     , tintColor
     , title
@@ -1035,6 +1036,10 @@ shadowColor =
 
 shadowOpacity =
     property "shadowOpacity" << Encode.float
+
+
+themeVariant =
+    property "themeVariant" << Encode.string
 
 
 shadowRadius =
