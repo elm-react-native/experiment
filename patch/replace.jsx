@@ -24,10 +24,6 @@ var _VirtualDom_nodeNS = F2(function(namespace, tag)
     {
       return {tag, factList, kidList};
     }
-    else if (tag.endsWith(".Navigator"))
-    {
-      return <NavigatorComponent tag={tag} factList={factList} kidList={kidList} />;
-    }
     else if (tag === "SectionList")
     {
       return <SectionListComponent factList={factList} kidList={kidList} />;
@@ -35,6 +31,14 @@ var _VirtualDom_nodeNS = F2(function(namespace, tag)
     else if (tag === "FlatList")
     {
       return <FlatListComponent factList={factList} kidList={kidList} />;
+    }
+    else if (tag === "Child")
+    {
+      return {tag, factList, kidList}
+    }
+    else if (tag.endsWith(".Navigator"))
+    {
+      return <NavigatorComponent tag={tag} factList={factList} kidList={kidList} />;
     }
 
     if (factListFindId(factList)) {

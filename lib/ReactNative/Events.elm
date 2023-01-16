@@ -4,6 +4,7 @@ module ReactNative.Events exposing
     , onAccessibilityEscape
     , onAccessibilityTap
     , onBlur
+    , onBool
     , onBoolValueChange
     , onChangeText
     , onClick
@@ -20,6 +21,7 @@ module ReactNative.Events exposing
     , onMagicTap
     , onMoveShouldSetResponder
     , onMoveShouldSetResponderCapture
+    , onMsg
     , onOrientationChange
     , onPress
     , onPressIn
@@ -35,6 +37,8 @@ module ReactNative.Events exposing
     , onScrollToIndexFailed
     , onStartShouldSetResponder
     , onStartShouldSetResponderCapture
+    , onString
+    , onStringValueChange
     , onSubmitEditing
     , onViewableItemsChanged
     )
@@ -46,6 +50,22 @@ import Json.Decode as Decode
 
 on =
     Html.Events.on
+
+
+onString event tagger =
+    on event <| Decode.map tagger Decode.string
+
+
+onInt event tagger =
+    on event <| Decode.map tagger Decode.int
+
+
+onBool event tagger =
+    on event <| Decode.map tagger Decode.bool
+
+
+onMsg event msg =
+    on event <| Decode.succeed msg
 
 
 onPress =
@@ -89,33 +109,38 @@ onSubmitEditing =
 
 
 onBoolValueChange : (Bool -> msg) -> Attribute msg
-onBoolValueChange tagger =
-    on "valueChange" <| Decode.map tagger Decode.bool
+onBoolValueChange =
+    onBool "valueChange"
+
+
+onStringValueChange : (String -> msg) -> Attribute msg
+onStringValueChange =
+    onString "valueChange"
 
 
 onChangeText : (String -> msg) -> Attribute msg
-onChangeText tagger =
-    on "changeText" <| Decode.map tagger Decode.string
+onChangeText =
+    onString "changeText"
 
 
 onDrawerOpen : msg -> Attribute msg
-onDrawerOpen msg =
-    on "drawerOpen" <| Decode.succeed msg
+onDrawerOpen =
+    onMsg "drawerOpen"
 
 
 onDrawerClose : msg -> Attribute msg
-onDrawerClose msg =
-    on "drawerClose" <| Decode.succeed msg
+onDrawerClose =
+    onMsg "drawerClose"
 
 
 onDrawerSlide : msg -> Attribute msg
-onDrawerSlide msg =
-    on "drawerSlide" <| Decode.succeed msg
+onDrawerSlide =
+    onMsg "drawerSlide"
 
 
 onDrawerStateChange : (String -> msg) -> Attribute msg
-onDrawerStateChange tagger =
-    on "drawerStateChange" <| Decode.map tagger Decode.string
+onDrawerStateChange =
+    onString "drawerStateChange"
 
 
 onDismiss =

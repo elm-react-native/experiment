@@ -2,6 +2,7 @@ module ReactNative exposing
     ( KeyboardType
     , activityIndicator
     , button
+    , child
     , drawerLayoutAndroid
     , flatList
     , fragment
@@ -12,6 +13,7 @@ module ReactNative exposing
     , keyboardAvoidingView
     , materialIcon
     , modal
+    , node
     , null
     , pressable
     , refreshControl
@@ -32,7 +34,7 @@ module ReactNative exposing
     , virtualizedList
     )
 
-import Html exposing (Attribute, Html, node)
+import Html exposing (Attribute, Html)
 import Json.Encode as Encode
 import ReactNative.FlatList as FlatList
 import ReactNative.Properties exposing (name, property)
@@ -56,6 +58,10 @@ type KeyboardType
     | Twitter
     | WebSearch
     | VisiblePassword
+
+
+node =
+    Html.node
 
 
 str =
@@ -170,6 +176,10 @@ fragment =
 
 null =
     fragment [] []
+
+
+child =
+    node "Child"
 
 
 ionicon : String -> List (Attribute msg) -> Html msg

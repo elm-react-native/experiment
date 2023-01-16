@@ -108,16 +108,6 @@ const ElmMapComponent = (props) => {
   );
 };
 
-const ElmKeyedNodeComponent = (props) => {
-  const eventNode = React.useContext(EventNodeContext);
-  const actualProps = _VirtualDom_factsToReactProps(props.factList, eventNode);
-  const children = _List_toArray(props.kidList).map(
-    (kid, i) => kid.b && <React.Fragment key={kid.a}>{kid.b}</React.Fragment>
-  );
-  const Component = scope.resolveComponent(props.tag);
-  return <Component {...actualProps}>{children}</Component>;
-};
-
 const listToElementArray = (list) => {
   if (!list) return [];
 
@@ -154,13 +144,26 @@ const factListFindKey = (factList) => {
   }
 };
 
+const createChildren = (ChildCompnent, kidList, eventNode) => {
+  let children = [];
+  for (let kids = kidList, i = 0; kids.b; kids = kids.b) {
+    const kid = kids.a;
+    const kidProps = _VirtualDom_factsToReactProps(kid, eventNode);
+    if (!kidProps.key) {
+      kidProps.key = i;
+      i++;
+    }
+    const grandchildren = listToChildren(kidProps.kidList);
+    children.push(<ChildCompnent {...kidProps}>{grandchildren}</ChildCompnent>);
+  }
+  return children;
+};
+
 const ElmNodeComponentWithRef = (props) => {
   const eventNode = React.useContext(EventNodeContext);
   const actualProps = _VirtualDom_factsToReactProps(props, eventNode);
   const id = actualProps.id;
   const Component = scope.resolveComponent(props.tag);
-  const children = listToChildren(props.kidList);
-
   const drawerRef = React.useRef(null);
   React.useEffect(() => {
     componentRefs.set(id, drawerRef.current);
@@ -169,19 +172,63 @@ const ElmNodeComponentWithRef = (props) => {
     };
   }, []);
 
-  return (
-    <Component {...actualProps} ref={drawerRef}>
-      {children}
-    </Component>
-  );
+  if (Array.isArray(Component)) {
+    const Parent = Component[0];
+    const Child = Component[1];
+    return (
+      <Parent {...actualProps} ref={drawerRef}>
+        {createChildren(Child, props.kidList, eventNode)}
+      </Parent>
+    );
+  } else {
+    const children = listToChildren(props.kidList);
+    return (
+      <Component {...actualProps} ref={drawerRef}>
+        {children}
+      </Component>
+    );
+  }
 };
 
 const ElmNodeComponent = (props) => {
   const eventNode = React.useContext(EventNodeContext);
   const actualProps = _VirtualDom_factsToReactProps(props, eventNode);
   const Component = scope.resolveComponent(props.tag);
-  const children = listToChildren(props.kidList);
-  return <Component {...actualProps}>{children}</Component>;
+
+  if (Array.isArray(Component)) {
+    const Parent = Component[0];
+    const Child = Component[1];
+    return (
+      <Parent {...actualProps}>
+        {createChildren(Child, props.kidList, eventNode)}
+      </Parent>
+    );
+  } else {
+    const children = listToChildren(props.kidList);
+    return <Component {...actualProps}>{children}</Component>;
+  }
+};
+
+const childrenWrapKey = (children) => {
+  return children.map(
+    (kid, i) => kid.b && <React.Fragment key={kid.a}>{kid.b}</React.Fragment>
+  );
+};
+
+const ElmKeyedNodeComponent = (props) => {
+  const eventNode = React.useContext(EventNodeContext);
+  const actualProps = _VirtualDom_factsToReactProps(props.factList, eventNode);
+
+  const Component = scope.resolveComponent(props.tag);
+  if (Array.isArray(Component)) {
+    const Parent = Component[0];
+    const Child = Component[1];
+    const children = createChildren(Child, props.kidList, eventNode);
+    return <Parent {...actualProps}>{childrenWrapKey(children)}</Parent>;
+  } else {
+    const children = listToChildren(props.kidList);
+    return <Component {...actualProps}>{childrenWrapKey(children)}</Component>;
+  }
 };
 
 const SectionListComponent = (props) => {
