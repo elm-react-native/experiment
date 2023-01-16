@@ -343,7 +343,7 @@ seasonView selectedSeasonIndex show =
                     { items =
                         List.map
                             (\sz ->
-                                ( "Season" ++ String.fromInt sz.info.index, ChangeSeason show.info.ratingKey sz.info.ratingKey )
+                                ( "Season " ++ String.fromInt sz.info.index, ChangeSeason show.info.ratingKey sz.info.ratingKey )
                             )
                             show.seasons
                     , selectedIndex = selectedSeasonIndex - 1
