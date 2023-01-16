@@ -12,11 +12,15 @@ import Theme
 import Utils
 
 
-pickerScreen : HomeModel -> { items : List ( String, Msg ), selectedIndex : Int } -> Html Msg
-pickerScreen _ { items, selectedIndex } =
+pickerScreen : HomeModel -> { items : List ( String, Msg ), selectedItem : String } -> Html Msg
+pickerScreen _ { items, selectedItem } =
     let
         ( selectedLabel, selectedItemMsg ) =
-            case Utils.elementAt selectedIndex items of
+            case
+                items
+                    |> List.filter (\( label, _ ) -> selectedItem == label)
+                    |> List.head
+            of
                 Just x ->
                     x
 

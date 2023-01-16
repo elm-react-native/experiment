@@ -346,7 +346,7 @@ seasonView selectedSeasonIndex show =
                                 ( "Season " ++ String.fromInt sz.info.index, ChangeSeason show.info.ratingKey sz.info.ratingKey )
                             )
                             show.seasons
-                    , selectedIndex = selectedSeasonIndex - 1
+                    , selectedItem = "Season " ++ String.fromInt selectedSeasonIndex
                     }
                 )
         , style
