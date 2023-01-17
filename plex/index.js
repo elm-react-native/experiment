@@ -6,14 +6,14 @@ import App from './App';
 import {name as appName} from './app.json';
 import {Picker, PickerIOS} from '@react-native-picker/picker';
 import Video from 'react-native-video';
+import {ContextMenuButton} from 'react-native-ios-context-menu';
 
 AppRegistry.registerComponent(appName, () => () => (
   <App
     resolveComponent={tag => {
       if (tag === 'Video') return VideoPlayer;
-      if (tag === 'Picker') {
-        return [Picker, Picker.Item];
-      }
+      else if (tag === 'Picker') return [Picker, Picker.Item];
+      else if (tag === 'ContextMenuButton') return ContextMenuButton;
     }}
   />
 ));

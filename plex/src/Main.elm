@@ -419,7 +419,7 @@ update msg model =
                             Debug.log "ChangeSeason" seasonId
                     in
                     ( Home { m | tvShows = updateSelectedSeason seasonId showId m.tvShows }
-                    , Cmd.batch [ Nav.goBack m.navKey, getEpisodes showId seasonId m.client ]
+                    , getEpisodes showId seasonId m.client
                     )
 
                 _ ->

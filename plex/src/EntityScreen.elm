@@ -2,6 +2,7 @@ module EntityScreen exposing (entityScreen, episodesView, heroImage, heroInfo, h
 
 import Api exposing (Client, Metadata)
 import Components exposing (bottomPadding, chip, progressBar, videoPlayContainer)
+import ContextMenu exposing (MenuItem, contextMenuButton, isMenuPrimaryAction, menuConfig, onPressMenuItem, pressEventMenuItemDecoder)
 import Dict
 import Html exposing (Html)
 import Json.Decode as Decode
@@ -336,34 +337,44 @@ episodesView eps client =
 
 seasonView : Int -> TVShow -> Html Msg
 seasonView selectedSeasonIndex show =
-    touchableOpacity
-        [ onPress <|
-            Decode.succeed
-                (ShowPicker
-                    { items =
-                        List.map
-                            (\sz ->
-                                ( "Season " ++ String.fromInt sz.info.index, ChangeSeason show.info.ratingKey sz.info.ratingKey )
-                            )
-                            show.seasons
-                    , selectedItem = "Season " ++ String.fromInt selectedSeasonIndex
-                    }
-                )
-        , style
-            { flexDirection = "row"
-            , alignItems = "center"
-            , alignSelf = "flex-start"
+    let
+        selectedSeasonLabel =
+            "Season " ++ String.fromInt selectedSeasonIndex
+    in
+    contextMenuButton
+        [ pressEventMenuItemDecoder
+            |> Decode.map (\{ actionKey } -> ChangeSeason show.info.ratingKey actionKey)
+            |> onPressMenuItem
+        , isMenuPrimaryAction True
+        , menuConfig
+            { menuTitle = show.info.title
+            , menuItems =
+                List.map
+                    (\sz ->
+                        { actionKey = sz.info.ratingKey
+                        , actionTitle = "Season " ++ String.fromInt sz.info.index
+                        }
+                    )
+                    show.seasons
             }
         ]
-        [ text
+        [ touchableOpacity
             [ style
-                { fontWeight = "bold"
-                , color = "white"
-                , marginRight = 5
+                { flexDirection = "row"
+                , alignItems = "center"
+                , alignSelf = "flex-start"
                 }
             ]
-            [ str <| "Season " ++ String.fromInt selectedSeasonIndex ]
-        , ionicon "chevron-down-outline" [ size 12, color "white" ]
+            [ text
+                [ style
+                    { fontWeight = "bold"
+                    , color = "white"
+                    , marginRight = 5
+                    }
+                ]
+                [ str selectedSeasonLabel ]
+            , ionicon "chevron-down-outline" [ size 12, color "white" ]
+            ]
         ]
 
 
