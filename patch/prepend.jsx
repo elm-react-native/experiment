@@ -442,7 +442,7 @@ function _Json_unwrap_nested(value) {
   return a;
 }
 
-const ELM_NODE_COMPONENT_PROP_SET = { tag: 1, factList: 1, kidList: 1 };
+const ELM_NODE_COMPONENT_PROPS = { tag: 1, factList: 1, kidList: 1 };
 function _VirtualDom_factsToReactProps(inputProps, eventNode) {
   var factList = inputProps.factList;
   var initPanResponder;
@@ -523,7 +523,7 @@ function _VirtualDom_factsToReactProps(inputProps, eventNode) {
   for (let k in inputProps) {
     if (
       inputProps.hasOwnProperty(k) &&
-      !ELM_NODE_COMPONENT_PROP_SET[k] &&
+      !ELM_NODE_COMPONENT_PROPS[k] &&
       !props[k]
     ) {
       props[k] = inputProps[k];
