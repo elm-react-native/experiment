@@ -611,7 +611,7 @@ root model =
                     , screen
                         [ name "entity"
                         , options
-                            { presentation = "formSheet"
+                            { presentation = "modal"
                             , headerShown = False
                             }
                         , getId
