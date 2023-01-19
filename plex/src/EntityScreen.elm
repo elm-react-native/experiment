@@ -131,7 +131,7 @@ heroInfo tvShow metadata =
                     , duration = metadata.duration
                     }
     in
-    view [ style { flexDirection = "row", marginTop = 10 } ]
+    view [ style { flexDirection = "row", marginTop = 10, gap = 5 } ]
         [ if String.isEmpty originallyAvailableAt then
             null
 
@@ -140,7 +140,6 @@ heroInfo tvShow metadata =
                 [ style
                     { color = "white"
                     , fontSize = 12
-                    , marginRight = 4
                     }
                 ]
                 [ str <| String.slice 0 4 originallyAvailableAt ]
@@ -158,7 +157,7 @@ heroInfo tvShow metadata =
             null
 
           else
-            text [ style { color = "white", marginLeft = 4, fontSize = 12 } ] [ str <| formatDuration metadata.duration ]
+            text [ style { color = "white", fontSize = 12 } ] [ str <| formatDuration metadata.duration ]
         ]
 
 
@@ -175,7 +174,7 @@ ratingView score icon =
                 _ ->
                     ( require "./assets/themoviedb.image.rating.png", { width = 30, height = 15 } )
     in
-    view [ style { flexDirection = "row", marginLeft = 4 } ]
+    view [ style { flexDirection = "row" } ]
         [ image
             [ source src
             , style size
