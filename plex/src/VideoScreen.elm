@@ -6,7 +6,7 @@ import Json.Decode as Decode
 import Json.Encode as Encode
 import Maybe
 import Model exposing (HomeModel, Msg(..), VideoPlayer, isVideoUrlReady)
-import ReactNative exposing (fragment, ionicon, null, touchableOpacity, touchableWithoutFeedback, view)
+import ReactNative exposing (fragment, null, touchableOpacity, touchableWithoutFeedback, view)
 import ReactNative.Dimensions as Dimensions
 import ReactNative.Platform as Platform
 import ReactNative.Properties exposing (color, component, componentModel, getId, name, options, size, source, style)

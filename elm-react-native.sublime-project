@@ -12,23 +12,18 @@
     {
       "working_dir": "$project_path",
       "name": "Build All Demos",
-      "shell_cmd": "./build.sh demo/All.elm"
+      "shell_cmd": "./build demo"
     },
     {
       "working_dir": "$project_path",
       "name": "Build Plex",
-      "shell_cmd": "./buildplex.sh"
-    },
-    {
-      "working_dir": "$project_path",
-      "name": "Build demo/ButtonExample.elm",
-      "shell_cmd": "./build.sh demo/ButtonExample.elm"
+      "shell_cmd": "./build plex"
     }
   ],
   "settings": {
     "build_on_save": false,
     "elm_entry_file": "plex/src/Main.elm",
-    "elm_source_directories": ["lib", "demo", "plex/src"],
+    "elm_source_directories": ["lib", "demo/src", "plex/src"],
     "LSP": {
       "LSP-typescript": {
         "enabled": false

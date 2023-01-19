@@ -1,7 +1,7 @@
 module EntityScreen exposing (entityScreen, episodesView, heroImage, heroInfo, heroLabel, heroPlayButton, heroProgressBar, heroSummary, heroTitle, ratingView, seasonView, seasonsView)
 
 import Api exposing (Client, Metadata)
-import Components exposing (bottomPadding, chip, progressBar, videoPlayContainer)
+import Components exposing (bottomPadding, chip, ionicon, progressBar, videoPlayContainer)
 import ContextMenu exposing (MenuItem, contextMenuButton, isMenuPrimaryAction, menuConfig, onPressMenuItem, pressEventMenuItemDecoder)
 import Dict
 import Html exposing (Html)
@@ -12,7 +12,6 @@ import ReactNative
         ( activityIndicator
         , image
         , imageBackground
-        , ionicon
         , null
         , require
         , scrollView

@@ -1,4 +1,4 @@
-module All exposing (..)
+module Demo exposing (..)
 
 import ActionSheetIOSExample
 import ActivityIndicatorExample
@@ -17,6 +17,7 @@ import EasingExample
 import FlatListExample
 import Html exposing (Html)
 import Html.Lazy exposing (lazy)
+import Icon exposing (materialIcon)
 import ImageExample
 import InputAccessoryViewExample
 import Json.Decode as Decode
@@ -31,7 +32,7 @@ import PixelRatioExample
 import PlatformColorExample
 import PlatformExample
 import PressableExample
-import ReactNative exposing (button, image, materialIcon, null, pressable, require, safeAreaView, scrollView, statusBar, str, text, touchableOpacity, view)
+import ReactNative exposing (button, image, null, pressable, require, safeAreaView, scrollView, statusBar, str, text, touchableOpacity, view)
 import ReactNative.Events exposing (onPress)
 import ReactNative.Navigation as Nav exposing (screen, stackNavigator)
 import ReactNative.Navigation.Listeners as Listeners

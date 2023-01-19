@@ -5,7 +5,7 @@ if (!process.argv[2]) {
   throw new Error("output file is required");
 }
 
-console.log(process.argv[2]);
+console.log("Patching ───>", process.argv[2]);
 
 const _p = (p) => path.join(__dirname, p);
 
@@ -45,7 +45,7 @@ const toRemove = [
 ];
 
 const source = fs
-  .readFileSync(_p("../build/elm.js"), { encoding: "utf-8" })
+  .readFileSync(_p("./elm.js"), { encoding: "utf-8" })
   .trim()
   .split(/\r?\n/);
 

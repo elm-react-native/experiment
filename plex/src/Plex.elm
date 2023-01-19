@@ -1,4 +1,4 @@
-module Main exposing (..)
+module Plex exposing (..)
 
 import AccountScreen exposing (accountScreen, avatar)
 import Api exposing (Client, Library, Metadata, initialClient)
@@ -15,7 +15,7 @@ import Json.Encode as Encode
 import Model exposing (..)
 import PickerScreen exposing (pickerScreen)
 import Random
-import ReactNative exposing (fragment, ionicon, null, touchableOpacity, touchableWithoutFeedback, view)
+import ReactNative exposing (fragment, null, touchableOpacity, touchableWithoutFeedback, view)
 import ReactNative.ActionSheetIOS as ActionSheetIOS
 import ReactNative.Alert as Alert
 import ReactNative.Dimensions as Dimensions
@@ -579,79 +579,77 @@ root model =
             signInScreen m
 
         Home m ->
-            fragment []
-                [ stackNavigator "Main" [ componentModel m ] <|
-                    [ screen
-                        [ name "home"
-                        , options
-                            { headerTitle = "Home"
-                            , headerLeft = \_ -> favicon 20
-                            , headerRight =
-                                \_ ->
-                                    touchableOpacity
-                                        [ onPress <| Decode.succeed GotoAccount ]
-                                        [ avatar m.account 24 ]
-                            , headerTintColor = "white"
-                            , headerStyle = { backgroundColor = Theme.backgroundColor }
-                            }
-                        , component homeScreen
-                        ]
-                        []
-                    , screen
-                        [ name "account"
-                        , options
-                            { headerTitle = ""
-                            , headerBackTitle = m.account.name
-                            , headerTintColor = "white"
-                            , headerStyle = { backgroundColor = Theme.backgroundColor }
-                            }
-                        , component accountScreen
-                        ]
-                        []
-                    , screen
-                        [ name "entity"
-                        , options
-                            { presentation = "modal"
-                            , headerShown = False
-                            }
-                        , getId
-                            (\{ params } ->
-                                case params.metadata.typ of
-                                    "episode" ->
-                                        params.metadata.grandparentRatingKey
-
-                                    "season" ->
-                                        params.metadata.parentRatingKey
-
-                                    _ ->
-                                        params.metadata.ratingKey
-                            )
-                        , component entityScreen
-                        ]
-                        []
-                    , screen
-                        [ name "picker"
-                        , options
-                            { presentation = "transparentModal"
-                            , headerShown = False
-                            }
-                        , component pickerScreen
-                        ]
-                        []
-                    , screen
-                        [ name "video"
-                        , options
-                            { presentation = "fullScreenModal"
-                            , headerShown = False
-                            , autoHideHomeIndicator = True
-                            }
-                        , component videoScreen
-                        , Nav.listeners
-                            [ Listeners.beforeRemove <| Decode.succeed <| OnLeaveVideoScreen
-                            ]
-                        ]
-                        []
+            stackNavigator "Main" [ componentModel m ] <|
+                [ screen
+                    [ name "home"
+                    , options
+                        { headerTitle = "Home"
+                        , headerLeft = \_ -> favicon 20
+                        , headerRight =
+                            \_ ->
+                                touchableOpacity
+                                    [ onPress <| Decode.succeed GotoAccount ]
+                                    [ avatar m.account 24 ]
+                        , headerTintColor = "white"
+                        , headerStyle = { backgroundColor = Theme.backgroundColor }
+                        }
+                    , component homeScreen
                     ]
+                    []
+                , screen
+                    [ name "account"
+                    , options
+                        { headerTitle = ""
+                        , headerBackTitle = m.account.name
+                        , headerTintColor = "white"
+                        , headerStyle = { backgroundColor = Theme.backgroundColor }
+                        }
+                    , component accountScreen
+                    ]
+                    []
+                , screen
+                    [ name "entity"
+                    , options
+                        { presentation = "modal"
+                        , headerShown = False
+                        }
+                    , getId
+                        (\{ params } ->
+                            case params.metadata.typ of
+                                "episode" ->
+                                    params.metadata.grandparentRatingKey
+
+                                "season" ->
+                                    params.metadata.parentRatingKey
+
+                                _ ->
+                                    params.metadata.ratingKey
+                        )
+                    , component entityScreen
+                    ]
+                    []
+                , screen
+                    [ name "picker"
+                    , options
+                        { presentation = "transparentModal"
+                        , headerShown = False
+                        }
+                    , component pickerScreen
+                    ]
+                    []
+                , screen
+                    [ name "video"
+                    , options
+                        { presentation = "fullScreenModal"
+                        , headerShown = False
+                        , autoHideHomeIndicator = True
+                        }
+                    , component videoScreen
+                    , Nav.listeners
+                        [ Listeners.beforeRemove <| Decode.succeed <| OnLeaveVideoScreen
+                        ]
+                    ]
+                    []
                 ]
 
 

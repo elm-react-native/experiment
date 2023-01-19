@@ -8,8 +8,8 @@ The current implementation is based on _nasty_ monkey patch (by `patch/patch.js`
 
 On MacOS
 
-- pull the template-project submodule
 - install elm, nodejs and expo
-- execute npm install in template-project
-- execute `./rundemo.sh demo/ButtonExample.elm`
-- execute `./build.sh demo/ButtonExample.elm` to generate `App.jsx` after made changes.
+- cd demo
+- npm install
+- npm start
+- execute `./build demo` to generate `App.jsx` after made changes.

@@ -1,6 +1,6 @@
-build/
 .DS_Store
 elm-stuff
+elm.js
 *.sublime-workspace
 samples/
 *.swp

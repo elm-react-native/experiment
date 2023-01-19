@@ -9,7 +9,6 @@ module ReactNative exposing
     , image
     , imageBackground
     , inputAccessoryView
-    , ionicon
     , keyboardAvoidingView
     , modal
     , node
@@ -179,8 +178,3 @@ null =
 
 child =
     node "Child"
-
-
-ionicon : String -> List (Attribute msg) -> Html msg
-ionicon n props =
-    node "Ionicons" (name n :: props) []

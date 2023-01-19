@@ -1,0 +1,27 @@
+#!/bin/bash
+if [ -z "$1" ]
+then
+    echo "Project name is required!"
+    echo "For example: ./build demo"
+    exit 1
+fi
+
+if [ ! -d $1 ]
+then
+    echo "Directory $1 does not exist!"
+    exit 1
+fi
+
+
+function capitalize () {
+    local x=$(echo "$1" | cut -c1 | tr "[:lower:]" "[:upper:]")
+    local xs=$(echo "$1" | cut -c2-)
+    echo "$x$xs"
+}
+
+elm make $1/src/$(capitalize $1).elm --output ./patch/elm.js
+if [ $? -eq 0 ]; then
+    node ./patch/patch.js ./$1/App.jsx
+else
+    exit $?
+fi

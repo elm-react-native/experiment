@@ -17,7 +17,6 @@ import ReactNative
         , button
         , image
         , imageBackground
-        , ionicon
         , keyboardAvoidingView
         , null
         , require

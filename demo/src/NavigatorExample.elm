@@ -3,9 +3,10 @@ module NavigatorExample exposing (..)
 import Browser
 import Browser.Navigation as N
 import Html exposing (node)
+import Icon exposing (ionicon)
 import Json.Decode as Decode
 import Json.Encode as Encode
-import ReactNative exposing (button, ionicon, safeAreaView, str, text, view, virtualizedList)
+import ReactNative exposing (button, safeAreaView, str, text, view, virtualizedList)
 import ReactNative.Events exposing (onClick, onPress, onRefresh)
 import ReactNative.Navigation as Nav exposing (screen, stackNavigator, tabNavigator)
 import ReactNative.Properties exposing (color, component, name, options, property, screenOptions, size, style, title)
