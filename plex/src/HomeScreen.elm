@@ -179,10 +179,9 @@ itemView client isContinueWatching metadata =
         , imageBackground
             [ style homeStyles.itemImage
             , source
-                { uri = Api.pathToAuthedUrl thumb client
+                { uri = Api.transcodedImageUrl thumb 480 719 client
                 , width = 480
                 , height = 719
-                , cache = "force-cache"
                 }
             , if isContinueWatching then
                 imageStyle

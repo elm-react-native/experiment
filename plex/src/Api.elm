@@ -1,9 +1,10 @@
-module Api exposing (Account, Client, Country, Director, Genre, Guid, Library, Location, Media, MediaPart, Metadata, Rating, Role, Section, Setting, TimelineRequest, TimelineResponse, Writer, accountDecoder, clientGetJson, clientGetJsonTask, firstAccountWithName, getAccount, getLibraries, getLibrary, getMetadata, getMetadataChildren, getSections, getSettings, httpJsonBodyResolver, initialClient, initialLibrary, initialMetadata, librariesDecoder, libraryDecoder, logResponse, logUrl, metadataDecoder, metadataListDecoder, pathToAuthedUrl, playerTimeline, sectionsDecoder, settingsDecoder, timelineResponseDecoder)
+module Api exposing (Account, Client, Country, Director, Genre, Guid, Library, Location, Media, MediaPart, Metadata, Rating, Role, Section, Setting, TimelineRequest, TimelineResponse, Writer, accountDecoder, clientGetJson, clientGetJsonTask, firstAccountWithName, getAccount, getLibraries, getLibrary, getMetadata, getMetadataChildren, getSections, getSettings, httpJsonBodyResolver, initialClient, initialLibrary, initialMetadata, librariesDecoder, libraryDecoder, logResponse, logUrl, metadataDecoder, metadataListDecoder, pathToAuthedUrl, playerTimeline, sectionsDecoder, settingsDecoder, timelineResponseDecoder, transcodedImageUrl)
 
 import Http
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode exposing (Value)
 import Task exposing (Task)
+import Url
 import Utils exposing (maybeEmptyList, maybeEmptyString, maybeFalse, maybeFloatZero, maybeZero)
 
 
@@ -704,6 +705,14 @@ getSettings =
 pathToAuthedUrl : String -> Client -> String
 pathToAuthedUrl path client =
     client.serverAddress ++ path ++ "?X-Plex-Token=" ++ client.token
+
+
+transcodedImageUrl : String -> Int -> Int -> Client -> String
+transcodedImageUrl thumb width height client =
+    pathToAuthedUrl "/photo/:/transcode" client
+        ++ ("&width=" ++ String.fromInt width)
+        ++ ("&height=" ++ String.fromInt height)
+        ++ ("&url=" ++ Url.percentEncode thumb)
 
 
 initialClient : Client

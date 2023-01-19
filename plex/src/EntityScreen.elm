@@ -50,7 +50,7 @@ heroImage thumb client =
         ]
         [ image
             [ source
-                { uri = Api.pathToAuthedUrl thumb client
+                { uri = Api.transcodedImageUrl thumb 480 719 client
                 , width = 480
                 , height = 719
                 , cache = "force-cache"
@@ -294,7 +294,7 @@ episodesView eps client =
                     [ view [ style { flexDirection = "row", marginTop = 15, alignItems = "center" } ]
                         [ imageBackground
                             [ source
-                                { uri = Api.pathToAuthedUrl ep.thumb client
+                                { uri = Api.transcodedImageUrl ep.thumb 720 404 client
                                 , width = 720
                                 , height = 404
                                 , cache = "force-cache"
