@@ -546,7 +546,7 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
-        OnVideoEnd ->
+        OnLeaveVideoScreen ->
             case model of
                 Home ({ client, videoPlayer } as m) ->
                     ( Home { m | videoPlayer = initialVideoPlayer }
@@ -647,7 +647,7 @@ root model =
                             }
                         , component videoScreen
                         , Nav.listeners
-                            [ Listeners.beforeRemove <| Decode.succeed <| OnVideoEnd
+                            [ Listeners.beforeRemove <| Decode.succeed <| OnLeaveVideoScreen
                             ]
                         ]
                         []

@@ -107,7 +107,7 @@ type Msg
     | StopPlayVideo
     | OnVideoBuffer Bool
     | OnVideoProgress Int
-    | OnVideoEnd
+    | OnLeaveVideoScreen
     | SaveVideoPlayback Time.Posix
     | SignOut
 

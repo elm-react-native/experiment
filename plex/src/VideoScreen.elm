@@ -66,6 +66,7 @@ styles =
             , left = 0
             , bottom = 0
             , right = 0
+            , backgroundColor = "black"
             }
         }
 
@@ -82,7 +83,7 @@ videoScreen m _ =
             , pictureInPicture True
             , seekOnStart m.videoPlayer.initialPlaybackTime
             , onErrorMessage PlayVideoError
-            , onEnd <| Decode.succeed OnVideoEnd
+            , onEnd <| Decode.succeed StopPlayVideo
             , onBuffer OnVideoBuffer
             , onProgress (\p -> OnVideoProgress p.currentTime)
             , style styles.fullscreen
