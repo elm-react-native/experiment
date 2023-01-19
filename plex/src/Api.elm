@@ -1,4 +1,4 @@
-module Api exposing (Account, Client, Country, Director, Genre, Guid, Library, Location, Media, MediaPart, Metadata, Rating, Role, Section, Setting, TimelineRequest, TimelineResponse, Writer, accountDecoder, clientGetJson, clientGetJsonTask, firstAccountWithName, getAccount, getLibraries, getLibrary, getMetadata, getMetadataChildren, getSections, getSettings, httpJsonBodyResolver, initialClient, initialLibrary, initialMetadata, librariesDecoder, libraryDecoder, logResponse, logUrl, metadataDecoder, metadataListDecoder, pathToAuthedUrl, playerTimeline, sectionsDecoder, settingsDecoder, timelineResponseDecoder, transcodedImageUrl)
+module Api exposing (Account, Client, Country, Director, Genre, Guid, Library, Location, Media, MediaPart, Metadata, Rating, Role, Section, Setting, TimelineRequest, TimelineResponse, Writer, accountDecoder, clientGetJson, clientGetJsonTask, firstAccountWithName, getAccount, getLibraries, getLibrary, getMetadata, getMetadataChildren, getSections, getSettings, httpJsonBodyResolver, initialClient, initialLibrary, initialMetadata, librariesDecoder, libraryDecoder, metadataDecoder, metadataListDecoder, pathToAuthedUrl, playerTimeline, sectionsDecoder, settingsDecoder, timelineResponseDecoder, transcodedImageUrl)
 
 import Http
 import Json.Decode as Decode exposing (Decoder)
@@ -444,25 +444,9 @@ type alias Client =
     }
 
 
-logResponse resp =
-    --let
-    --    _ =
-    --        Debug.log "response" resp
-    --in
-    resp
-
-
-logUrl url =
-    let
-        _ =
-            Debug.log "url" url
-    in
-    url
-
-
 httpJsonBodyResolver : Decoder a -> Http.Response String -> Result Http.Error a
 httpJsonBodyResolver decoder resp =
-    case logResponse resp of
+    case resp of
         Http.GoodStatus_ m s ->
             Decode.decodeString decoder s
                 |> Result.mapError (Decode.errorToString >> Http.BadBody)
@@ -498,7 +482,7 @@ clientGetJsonTask decoder path { serverAddress, token } =
                 ++ token
     in
     Http.task
-        { url = logUrl url
+        { url = url
         , method = "GET"
         , headers = [ Http.header "Accept" "application/json" ]
         , body = Http.emptyBody
@@ -523,11 +507,11 @@ clientGetJson decoder path tagger { serverAddress, token } =
                 ++ token
     in
     Http.request
-        { url = logUrl url
+        { url = url
         , method = "GET"
         , headers = [ Http.header "Accept" "application/json" ]
         , body = Http.emptyBody
-        , expect = Http.expectJson (logResponse >> tagger) decoder
+        , expect = Http.expectJson tagger decoder
         , timeout = Nothing
         , tracker = Nothing
         }
