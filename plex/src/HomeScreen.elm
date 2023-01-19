@@ -270,17 +270,15 @@ homeScreen model _ =
                     ]
 
             else
-                fragment []
-                    [ scrollView
-                        [ persistentScrollbar False
-                        , contentContainerStyle homeStyles.container
-                        , style { backgroundColor = Theme.backgroundColor }
-                        ]
-                      <|
-                        List.map (sectionView model.client) sections
-                            ++ List.map (librarySectionView model.client) librarySections
-                            ++ [ bottomPadding ]
+                scrollView
+                    [ persistentScrollbar False
+                    , contentContainerStyle homeStyles.container
+                    , style { backgroundColor = Theme.backgroundColor }
                     ]
+                <|
+                    List.map (sectionView model.client) sections
+                        ++ List.map (librarySectionView model.client) librarySections
+                        ++ [ bottomPadding ]
 
         Just (Err err) ->
             let

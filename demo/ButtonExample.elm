@@ -1,7 +1,6 @@
 module ButtonExample exposing (..)
 
 import Browser
-import Debug
 import Html.Lazy exposing (lazy)
 import Json.Decode as Decode
 import Json.Encode as Encode

@@ -1,7 +1,6 @@
 module VirtualizedListExample exposing (..)
 
 import Browser
-import Debug
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Process

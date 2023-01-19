@@ -2,7 +2,6 @@ module NavigatorExample exposing (..)
 
 import Browser
 import Browser.Navigation as N
-import Debug
 import Html exposing (node)
 import Json.Decode as Decode
 import Json.Encode as Encode
