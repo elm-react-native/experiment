@@ -7,6 +7,7 @@ import {name as appName} from './app.json';
 import {Picker, PickerIOS} from '@react-native-picker/picker';
 import Video from 'react-native-video';
 import {ContextMenuButton} from 'react-native-ios-context-menu';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 AppRegistry.registerComponent(appName, () => () => (
   <App
@@ -14,6 +15,7 @@ AppRegistry.registerComponent(appName, () => () => (
       if (tag === 'Video') return VideoPlayer;
       else if (tag === 'Picker') return [Picker, Picker.Item];
       else if (tag === 'ContextMenuButton') return ContextMenuButton;
+      else if (tag === 'Ionicons') return Ionicons;
     }}
   />
 ));

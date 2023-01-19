@@ -11,7 +11,6 @@ module ReactNative exposing
     , inputAccessoryView
     , ionicon
     , keyboardAvoidingView
-    , materialIcon
     , modal
     , node
     , null
@@ -185,8 +184,3 @@ child =
 ionicon : String -> List (Attribute msg) -> Html msg
 ionicon n props =
     node "Ionicons" (name n :: props) []
-
-
-materialIcon : String -> List (Attribute msg) -> Html msg
-materialIcon n props =
-    node "MaterialIcons" (name n :: props) []

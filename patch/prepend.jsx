@@ -50,8 +50,6 @@ import {
   UIManager,
   LogBox,
 } from "react-native";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import {
   NavigationContainer,
   createNavigationContainerRef,
@@ -90,8 +88,6 @@ const allComponents = {
   SafeAreaView,
   "Animated.View": Animated.View,
   Fragment: React.Fragment,
-  Ionicons,
-  MaterialIcons,
   DrawerLayoutAndroid,
 };
 
