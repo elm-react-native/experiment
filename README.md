@@ -19,13 +19,14 @@ Requires elm, nodejs and expo
 
 ## plex/
 
-This is a [Plex](https://www.plex.tv) client, a video steaming app, which can browsing / steaming a local plex server.
+This is an iOS [Plex](https://www.plex.tv) client, a video steaming app, which can browsing / steaming a local plex server.
 
-Run On MacOS
+Run On MacOS (Android is NOT working for now.)
 
-Requires elm and nodejs
+Requires elm and nodejs.
 
 - cd plex
 - npm install
+- cd ios && pod install
 - npm start
 - execute `./build plex` to generate after made changes.
