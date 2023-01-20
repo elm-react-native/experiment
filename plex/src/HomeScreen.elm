@@ -115,7 +115,7 @@ itemLabel : String -> Html msg
 itemLabel label =
     imageBackground
         [ style homeStyles.itemLabelBackground
-        , source <| require "./assets/gradient.png"
+        , source <| require "../assets/gradient.png"
         , imageStyle { resizeMode = "repeat" }
         ]
         [ text [ style homeStyles.itemLabel ]
@@ -263,7 +263,7 @@ homeScreen model _ =
             in
             if List.isEmpty sections then
                 view []
-                    [ image [ source <| require "./assets/norecords.png", style { width = 60, height = 80 } ] []
+                    [ image [ source <| require "../assets/norecords.png", style { width = 60, height = 80 } ] []
                     , retryGetSections "Reload"
                     ]
 

@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "metro-transform-worker": "^0.74.0",
+    "shelljs": "^0.8.5"
+  }
+}

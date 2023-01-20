@@ -1413,7 +1413,7 @@ exampleIcon =
             , width = 24
             , height = 24
             }
-        , source <| require "./assets/favicon.png"
+        , source <| require "../assets/favicon.png"
         ]
         []
 

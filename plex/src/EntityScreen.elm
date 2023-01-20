@@ -165,13 +165,13 @@ ratingView score icon =
         ( src, size ) =
             case icon of
                 "rottentomatoes://image.rating.rotten" ->
-                    ( require "./assets/rottentomatoes.image.rating.rotten.png", { width = 15, height = 15 } )
+                    ( require "../assets/rottentomatoes.image.rating.rotten.png", { width = 15, height = 15 } )
 
                 "rottentomatoes://image.rating.upright" ->
-                    ( require "./assets/rottentomatoes.image.rating.upright.png", { width = 15, height = 15 } )
+                    ( require "../assets/rottentomatoes.image.rating.upright.png", { width = 15, height = 15 } )
 
                 _ ->
-                    ( require "./assets/themoviedb.image.rating.png", { width = 30, height = 15 } )
+                    ( require "../assets/themoviedb.image.rating.png", { width = 30, height = 15 } )
     in
     view [ style { flexDirection = "row" } ]
         [ image

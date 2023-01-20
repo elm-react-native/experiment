@@ -84,7 +84,7 @@ root model =
             [ text [ style styles.text ] [ str "Inside" ]
             , image
                 [ style styles.tinyLogo
-                , source <| require "./assets/icon.png"
+                , source <| require "../assets/icon.png"
                 ]
                 []
             , image
@@ -99,7 +99,7 @@ root model =
                 []
             , image
                 [ style styles.stretch
-                , source <| require "./assets/icon.png"
+                , source <| require "../assets/icon.png"
                 ]
                 []
             ]

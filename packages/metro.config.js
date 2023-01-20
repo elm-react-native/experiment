@@ -3,7 +3,10 @@ const path = require("path");
 const p = (...ps) => path.join(__dirname, ...ps);
 
 module.exports = {
+  transformerPath: p("../patch/transformer.js"),
   resolver: {
+    resetCache: true, // for debugging transformer
+    sourceExts: ["js", "jsx", "ts", "tsx", "json", "elm"],
     nodeModulesPaths: [path.resolve("node_modules")],
     resolveRequest: (context, moduleName, platform) => {
       if (/^@elm-react-native\//.test(moduleName)) {
