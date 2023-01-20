@@ -1,6 +1,14 @@
 {
   "type": "application",
-  "source-directories": ["core/src", "demo/src", "plex/src"],
+  "source-directories": [
+    "packages/core",
+    "packages/react-native-ios-context-menu",
+    "packages/react-native-picker",
+    "packages/react-native-vector-icons",
+    "packages/react-native-video",
+    "demo/src",
+    "plex/src"
+  ],
   "elm-version": "0.19.1",
   "dependencies": {
     "direct": {

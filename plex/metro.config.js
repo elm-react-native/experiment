@@ -5,7 +5,10 @@
  * @format
  */
 
-module.exports = {
+const {mergeConfig, getDefaultConfig} = require('metro-config');
+const packagesConfig = require('../packages/metro.config');
+
+const config = {
   transformer: {
     getTransformOptions: async () => ({
       transform: {
@@ -15,3 +18,5 @@ module.exports = {
     }),
   },
 };
+
+module.exports = mergeConfig(packagesConfig, config);

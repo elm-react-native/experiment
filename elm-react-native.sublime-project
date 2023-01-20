@@ -23,7 +23,15 @@
   "settings": {
     "build_on_save": false,
     "elm_entry_file": "plex/src/Plex.elm",
-    "elm_source_directories": ["core/src", "demo/src", "plex/src"],
+    "elm_source_directories": [
+      "packages/core",
+      "packages/react-native-ios-context-menu",
+      "packages/react-native-picker",
+      "packages/react-native-vector-icons",
+      "packages/react-native-video",
+      "demo/src",
+      "plex/src"
+    ],
     "LSP": {
       "LSP-typescript": {
         "enabled": false

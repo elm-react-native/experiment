@@ -19,9 +19,9 @@ function capitalize () {
     echo "$x$xs"
 }
 
-elm make $1/src/$(capitalize $1).elm --output ./core/patch/elm.js
+elm make $1/src/$(capitalize $1).elm --output ./patch/elm.js
 if [ $? -eq 0 ]; then
-    node ./core/patch/patch.js ./$1/App.jsx
+    node ./patch/patch.js ./$1/App.jsx
 else
     exit $?
 fi
