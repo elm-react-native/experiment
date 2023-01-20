@@ -17,7 +17,6 @@ import EasingExample
 import FlatListExample
 import Html exposing (Html)
 import Html.Lazy exposing (lazy)
-import Icon exposing (materialIcon)
 import ImageExample
 import InputAccessoryViewExample
 import Json.Decode as Decode
@@ -34,6 +33,7 @@ import PlatformExample
 import PressableExample
 import ReactNative exposing (button, image, null, pressable, require, safeAreaView, scrollView, statusBar, str, text, touchableOpacity, view)
 import ReactNative.Events exposing (onPress)
+import ReactNative.Icon exposing (materialIcon)
 import ReactNative.Navigation as Nav exposing (screen, stackNavigator)
 import ReactNative.Navigation.Listeners as Listeners
 import ReactNative.Platform as Platform
