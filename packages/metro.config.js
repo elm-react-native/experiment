@@ -7,13 +7,16 @@ module.exports = {
     nodeModulesPaths: [path.resolve("node_modules")],
     resolveRequest: (context, moduleName, platform) => {
       if (/^@elm-react-native\//.test(moduleName)) {
-        return {
-          filePath: p(
-            moduleName.replace(/^@elm-react-native\//, "./"),
-            "index.js"
-          ),
-          type: "sourceFile",
-        };
+        const modulePath = moduleName.replace(/^@elm-react-native\//, "./");
+
+        const filePath = context.sourceExts
+          .flatMap((ext) => [
+            p(`${modulePath}.${ext}`),
+            p(`${modulePath}.index.${ext}`),
+          ])
+          .find((f) => context.doesFileExist(f));
+
+        return { filePath, type: "sourceFile" };
       }
 
       return context.resolveRequest(context, moduleName, platform);

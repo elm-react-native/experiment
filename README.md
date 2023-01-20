@@ -4,11 +4,11 @@ The current implementation is based on _nasty_ monkey patch (by `patch/patch.js`
 
 ## patch/
 
-This folder contains scripts patches the generated elm.js.
+This folder contains scripts patches the generated elm.js. The `./build` command will execute `elm make` and then patch the result.
 
 ## packages/
 
-This folder contains elm packages wraps react native libraries.
+This folder contains elm packages wraps react native built-in components as well as some other community libraries.
 
 ## demo/
 
@@ -16,24 +16,23 @@ This contains examples translate from React Native's offical document.
 
 ### Run On MacOS
 
-Requires elm, nodejs and expo
+Requires elm, nodejs and expo.
 
 - cd demo
 - npm install
 - npm start
-- execute `./build demo` to generate after made changes.
+- execute `./build demo` after made changes.
 
 ## plex/
 
-This is an iOS [Plex](https://www.plex.tv) client, a video steaming app, which can browsing / steaming a local plex server.
+This is an iOS [Plex](https://www.plex.tv) client, a video steaming app, which can browsing / steaming from local plex server. Android is NOT working for now.
 
 ### Run On MacOS
 
 Requires elm and nodejs.
-Android is NOT working for now.
 
 - cd plex
 - npm install
 - cd ios && pod install
 - npm start
-- execute `./build plex` to generate after made changes.
+- execute `./build plex` after made changes.
