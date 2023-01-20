@@ -1,5 +1,5 @@
 import Ionicons from "react-native-vector-icons/Ionicons";
 
-export default resolveComponent = (tag) => {
+export default (tag) => {
   if (tag === "Ionicons") return Ionicons;
 };

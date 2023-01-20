@@ -11,8 +11,7 @@ import ReactNative.Dimensions as Dimensions
 import ReactNative.Platform as Platform
 import ReactNative.Properties exposing (color, component, componentModel, getId, name, options, size, source, style)
 import ReactNative.StyleSheet as StyleSheet
-import Time
-import Video
+import ReactNative.Video
     exposing
         ( contentStartTime
         , controls
@@ -33,6 +32,7 @@ import Video
         , seekOnStart
         , video
         )
+import Time
 
 
 videoUri : VideoPlayer -> Api.Client -> String

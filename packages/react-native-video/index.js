@@ -13,6 +13,6 @@ const VideoPlayer = (props) => {
   return <Video ref={ref} {...props} />;
 };
 
-export default const resolveComponent = (tag) => {
+export default (tag) => {
   if (tag === "Video") return VideoPlayer;
 };

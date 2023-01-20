@@ -2,7 +2,6 @@ module EntityScreen exposing (entityScreen, episodesView, heroImage, heroInfo, h
 
 import Api exposing (Client, Metadata)
 import Components exposing (bottomPadding, chip, ionicon, progressBar, videoPlayContainer)
-import ContextMenu exposing (MenuItem, contextMenuButton, isMenuPrimaryAction, menuConfig, onPressMenuItem, pressEventMenuItemDecoder)
 import Dict
 import Html exposing (Html)
 import Json.Decode as Decode
@@ -20,6 +19,7 @@ import ReactNative
         , touchableOpacity
         , view
         )
+import ReactNative.ContextMenuIOS exposing (MenuItem, contextMenuButton, isMenuPrimaryAction, menuConfig, onPressMenuItem, pressEventMenuItemDecoder)
 import ReactNative.Events exposing (onPress)
 import ReactNative.Properties
     exposing

@@ -36,9 +36,9 @@ import ReactNative.Properties
         , title
         )
 import ReactNative.StyleSheet as StyleSheet
+import ReactNative.Video exposing (video)
 import Theme
 import Utils exposing (formatDuration, percentFloat)
-import Video exposing (video)
 
 
 homeStyles =

@@ -13,7 +13,6 @@ import Http
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Model exposing (..)
-import PickerScreen exposing (pickerScreen)
 import Random
 import ReactNative exposing (fragment, null, touchableOpacity, touchableWithoutFeedback, view)
 import ReactNative.ActionSheetIOS as ActionSheetIOS
@@ -438,21 +437,6 @@ update msg model =
         DismissKeyboard ->
             ( model, Task.perform (always NoOp) Keyboard.dismiss )
 
-        ShowPicker args ->
-            case model of
-                Home m ->
-                    ( model
-                    , Nav.push m.navKey "picker" args
-                      --, ActionSheetIOS.pickAction (( "Cancel", NoOp ) :: items)
-                      --    [ ActionSheetIOS.cancelButtonIndex 0
-                      --    , ActionSheetIOS.tintColor Theme.themeColor
-                      --    ]
-                      --    |> Task.perform (Maybe.withDefault NoOp)
-                    )
-
-                _ ->
-                    ( model, Cmd.none )
-
         GotScreenMetrics screenMetrics ->
             case model of
                 Home ({ videoPlayer } as m) ->
@@ -626,15 +610,6 @@ root model =
                                     params.metadata.ratingKey
                         )
                     , component entityScreen
-                    ]
-                    []
-                , screen
-                    [ name "picker"
-                    , options
-                        { presentation = "transparentModal"
-                        , headerShown = False
-                        }
-                    , component pickerScreen
                     ]
                     []
                 , screen

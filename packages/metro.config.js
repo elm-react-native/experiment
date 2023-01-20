@@ -12,7 +12,7 @@ module.exports = {
         const filePath = context.sourceExts
           .flatMap((ext) => [
             p(`${modulePath}.${ext}`),
-            p(`${modulePath}.index.${ext}`),
+            p(modulePath, `index.${ext}`),
           ])
           .find((f) => context.doesFileExist(f));
 
