@@ -1,7 +1,7 @@
 module HomeScreen exposing (homeScreen, homeStyles, itemLabel, itemView, librarySectionView, retryGetSections, sectionContainer, sectionView)
 
 import Api exposing (Client, Metadata, Section)
-import Components exposing (bottomPadding, ionicon, progressBar, videoPlayContainer)
+import Components exposing (bottomPadding, progressBar, videoPlayContainer)
 import Dict
 import Html exposing (Html)
 import Json.Decode as Decode
@@ -22,6 +22,7 @@ import ReactNative
         , view
         )
 import ReactNative.Events exposing (onPress)
+import ReactNative.Icon exposing (ionicon)
 import ReactNative.Properties
     exposing
         ( color

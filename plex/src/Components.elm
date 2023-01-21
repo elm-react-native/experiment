@@ -1,18 +1,14 @@
-module Components exposing (bottomPadding, chip, favicon, ionicon, progressBar, videoPlay, videoPlayContainer)
+module Components exposing (bottomPadding, chip, favicon, progressBar, videoPlay, videoPlayContainer)
 
 import Browser
 import Html exposing (Attribute, Html)
 import Json.Decode exposing (Decoder)
 import ReactNative exposing (image, node, require, str, text, touchableOpacity, view)
 import ReactNative.Events exposing (onPress)
+import ReactNative.Icon exposing (ionicon)
 import ReactNative.Properties exposing (color, name, size, source, style)
 import Theme
 import Utils exposing (percentFloat)
-
-
-ionicon : String -> List (Attribute msg) -> Html msg
-ionicon n props =
-    node "Ionicons" (name n :: props) []
 
 
 videoPlay : Int -> Decoder msg -> Html msg
