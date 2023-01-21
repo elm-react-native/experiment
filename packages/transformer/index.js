@@ -2,9 +2,9 @@ const defaultTransformer = require("metro-transform-worker");
 const fs = require("fs");
 const shell = require("shelljs");
 const path = require("path");
-const patch = require("./patch");
 const readline = require("readline");
 const util = require("util");
+const patch = require("./patcher");
 
 const p = (...ps) => path.join(__dirname, ...ps);
 

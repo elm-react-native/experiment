@@ -16,7 +16,7 @@ const initElmjs = async (moduleName) => {
 };
 
 module.exports = (transformOptions = { transform: {} }) => ({
-  transformerPath: p("../patch/transformer.js"),
+  transformerPath: p("./transformer"),
   resolver: {
     nodeModulesPaths: [path.resolve("node_modules")],
 

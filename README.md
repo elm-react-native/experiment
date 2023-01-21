@@ -1,14 +1,11 @@
 The idea is to replace virtual-dom and browser package with React virtual dom and return react component instead of elm node when calling the `Html.node` function.
 
-The current implementation is based on _nasty_ monkey patch (by `patch/patch.js` file), and I will try to use kernel code (which requires patching the elm compiler) instead.
-
-## patch/
-
-This folder contains scripts patches the generated elm.js. The `./build` command will execute `elm make` and then patch the result.
+The current implementation is based on _nasty_ monkey patch (by `packages/patcher`), and I will try to use kernel code (which requires patching the elm compiler) instead.
 
 ## packages/
 
 This folder contains elm packages wraps react native built-in components as well as some other community libraries.
+Also there is metro transformer to patch the output file of elm compiler.
 
 ## demo/
 
@@ -21,7 +18,7 @@ Requires elm, nodejs and expo.
 - cd demo
 - npm install
 - npm start
-- execute `./build demo` after made changes.
+- execute `./build demo` (same as `elm make demo/src/Demo.elm --output ./demo/elm.js`) after made changes.
 
 ## plex/
 
