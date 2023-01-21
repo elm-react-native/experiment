@@ -122,8 +122,6 @@ const listToChildren = (list) => {
   else return children;
 };
 
-const componentRefs = new Map();
-
 const factListFindId = (factList) => {
   for (; factList.b; factList = factList.b) {
     if (factList.a.n === "id") {
@@ -155,6 +153,7 @@ const createChildren = (ChildCompnent, kidList, eventNode) => {
   return children;
 };
 
+const componentRefs = new Map();
 const ElmNodeComponentWithRef = (props) => {
   const eventNode = React.useContext(EventNodeContext);
   const actualProps = _VirtualDom_factsToReactProps(props, eventNode);
