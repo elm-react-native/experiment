@@ -1,46 +1,55 @@
 {
   "images" : [
     {
+      "filename" : "plex_alt_macos_bigsur_icon_189824 8.png",
       "idiom" : "iphone",
       "scale" : "2x",
       "size" : "20x20"
     },
     {
+      "filename" : "plex_alt_macos_bigsur_icon_189824 7.png",
       "idiom" : "iphone",
       "scale" : "3x",
       "size" : "20x20"
     },
     {
+      "filename" : "plex_alt_macos_bigsur_icon_189824 6.png",
       "idiom" : "iphone",
       "scale" : "2x",
       "size" : "29x29"
     },
     {
+      "filename" : "plex_alt_macos_bigsur_icon_189824 5.png",
       "idiom" : "iphone",
       "scale" : "3x",
       "size" : "29x29"
     },
     {
+      "filename" : "plex_alt_macos_bigsur_icon_189824 4.png",
       "idiom" : "iphone",
       "scale" : "2x",
       "size" : "40x40"
     },
     {
+      "filename" : "plex_alt_macos_bigsur_icon_189824 3.png",
       "idiom" : "iphone",
       "scale" : "3x",
       "size" : "40x40"
     },
     {
+      "filename" : "plex_alt_macos_bigsur_icon_189824 2.png",
       "idiom" : "iphone",
       "scale" : "2x",
       "size" : "60x60"
     },
     {
+      "filename" : "plex_alt_macos_bigsur_icon_189824 1.png",
       "idiom" : "iphone",
       "scale" : "3x",
       "size" : "60x60"
     },
     {
+      "filename" : "plex_alt_macos_bigsur_icon_189824.png",
       "idiom" : "ios-marketing",
       "scale" : "1x",
       "size" : "1024x1024"
