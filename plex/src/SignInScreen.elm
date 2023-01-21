@@ -111,7 +111,7 @@ signInScreen { client, submitting } =
                 , behavior "height"
                 ]
                 [ image
-                    [ source <| require "../assets/plex-logo.png"
+                    [ source <| require "./assets/plex-logo.png"
                     , style signInStyles.logo
                     ]
                     []

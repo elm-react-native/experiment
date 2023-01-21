@@ -5,18 +5,11 @@
  * @format
  */
 
-const {mergeConfig, getDefaultConfig} = require('metro-config');
 const packagesConfig = require('../packages/metro.config');
 
-const config = {
+module.exports = packagesConfig({
   transformer: {
-    getTransformOptions: async () => ({
-      transform: {
-        experimentalImportSupport: false,
-        inlineRequires: true,
-      },
-    }),
+    experimentalImportSupport: false,
+    inlineRequires: true,
   },
-};
-
-module.exports = mergeConfig(packagesConfig, config);
+});

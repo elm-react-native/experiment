@@ -78,7 +78,7 @@ progressBar props p =
 favicon : a -> Html msg
 favicon size =
     image
-        [ source <| require "../assets/plex-favicon.png"
+        [ source <| require "./assets/plex-favicon.png"
         , style { width = size, height = size }
         ]
         []

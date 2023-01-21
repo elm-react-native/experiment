@@ -32,6 +32,7 @@
       "demo/src",
       "plex/src"
     ],
+    "elm_output_file": "plex/elm.js",
     "LSP": {
       "LSP-typescript": {
         "enabled": false
