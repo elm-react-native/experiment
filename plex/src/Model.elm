@@ -1,18 +1,12 @@
-module Model exposing (HomeModel, LibrarySection, Model(..), Msg(..), RemoteData, SignInModel, TVSeason, TVShow, VideoPlayer, findSeason, initHomeModel, initialVideoPlayer, isVideoUrlReady, updateSelectedSeason, updateTVShow)
+module Model exposing (HomeModel, LibrarySection, Model(..), Msg(..), RemoteData, TVSeason, TVShow, VideoPlayer, findSeason, initHomeModel, initialVideoPlayer, isVideoUrlReady, updateSelectedSeason, updateTVShow)
 
 import Api exposing (Account, Client, Library, Metadata, Section)
 import Browser.Navigation as N
 import Dict exposing (Dict)
 import Http
 import ReactNative.Dimensions as Dimensions
+import SignInModel exposing (SignInModel, SignInMsg)
 import Time
-
-
-type alias SignInModel =
-    { client : Client
-    , navKey : N.Key
-    , submitting : Bool
-    }
 
 
 type alias RemoteData data =
@@ -95,22 +89,17 @@ type Model
 
 type Msg
     = NoOp
-    | SignInInputEmail String
-    | SignInInputPassword String
-    | SignInSubmit
-    | SignInSubmitResponse (Result Http.Error Client)
+    | SignInMsg SignInMsg
     | ReloadSections
     | GotSavedClient (Maybe Client)
-    | GotClientId String
+    | GotAccount (Result Http.Error Account)
     | GotSections (Result Http.Error (List Section))
     | GotLibraries (Result Http.Error (List Library))
     | GotLibrarySection String LibrarySection
     | GotTVShow String (Result Http.Error TVShow)
     | GotEpisodes String String (Result Http.Error (List Metadata))
-    | DismissKeyboard
     | ShowSection String
     | ShowEntity String String
-    | GotAccount (Result Http.Error Account)
     | GotoAccount
     | GotoEntity Bool Metadata
     | ChangeSeason String String

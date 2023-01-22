@@ -24,7 +24,8 @@ import ReactNative.Navigation as Nav exposing (screen, stackNavigator)
 import ReactNative.Navigation.Listeners as Listeners
 import ReactNative.Properties exposing (color, component, componentModel, getId, name, options, size, source, style)
 import ReactNative.Settings as Settings
-import SignInScreen exposing (signInScreen)
+import SignInModel exposing (SignInModel, SignInMsg)
+import SignInScreen exposing (signInScreen, signInUpdate)
 import Task
 import Theme
 import Time
@@ -37,25 +38,6 @@ init key =
     ( Initial key, loadClient )
 
 
-findLocalServer : List Api.Resource -> Maybe { serverAddress : String, token : String }
-findLocalServer resources =
-    resources
-        |> List.filterMap
-            (\resource ->
-                if resource.provides == "server" then
-                    case List.head <| List.filter (\conn -> conn.local) resource.connections of
-                        Just conn ->
-                            Just { serverAddress = conn.uri, token = resource.accessToken }
-
-                        _ ->
-                            Nothing
-
-                else
-                    Nothing
-            )
-        |> List.head
-
-
 hijackUnauthorizedError : (Result Http.Error a -> Msg) -> (Result Http.Error a -> Msg)
 hijackUnauthorizedError tagger =
     \resp ->
@@ -65,27 +47,6 @@ hijackUnauthorizedError tagger =
 
             _ ->
                 tagger resp
-
-
-signInSubmit : Client -> Cmd Msg
-signInSubmit client =
-    Api.signIn client
-        |> Task.andThen (\{ authToken } -> Api.getResources { client | token = authToken })
-        |> Task.andThen
-            (\resources ->
-                case findLocalServer resources of
-                    Just { token, serverAddress } ->
-                        Task.succeed
-                            { client
-                                | token = token
-                                , serverAddress = serverAddress
-                                , password = ""
-                            }
-
-                    _ ->
-                        Task.fail <| Http.BadBody "Can't find local server. This App only support local server."
-            )
-        |> Task.attempt SignInSubmitResponse
 
 
 getAccount : Client -> Cmd Msg
@@ -221,45 +182,13 @@ update msg model =
 
                         _ ->
                             ( SignIn { client = initialClient, navKey = navKey, submitting = False }
-                            , Random.generate GotClientId Utils.generateIdentifier
+                            , Cmd.map SignInMsg <| Random.generate SignInModel.GotClientId Utils.generateIdentifier
                             )
 
                 _ ->
                     ( model, Cmd.none )
 
-        SignInInputEmail email ->
-            case model of
-                SignIn m ->
-                    let
-                        client =
-                            m.client
-                    in
-                    ( SignIn { m | client = { client | email = email } }, Cmd.none )
-
-                _ ->
-                    ( model, Cmd.none )
-
-        SignInInputPassword password ->
-            case model of
-                SignIn m ->
-                    let
-                        client =
-                            m.client
-                    in
-                    ( SignIn { m | client = { client | password = password } }, Cmd.none )
-
-                _ ->
-                    ( model, Cmd.none )
-
-        SignInSubmit ->
-            case model of
-                SignIn m ->
-                    ( SignIn { m | submitting = True }, signInSubmit m.client )
-
-                _ ->
-                    ( model, Cmd.none )
-
-        SignInSubmitResponse (Ok client) ->
+        SignInMsg (SignInModel.SubmitResponse (Ok client)) ->
             case model of
                 SignIn { navKey } ->
                     ( Home <| initHomeModel client navKey
@@ -269,19 +198,14 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
-        SignInSubmitResponse (Err err) ->
+        SignInMsg signInMsg ->
             case model of
                 SignIn m ->
                     let
-                        errMessage =
-                            case err of
-                                Http.BadStatus 401 ->
-                                    "Email or password is wrong."
-
-                                _ ->
-                                    "Network error."
+                        ( signInModel, signInCmd ) =
+                            signInUpdate signInMsg m
                     in
-                    ( SignIn { m | submitting = False }, Alert.showAlert (always NoOp) errMessage [] )
+                    ( SignIn signInModel, Cmd.map SignInMsg signInCmd )
 
                 _ ->
                     ( model, Cmd.none )
@@ -481,9 +405,6 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
-        DismissKeyboard ->
-            ( model, Task.perform (always NoOp) Keyboard.dismiss )
-
         GotScreenMetrics screenMetrics ->
             case model of
                 Home ({ videoPlayer } as m) ->
@@ -553,14 +474,6 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
-        GotClientId id ->
-            case model of
-                SignIn ({ client } as m) ->
-                    ( SignIn <| { m | client = { client | id = id } }, Cmd.none )
-
-                _ ->
-                    ( model, Cmd.none )
-
         OnVideoBuffer isBuffering ->
             case model of
                 Home ({ videoPlayer } as m) ->
@@ -618,7 +531,7 @@ root model =
             null
 
         SignIn m ->
-            signInScreen m
+            Html.map SignInMsg <| signInScreen m
 
         Home m ->
             stackNavigator "Main" [ componentModel m ] <|
