@@ -20,6 +20,8 @@ module ReactNative.Properties exposing
     , animated
     , animating
     , animationType
+    , autoCapitalize
+    , autoCorrect
     , automaticallyAdjustContentInsets
     , automaticallyAdjustKeyboardInsets
     , automaticallyAdjustsScrollIndicatorInsets
@@ -171,6 +173,7 @@ module ReactNative.Properties exposing
     , supportedOrientations
     , testID
     , testOnly_pressed
+    , textContentType
     , themeVariant
     , thumbColor
     , tintColor
@@ -718,6 +721,14 @@ animationType =
     property "animationType" << Encode.string
 
 
+autoCapitalize =
+    property "autoCapitalize" << Encode.string
+
+
+autoCorrect =
+    property "autoCorrect" << Encode.bool
+
+
 transparent =
     property "transparent" << Encode.bool
 
@@ -1033,6 +1044,10 @@ testID =
 
 testOnly_pressed =
     property "testOnly_pressed" << Encode.bool
+
+
+textContentType =
+    property "textContentType" << Encode.string
 
 
 shadowColor =

@@ -35,7 +35,9 @@ import ReactNative.Keyboard as Keyboard
 import ReactNative.Navigation as Nav exposing (screen, stackNavigator)
 import ReactNative.Properties
     exposing
-        ( behavior
+        ( autoCapitalize
+        , autoCorrect
+        , behavior
         , color
         , component
         , componentModel
@@ -52,6 +54,7 @@ import ReactNative.Properties
         , source
         , stringValue
         , style
+        , textContentType
         , title
         )
 import ReactNative.Settings as Settings
@@ -124,6 +127,9 @@ signInScreen { client, submitting } =
                     , stringValue client.email
                     , onChangeText SignInInputEmail
                     , inputMode "email"
+                    , autoCorrect False
+                    , autoCapitalize "none"
+                    , textContentType "emailAddress"
                     ]
                     []
                 , textInput
@@ -134,6 +140,7 @@ signInScreen { client, submitting } =
                     , stringValue client.password
                     , secureTextEntry True
                     , onChangeText SignInInputPassword
+                    , textContentType "password"
                     ]
                     []
                 , let
