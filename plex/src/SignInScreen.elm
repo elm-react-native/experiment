@@ -156,7 +156,7 @@ signInScreen { client, submitting } =
                       else
                         style signInStyles.button
                     , disabled buttonDisabled
-                    , onPress <| Decode.succeed <| SignInSubmit client
+                    , onPress <| Decode.succeed SignInSubmit
                     ]
                     [ if submitting then
                         activityIndicator [ color "white" ] []

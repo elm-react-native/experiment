@@ -122,7 +122,12 @@ accountScreen model _ =
             , paddingTop = 20
             }
         ]
-        [ avatar model.account 64
+        [ case model.account of
+            Just account ->
+                avatar account 64
+
+            _ ->
+                null
         , scrollView [ contentContainerStyle { width = "100%", alignItems = "center" } ]
             [ view
                 []

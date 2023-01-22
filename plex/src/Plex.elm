@@ -73,31 +73,12 @@ signInSubmit client =
                     _ ->
                         Task.fail <| Http.BadBody "Can't find local server. This App only support local server."
             )
-        |> Task.andThen
-            (\localServerClient ->
-                Api.getAccount localServerClient
-                    |> Task.map
-                        (\account ->
-                            { account = account
-                            , client = localServerClient
-                            }
-                        )
-            )
         |> Task.attempt SignInSubmitResponse
 
 
-autoSigInSubmit : Client -> Cmd Msg
-autoSigInSubmit client =
-    Api.getAccount client
-        |> Task.attempt
-            (\res ->
-                SignInSubmitResponse <|
-                    Result.map
-                        (\account ->
-                            { account = account, client = client }
-                        )
-                        res
-            )
+getAccount : Client -> Cmd Msg
+getAccount =
+    Api.getAccount GotAccount
 
 
 getSections : Client -> Cmd Msg
@@ -180,14 +161,14 @@ loadClient =
             (\res ->
                 case res of
                     Err _ ->
-                        GotoSignIn Nothing
+                        GotSavedClient Nothing
 
                     Ok client ->
                         if String.isEmpty client.token then
-                            GotoSignIn Nothing
+                            GotSavedClient Nothing
 
                         else
-                            GotoSignIn <| Just client
+                            GotSavedClient <| Just client
             )
 
 
@@ -232,24 +213,15 @@ update msg model =
         NoOp ->
             ( model, Cmd.none )
 
-        GotoSignIn savedClient ->
+        GotSavedClient savedClient ->
             case model of
-                Initial key ->
+                Initial navKey ->
                     case savedClient of
                         Just client ->
-                            ( SignIn { client = client, navKey = key, submitting = True }
-                            , Cmd.batch
-                                [ autoSigInSubmit client
-                                , if String.isEmpty client.id then
-                                    Random.generate GotClientId Utils.generateIdentifier
-
-                                  else
-                                    Cmd.none
-                                ]
-                            )
+                            ( Home <| initHomeModel client navKey, Cmd.batch [ getSections client, getLibraries client, getAccount client ] )
 
                         _ ->
-                            ( SignIn { client = initialClient, navKey = key, submitting = False }
+                            ( SignIn { client = initialClient, navKey = navKey, submitting = False }
                             , Random.generate GotClientId Utils.generateIdentifier
                             )
 
@@ -280,33 +252,18 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
-        SignInSubmit client ->
+        SignInSubmit ->
             case model of
                 SignIn m ->
-                    ( SignIn { m | client = client, submitting = True }, signInSubmit client )
+                    ( SignIn { m | submitting = True }, signInSubmit m.client )
 
                 _ ->
                     ( model, Cmd.none )
 
-        SignInSubmitResponse (Ok { account, client }) ->
+        SignInSubmitResponse (Ok client) ->
             case model of
                 SignIn { navKey } ->
-                    ( Home
-                        { sections = Nothing
-                        , account =
-                            if String.isEmpty account.thumb then
-                                account
-
-                            else
-                                { account | thumb = Api.clientRequestUrl account.thumb client }
-                        , client = client
-                        , tvShows = Dict.empty
-                        , navKey = navKey
-                        , libraries = Dict.empty
-                        , videoPlayer = initialVideoPlayer
-                        }
-                    , Cmd.batch [ saveClient client, getSections client, getLibraries client ]
-                    )
+                    ( Home <| initHomeModel client navKey, Cmd.batch [ saveClient client, getSections client, getLibraries client, getAccount client ] )
 
                 _ ->
                     ( model, Cmd.none )
@@ -633,6 +590,17 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
+        GotAccount (Ok account) ->
+            case model of
+                Home m ->
+                    ( Home { m | account = Just account }, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        GotAccount (Err _) ->
+            ( model, Cmd.none )
+
 
 
 -- VIEW
@@ -658,7 +626,13 @@ root model =
                             \_ ->
                                 touchableOpacity
                                     [ onPress <| Decode.succeed GotoAccount ]
-                                    [ avatar m.account 24 ]
+                                    [ case m.account of
+                                        Just account ->
+                                            avatar account 24
+
+                                        _ ->
+                                            null
+                                    ]
                         , headerTintColor = "white"
                         , headerStyle = { backgroundColor = Theme.backgroundColor }
                         }
@@ -669,7 +643,7 @@ root model =
                     [ name "account"
                     , options
                         { headerTitle = ""
-                        , headerBackTitle = m.account.name
+                        , headerBackTitle = Maybe.withDefault "" <| Maybe.map .name m.account
                         , headerTintColor = "white"
                         , headerStyle = { backgroundColor = Theme.backgroundColor }
                         }

@@ -661,9 +661,9 @@ accountDecoder =
             (Decode.field "thumb" Decode.string)
 
 
-getAccount : Client -> Task Http.Error Account
+getAccount : (Result Http.Error Account -> msg) -> Client -> Cmd msg
 getAccount =
-    clientGetJsonTask accountDecoder "/accounts"
+    clientGetJson accountDecoder "/accounts"
 
 
 type alias TimelineRequest =

@@ -1,4 +1,4 @@
-module Model exposing (HomeModel, LibrarySection, Model(..), Msg(..), RemoteData, SignInModel, TVSeason, TVShow, VideoPlayer, findSeason, initialVideoPlayer, isVideoUrlReady, updateSelectedSeason, updateTVShow)
+module Model exposing (HomeModel, LibrarySection, Model(..), Msg(..), RemoteData, SignInModel, TVSeason, TVShow, VideoPlayer, findSeason, initHomeModel, initialVideoPlayer, isVideoUrlReady, updateSelectedSeason, updateTVShow)
 
 import Api exposing (Account, Client, Library, Metadata, Section)
 import Browser.Navigation as N
@@ -51,10 +51,21 @@ type alias HomeModel =
     { sections : RemoteData (List Section)
     , tvShows : Dict String (Result Http.Error TVShow)
     , client : Client
-    , account : Account
+    , account : Maybe Account
     , navKey : N.Key
     , libraries : Dict String LibrarySection
     , videoPlayer : VideoPlayer
+    }
+
+
+initHomeModel client navKey =
+    { sections = Nothing
+    , account = Nothing
+    , client = client
+    , tvShows = Dict.empty
+    , navKey = navKey
+    , libraries = Dict.empty
+    , videoPlayer = initialVideoPlayer
     }
 
 
@@ -84,12 +95,12 @@ type Model
 
 type Msg
     = NoOp
-    | GotoSignIn (Maybe Client)
     | SignInInputEmail String
     | SignInInputPassword String
-    | SignInSubmit Client
-    | SignInSubmitResponse (Result Http.Error { account : Account, client : Client })
+    | SignInSubmit
+    | SignInSubmitResponse (Result Http.Error Client)
     | ReloadSections
+    | GotSavedClient (Maybe Client)
     | GotClientId String
     | GotSections (Result Http.Error (List Section))
     | GotLibraries (Result Http.Error (List Library))
@@ -99,6 +110,7 @@ type Msg
     | DismissKeyboard
     | ShowSection String
     | ShowEntity String String
+    | GotAccount (Result Http.Error Account)
     | GotoAccount
     | GotoEntity Bool Metadata
     | ChangeSeason String String
