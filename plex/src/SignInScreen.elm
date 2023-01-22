@@ -42,6 +42,7 @@ import ReactNative.Properties
         , contentContainerStyle
         , disabled
         , getId
+        , inputMode
         , name
         , options
         , placeholder
@@ -118,27 +119,28 @@ signInScreen { client, submitting } =
                 , textInput
                     [ style signInStyles.input
                     , disabled submitting
-                    , placeholder "Address http://192.168.1.1:32400"
+                    , placeholder "Email"
                     , placeholderTextColor "#555"
-                    , stringValue client.serverAddress
-                    , onChangeText SignInInputAddress
+                    , stringValue client.email
+                    , onChangeText SignInInputEmail
+                    , inputMode "email"
                     ]
                     []
                 , textInput
                     [ style signInStyles.input
                     , disabled submitting
-                    , placeholder "Token hoSG7jeEsYDMQnstqnzP"
+                    , placeholder "Password"
                     , placeholderTextColor "#555"
-                    , stringValue client.token
+                    , stringValue client.password
                     , secureTextEntry True
-                    , onChangeText SignInInputToken
+                    , onChangeText SignInInputPassword
                     ]
                     []
                 , let
                     buttonDisabled =
                         submitting
-                            || String.isEmpty client.serverAddress
-                            || String.isEmpty client.token
+                            || String.isEmpty client.email
+                            || String.isEmpty client.password
                   in
                   touchableOpacity
                     [ if buttonDisabled then

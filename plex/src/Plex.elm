@@ -34,14 +34,70 @@ import VideoScreen exposing (videoScreen)
 
 init : N.Key -> ( Model, Cmd Msg )
 init key =
-    ( Initial key
-    , loadClient
-    )
+    ( Initial key, loadClient )
+
+
+findLocalAddress : List Api.Resource -> String
+findLocalAddress resources =
+    resources
+        |> List.filterMap
+            (\resource ->
+                if resource.provides == "server" then
+                    case List.head <| List.filter (\conn -> conn.local) resource.connections of
+                        Just conn ->
+                            Just conn.uri
+
+                        _ ->
+                            Nothing
+
+                else
+                    Nothing
+            )
+        |> List.head
+        |> Maybe.withDefault ""
 
 
 signInSubmit : Client -> Cmd Msg
-signInSubmit =
-    Api.getAccount SignInSubmitResponse
+signInSubmit client =
+    Api.signIn client
+        |> Task.andThen
+            (\resp ->
+                Task.map
+                    (\resources ->
+                        { client
+                            | token = resp.authToken
+                            , serverAddress = findLocalAddress resources
+                        }
+                    )
+                <|
+                    Api.getResources { client | token = resp.authToken }
+            )
+        |> Task.andThen
+            (\newClient ->
+                Task.map
+                    (\account ->
+                        { account = account
+                        , client = newClient
+                        }
+                    )
+                <|
+                    Api.getAccount newClient
+            )
+        |> Task.attempt SignInSubmitResponse
+
+
+autoSigInSubmit : Client -> Cmd Msg
+autoSigInSubmit client =
+    Api.getAccount client
+        |> Task.attempt
+            (\res ->
+                SignInSubmitResponse <|
+                    Result.map
+                        (\account ->
+                            { account = account, client = client }
+                        )
+                        res
+            )
 
 
 getSections : Client -> Cmd Msg
@@ -108,11 +164,31 @@ savePlaybackTime player client =
 
 loadClient : Cmd Msg
 loadClient =
-    Task.map3 Client
+    Task.map3
+        (\token serverAddress id ->
+            { token = token
+            , serverAddress = serverAddress
+            , id = id
+            , email = ""
+            , password = ""
+            }
+        )
         (Settings.get "token" Decode.string)
         (Settings.get "serverAddress" Decode.string)
         (Settings.get "clientId" <| Utils.maybeEmptyString Decode.string)
-        |> Task.attempt (Result.toMaybe >> GotoSignIn)
+        |> Task.attempt
+            (\res ->
+                case res of
+                    Err _ ->
+                        GotoSignIn Nothing
+
+                    Ok client ->
+                        if String.isEmpty client.token then
+                            GotoSignIn Nothing
+
+                        else
+                            GotoSignIn <| Just client
+            )
 
 
 saveClient : Client -> Cmd Msg
@@ -151,7 +227,7 @@ update msg model =
                         Just client ->
                             ( SignIn { client = client, navKey = key, submitting = True }
                             , Cmd.batch
-                                [ signInSubmit client
+                                [ autoSigInSubmit client
                                 , if String.isEmpty client.id then
                                     Random.generate GotClientId Utils.generateIdentifier
 
@@ -168,26 +244,26 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
-        SignInInputToken token ->
+        SignInInputEmail email ->
             case model of
                 SignIn m ->
                     let
                         client =
                             m.client
                     in
-                    ( SignIn { m | client = { client | token = token } }, Cmd.none )
+                    ( SignIn { m | client = { client | email = email } }, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
 
-        SignInInputAddress serverAddress ->
+        SignInInputPassword password ->
             case model of
                 SignIn m ->
                     let
                         client =
                             m.client
                     in
-                    ( SignIn { m | client = { client | serverAddress = serverAddress } }, Cmd.none )
+                    ( SignIn { m | client = { client | password = password } }, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
@@ -200,9 +276,9 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
-        SignInSubmitResponse (Ok account) ->
+        SignInSubmitResponse (Ok { account, client }) ->
             case model of
-                SignIn { client, navKey } ->
+                SignIn { navKey } ->
                     ( Home
                         { sections = Nothing
                         , account =
@@ -210,7 +286,7 @@ update msg model =
                                 account
 
                             else
-                                { account | thumb = Api.pathToAuthedUrl account.thumb client }
+                                { account | thumb = Api.clientRequestUrl account.thumb client }
                         , client = client
                         , tvShows = Dict.empty
                         , navKey = navKey
@@ -229,11 +305,8 @@ update msg model =
                     let
                         errMessage =
                             case err of
-                                Http.BadUrl _ ->
-                                    "Server address is invalid."
-
                                 Http.BadStatus 401 ->
-                                    "Token is invalid or expired."
+                                    "Email or password is wrong."
 
                                 _ ->
                                     "Network error."
@@ -427,8 +500,8 @@ update msg model =
         SignOut ->
             case model of
                 Home ({ client } as m) ->
-                    ( SignIn { client = m.client, navKey = m.navKey, submitting = False }
-                    , saveClient { client | token = "" }
+                    ( SignIn { client = initialClient, navKey = m.navKey, submitting = False }
+                    , saveClient { client | token = "", serverAddress = "" }
                     )
 
                 _ ->

@@ -37,7 +37,7 @@ import Time
 
 videoUri : VideoPlayer -> Api.Client -> String
 videoUri { ratingKey, sessionId, screenMetrics } client =
-    Api.pathToAuthedUrl "/video/:/transcode/universal/start.m3u8" client
+    Api.clientRequestUrl "/video/:/transcode/universal/start.m3u8" client
         ++ ("&path=%2Flibrary%2Fmetadata%2F" ++ ratingKey)
         ++ "&fastSeek=1"
         ++ "&mediaBufferSize=102400"

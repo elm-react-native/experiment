@@ -9,7 +9,10 @@ import Time
 
 
 type alias SignInModel =
-    { client : Client, navKey : N.Key, submitting : Bool }
+    { client : Client
+    , navKey : N.Key
+    , submitting : Bool
+    }
 
 
 type alias RemoteData data =
@@ -82,10 +85,10 @@ type Model
 type Msg
     = NoOp
     | GotoSignIn (Maybe Client)
-    | SignInInputAddress String
-    | SignInInputToken String
+    | SignInInputEmail String
+    | SignInInputPassword String
     | SignInSubmit Client
-    | SignInSubmitResponse (Result Http.Error Account)
+    | SignInSubmitResponse (Result Http.Error { account : Account, client : Client })
     | ReloadSections
     | GotClientId String
     | GotSections (Result Http.Error (List Section))

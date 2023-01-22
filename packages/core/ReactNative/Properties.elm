@@ -83,6 +83,7 @@ module ReactNative.Properties exposing
     , initialParams
     , initialScrollIndex
     , inputAccessoryViewID
+    , inputMode
     , invertStickyHeaders
     , inverted
     , ios_backgroundColor
@@ -297,6 +298,10 @@ keyboardVerticalOffset =
 
 inputAccessoryViewID =
     property "inputAccessoryViewID" << Encode.string
+
+
+inputMode =
+    property "inputMode" << Encode.string
 
 
 nativeID =

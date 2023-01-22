@@ -1,4 +1,4 @@
-module Api exposing (Account, Client, Country, Director, Genre, Guid, Library, Location, Media, MediaPart, Metadata, Rating, Role, Section, Setting, TimelineRequest, TimelineResponse, Writer, accountDecoder, clientGetJson, clientGetJsonTask, firstAccountWithName, getAccount, getLibraries, getLibrary, getMetadata, getMetadataChildren, getSections, getSettings, httpJsonBodyResolver, initialClient, initialLibrary, initialMetadata, librariesDecoder, libraryDecoder, metadataDecoder, metadataListDecoder, pathToAuthedUrl, playerTimeline, sectionsDecoder, settingsDecoder, timelineResponseDecoder, transcodedImageUrl)
+module Api exposing (Account, Client, Connection, Country, Director, Genre, Guid, Library, Location, Media, MediaPart, Metadata, Rating, Resource, Role, Section, Setting, SignInResponse, TimelineRequest, TimelineResponse, Writer, accountDecoder, clientGetJson, clientGetJsonTask, clientRequestUrl, firstAccountWithName, getAccount, getLibraries, getLibrary, getMetadata, getMetadataChildren, getResources, getSections, getSettings, httpJsonBodyResolver, initialClient, initialLibrary, initialMetadata, librariesDecoder, libraryDecoder, metadataDecoder, metadataListDecoder, playerTimeline, sectionsDecoder, settingsDecoder, signIn, timelineResponseDecoder, transcodedImageUrl)
 
 import Http
 import Json.Decode as Decode exposing (Decoder)
@@ -6,28 +6,6 @@ import Json.Encode as Encode exposing (Value)
 import Task exposing (Task)
 import Url
 import Utils exposing (maybeEmptyList, maybeEmptyString, maybeFalse, maybeFloatZero, maybeZero)
-
-
-
---type alias MediaContainer metadata =
---    { size : Int -- The number of libraries.
---    , allowSync : Bool -- 1 - allow syncing content from this library.  0 - don't allow syncing content from this library.
---    , identifier : String -- The type of item.
---    , art : String -- Background artwork used to represent the library.
---    , librarySectionID : String -- The unique key associated with the library.
---    , librarySectionTitle : String -- The title of the library.
---    , librarySectionUUID : String -- Unique GUID identifier for the library.
---    , mediaTagPrefix : String -- Prefix for the media tag.
---    , medidTagVersion : Int -- Media tag version. Note: This could be a date and time value.
---    , thumb : String -- The thumbnail for the library.
---    , title1 : String -- The title of the library. Note: This appears to be internally created, and can't be changed by the server owner.
---    , title2 : String -- A descriptive title for the library.
---    , sortAsc : Bool -- 1 - the library is sorted in ascending order. 0 - the library is sorted in descending order.
---    , viewGroup : String -- The group type used to view the library.
---    , viewMode : Int -- Unknown integer value.
---    , nocache : Bool
---    , metadata : List metadata
---    }
 
 
 type alias Library =
@@ -86,6 +64,25 @@ type alias Location =
 
 
 
+--type alias MediaContainer metadata =
+--    { size : Int -- The number of libraries.
+--    , allowSync : Bool -- 1 - allow syncing content from this library.  0 - don't allow syncing content from this library.
+--    , identifier : String -- The type of item.
+--    , art : String -- Background artwork used to represent the library.
+--    , librarySectionID : String -- The unique key associated with the library.
+--    , librarySectionTitle : String -- The title of the library.
+--    , librarySectionUUID : String -- Unique GUID identifier for the library.
+--    , mediaTagPrefix : String -- Prefix for the media tag.
+--    , medidTagVersion : Int -- Media tag version. Note: This could be a date and time value.
+--    , thumb : String -- The thumbnail for the library.
+--    , title1 : String -- The title of the library. Note: This appears to be internally created, and can't be changed by the server owner.
+--    , title2 : String -- A descriptive title for the library.
+--    , sortAsc : Bool -- 1 - the library is sorted in ascending order. 0 - the library is sorted in descending order.
+--    , viewGroup : String -- The group type used to view the library.
+--    , viewMode : Int -- Unknown integer value.
+--    , nocache : Bool
+--    , metadata : List metadata
+--    }
 --type alias Hub =
 --    { hubKey : String
 --    , key : String
@@ -330,6 +327,23 @@ type alias Director =
     }
 
 
+directorDecoder : Decoder Director
+directorDecoder =
+    Decode.map3 Director
+        (Decode.field "id" Decode.int)
+        (Decode.field "tag" Decode.string)
+        (Decode.field "filter" Decode.string)
+
+
+encodedDirector : Director -> Encode.Value
+encodedDirector director =
+    Encode.object
+        [ ( "id", Encode.int director.id )
+        , ( "tag", Encode.string director.tag )
+        , ( "filter", Encode.string director.filter )
+        ]
+
+
 type alias Writer =
     { id : Int
     , tag : String
@@ -441,6 +455,8 @@ type alias Client =
     { token : String
     , serverAddress : String
     , id : String
+    , email : String
+    , password : String
     }
 
 
@@ -466,23 +482,34 @@ httpJsonBodyResolver decoder resp =
                 |> Result.mapError (\_ -> Http.BadStatus m.statusCode)
 
 
-clientGetJsonTask : Decoder a -> String -> Client -> Task Http.Error a
-clientGetJsonTask decoder path { serverAddress, token } =
-    let
-        url =
-            serverAddress
-                ++ path
-                ++ (if String.contains path "?" then
-                        "&"
+clientRequestUrl : String -> Client -> String
+clientRequestUrl path { id, serverAddress, token } =
+    serverAddress
+        ++ path
+        ++ (if String.contains "?" path then
+                "&"
 
-                    else
-                        "?"
-                   )
-                ++ "X-Plex-Token="
-                ++ token
-    in
+            else
+                "?"
+           )
+        ++ (if String.isEmpty token then
+                ""
+
+            else
+                "X-Plex-Token=" ++ token
+           )
+        ++ (if String.isEmpty id then
+                ""
+
+            else
+                "&X-Plex-Client-Identifier=" ++ id
+           )
+
+
+clientGetJsonTask : Decoder a -> String -> Client -> Task Http.Error a
+clientGetJsonTask decoder path client =
     Http.task
-        { url = url
+        { url = clientRequestUrl path client
         , method = "GET"
         , headers = [ Http.header "Accept" "application/json" ]
         , body = Http.emptyBody
@@ -491,23 +518,22 @@ clientGetJsonTask decoder path { serverAddress, token } =
         }
 
 
-clientGetJson : Decoder a -> String -> (Result Http.Error a -> msg) -> Client -> Cmd msg
-clientGetJson decoder path tagger { serverAddress, token } =
-    let
-        url =
-            serverAddress
-                ++ path
-                ++ (if String.contains "?" path then
-                        "&"
+clientPostJsonTask : Value -> Decoder a -> String -> Client -> Task Http.Error a
+clientPostJsonTask body decoder path client =
+    Http.task
+        { url = clientRequestUrl path client
+        , method = "POST"
+        , headers = [ Http.header "Accept" "application/json" ]
+        , body = Http.jsonBody body
+        , resolver = Http.stringResolver <| httpJsonBodyResolver decoder
+        , timeout = Nothing
+        }
 
-                    else
-                        "?"
-                   )
-                ++ "X-Plex-Token="
-                ++ token
-    in
+
+clientGetJson : Decoder a -> String -> (Result Http.Error a -> msg) -> Client -> Cmd msg
+clientGetJson decoder path tagger client =
     Http.request
-        { url = url
+        { url = clientRequestUrl path client
         , method = "GET"
         , headers = [ Http.header "Accept" "application/json" ]
         , body = Http.emptyBody
@@ -635,9 +661,9 @@ accountDecoder =
             (Decode.field "thumb" Decode.string)
 
 
-getAccount : (Result Http.Error Account -> msg) -> Client -> Cmd msg
+getAccount : Client -> Task Http.Error Account
 getAccount =
-    clientGetJson accountDecoder "/accounts"
+    clientGetJsonTask accountDecoder "/accounts"
 
 
 type alias TimelineRequest =
@@ -686,14 +712,9 @@ getSettings =
     clientGetJson settingsDecoder "/settings"
 
 
-pathToAuthedUrl : String -> Client -> String
-pathToAuthedUrl path client =
-    client.serverAddress ++ path ++ "?X-Plex-Token=" ++ client.token
-
-
 transcodedImageUrl : String -> Int -> Int -> Client -> String
 transcodedImageUrl thumb width height client =
-    pathToAuthedUrl "/photo/:/transcode" client
+    clientRequestUrl "/photo/:/transcode" client
         ++ ("&width=" ++ String.fromInt width)
         ++ ("&height=" ++ String.fromInt height)
         ++ ("&url=" ++ Url.percentEncode thumb)
@@ -701,4 +722,67 @@ transcodedImageUrl thumb width height client =
 
 initialClient : Client
 initialClient =
-    { serverAddress = "", token = "", id = "" }
+    { id = ""
+    , serverAddress = "https://plex.tv/api/v2"
+    , token = ""
+    , email = ""
+    , password = ""
+    }
+
+
+type alias SignInResponse =
+    { username : String
+    , thumb : String
+    , authToken : String
+    }
+
+
+siginResponseDecoder : Decoder SignInResponse
+siginResponseDecoder =
+    Decode.map3 SignInResponse
+        (Decode.field "username" Decode.string)
+        (Decode.field "thumb" Decode.string)
+        (Decode.field "authToken" Decode.string)
+
+
+signIn : Client -> Task Http.Error SignInResponse
+signIn client =
+    let
+        body =
+            Encode.object
+                [ ( "login", Encode.string client.email )
+                , ( "password", Encode.string client.password )
+                ]
+    in
+    clientPostJsonTask body siginResponseDecoder "/users/signin" client
+
+
+type alias Resource =
+    { name : String
+    , provides : String
+    , connections : List Connection
+    }
+
+
+type alias Connection =
+    { local : Bool, uri : String }
+
+
+resourceDecoder : Decoder Resource
+resourceDecoder =
+    Decode.map3 Resource
+        (Decode.field "name" Decode.string)
+        (Decode.field "provides" Decode.string)
+        (Decode.field "connections" <| Decode.list connectionDecoder)
+
+
+connectionDecoder : Decode.Decoder Connection
+connectionDecoder =
+    Decode.map2 Connection
+        (Decode.field "local" Decode.bool)
+        (Decode.field "uri" Decode.string)
+
+
+getResources : Client -> Task Http.Error (List Resource)
+getResources =
+    clientGetJsonTask (Decode.list resourceDecoder) "/resources"
