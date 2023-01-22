@@ -195,8 +195,20 @@ saveClient : Client -> Cmd Msg
 saveClient client =
     Task.perform (always NoOp) <|
         Settings.set
-            [ ( "serverAddress", Encode.string client.serverAddress )
-            , ( "token", Encode.string client.token )
+            [ ( "serverAddress"
+              , if String.isEmpty client.token then
+                    Encode.null
+
+                else
+                    Encode.string client.serverAddress
+              )
+            , ( "token"
+              , if String.isEmpty client.token then
+                    Encode.null
+
+                else
+                    Encode.string client.token
+              )
             , ( "clientId", Encode.string client.id )
             ]
 
@@ -500,7 +512,7 @@ update msg model =
         SignOut ->
             case model of
                 Home ({ client } as m) ->
-                    ( SignIn { client = initialClient, navKey = m.navKey, submitting = False }
+                    ( SignIn { client = { initialClient | id = client.id }, navKey = m.navKey, submitting = False }
                     , saveClient { client | token = "", serverAddress = "" }
                     )
 
