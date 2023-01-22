@@ -56,6 +56,17 @@ findLocalServer resources =
         |> List.head
 
 
+hijackUnauthorizedError : (Result Http.Error a -> Msg) -> (Result Http.Error a -> Msg)
+hijackUnauthorizedError tagger =
+    \resp ->
+        case resp of
+            Err (Http.BadStatus 401) ->
+                SignOut
+
+            _ ->
+                tagger resp
+
+
 signInSubmit : Client -> Cmd Msg
 signInSubmit client =
     Api.signIn client
@@ -68,6 +79,7 @@ signInSubmit client =
                             { client
                                 | token = token
                                 , serverAddress = serverAddress
+                                , password = ""
                             }
 
                     _ ->
@@ -78,27 +90,28 @@ signInSubmit client =
 
 getAccount : Client -> Cmd Msg
 getAccount =
-    Api.getAccount GotAccount
+    Api.getAccount (hijackUnauthorizedError GotAccount)
 
 
 getSections : Client -> Cmd Msg
 getSections =
-    Api.getSections GotSections
+    Api.getSections (hijackUnauthorizedError GotSections)
 
 
 getLibraries : Client -> Cmd Msg
 getLibraries =
-    Api.getLibraries GotLibraries
+    Api.getLibraries (hijackUnauthorizedError GotLibraries)
 
 
 getLibrarySection : Client -> Library -> Cmd Msg
 getLibrarySection client lib =
     Api.getLibrary lib.key
-        (\data ->
-            GotLibrarySection lib.key <|
-                { info = lib
-                , data = Just data
-                }
+        (hijackUnauthorizedError <|
+            \data ->
+                GotLibrarySection lib.key <|
+                    { info = lib
+                    , data = Just data
+                    }
         )
         client
 
@@ -111,7 +124,7 @@ getTVShow id seasonId client =
                 Api.getMetadataChildren id client
                     |> Task.map (\seasons -> { info = show, seasons = List.map (\s -> { info = s, episodes = Nothing }) seasons, selectedSeason = seasonId })
             )
-        |> Task.attempt (GotTVShow id)
+        |> Task.attempt (hijackUnauthorizedError <| GotTVShow id)
 
 
 getSeasons : Metadata -> String -> Client -> Cmd Msg
@@ -122,13 +135,13 @@ getSeasons tvShowInfo seasonId client =
     in
     Api.getMetadataChildren tvShowInfo.ratingKey client
         |> Task.map (\seasons -> { info = tvShowInfo, seasons = List.map (\s -> { info = s, episodes = Nothing }) seasons, selectedSeason = seasonId })
-        |> Task.attempt (GotTVShow tvShowInfo.ratingKey)
+        |> Task.attempt (hijackUnauthorizedError <| GotTVShow tvShowInfo.ratingKey)
 
 
 getEpisodes : String -> String -> Client -> Cmd Msg
 getEpisodes showId seasonId client =
     Api.getMetadataChildren seasonId client
-        |> Task.attempt (GotEpisodes showId seasonId)
+        |> Task.attempt (hijackUnauthorizedError <| GotEpisodes showId seasonId)
 
 
 savePlaybackTime : VideoPlayer -> Client -> Cmd Msg
@@ -139,58 +152,44 @@ savePlaybackTime player client =
         , time = player.playbackTime
         , duration = player.duration
         }
-        (always NoOp)
+        (hijackUnauthorizedError <| always NoOp)
         client
 
 
 loadClient : Cmd Msg
 loadClient =
-    Task.map3
-        (\token serverAddress id ->
+    Task.map4
+        (\id token serverAddress email ->
             { token = token
             , serverAddress = serverAddress
             , id = id
-            , email = ""
+            , email = email
             , password = ""
             }
         )
+        (Settings.get "clientId" <| Utils.maybeEmptyString Decode.string)
         (Settings.get "token" Decode.string)
         (Settings.get "serverAddress" Decode.string)
-        (Settings.get "clientId" <| Utils.maybeEmptyString Decode.string)
-        |> Task.attempt
-            (\res ->
-                case res of
-                    Err _ ->
-                        GotSavedClient Nothing
-
-                    Ok client ->
-                        if String.isEmpty client.token then
-                            GotSavedClient Nothing
-
-                        else
-                            GotSavedClient <| Just client
-            )
+        (Settings.get "email" <| Utils.maybeEmptyString Decode.string)
+        |> Task.attempt (Result.toMaybe >> GotSavedClient)
 
 
 saveClient : Client -> Cmd Msg
 saveClient client =
     Task.perform (always NoOp) <|
+        let
+            encode s =
+                if String.isEmpty s then
+                    Encode.null
+
+                else
+                    Encode.string s
+        in
         Settings.set
-            [ ( "serverAddress"
-              , if String.isEmpty client.token then
-                    Encode.null
-
-                else
-                    Encode.string client.serverAddress
-              )
-            , ( "token"
-              , if String.isEmpty client.token then
-                    Encode.null
-
-                else
-                    Encode.string client.token
-              )
-            , ( "clientId", Encode.string client.id )
+            [ ( "serverAddress", encode client.serverAddress )
+            , ( "token", encode client.token )
+            , ( "clientId", encode client.id )
+            , ( "email", encode client.email )
             ]
 
 
@@ -263,7 +262,9 @@ update msg model =
         SignInSubmitResponse (Ok client) ->
             case model of
                 SignIn { navKey } ->
-                    ( Home <| initHomeModel client navKey, Cmd.batch [ saveClient client, getSections client, getLibraries client, getAccount client ] )
+                    ( Home <| initHomeModel client navKey
+                    , Cmd.batch [ saveClient client, getSections client, getLibraries client, getAccount client ]
+                    )
 
                 _ ->
                     ( model, Cmd.none )
@@ -468,8 +469,12 @@ update msg model =
 
         SignOut ->
             case model of
-                Home ({ client } as m) ->
-                    ( SignIn { client = { initialClient | id = client.id }, navKey = m.navKey, submitting = False }
+                Home { client, navKey } ->
+                    ( SignIn
+                        { client = { client | token = "", serverAddress = initialClient.serverAddress }
+                        , navKey = navKey
+                        , submitting = False
+                        }
                     , saveClient { client | token = "", serverAddress = "" }
                     )
 
