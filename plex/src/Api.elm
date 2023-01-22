@@ -760,6 +760,7 @@ signIn client =
 type alias Resource =
     { name : String
     , provides : String
+    , accessToken : String
     , connections : List Connection
     }
 
@@ -770,9 +771,10 @@ type alias Connection =
 
 resourceDecoder : Decoder Resource
 resourceDecoder =
-    Decode.map3 Resource
+    Decode.map4 Resource
         (Decode.field "name" Decode.string)
         (Decode.field "provides" Decode.string)
+        (maybeEmptyString <| Decode.field "accessToken" Decode.string)
         (Decode.field "connections" <| Decode.list connectionDecoder)
 
 

@@ -37,15 +37,15 @@ init key =
     ( Initial key, loadClient )
 
 
-findLocalAddress : List Api.Resource -> String
-findLocalAddress resources =
+findLocalServer : List Api.Resource -> Maybe { serverAddress : String, token : String }
+findLocalServer resources =
     resources
         |> List.filterMap
             (\resource ->
                 if resource.provides == "server" then
                     case List.head <| List.filter (\conn -> conn.local) resource.connections of
                         Just conn ->
-                            Just conn.uri
+                            Just { serverAddress = conn.uri, token = resource.accessToken }
 
                         _ ->
                             Nothing
@@ -54,34 +54,34 @@ findLocalAddress resources =
                     Nothing
             )
         |> List.head
-        |> Maybe.withDefault ""
 
 
 signInSubmit : Client -> Cmd Msg
 signInSubmit client =
     Api.signIn client
+        |> Task.andThen (\{ authToken } -> Api.getResources { client | token = authToken })
         |> Task.andThen
-            (\resp ->
-                Task.map
-                    (\resources ->
-                        { client
-                            | token = resp.authToken
-                            , serverAddress = findLocalAddress resources
-                        }
-                    )
-                <|
-                    Api.getResources { client | token = resp.authToken }
+            (\resources ->
+                case findLocalServer resources of
+                    Just { token, serverAddress } ->
+                        Task.succeed
+                            { client
+                                | token = token
+                                , serverAddress = serverAddress
+                            }
+
+                    _ ->
+                        Task.fail <| Http.BadBody "Can't find local server. This App only support local server."
             )
         |> Task.andThen
-            (\newClient ->
-                Task.map
-                    (\account ->
-                        { account = account
-                        , client = newClient
-                        }
-                    )
-                <|
-                    Api.getAccount newClient
+            (\localServerClient ->
+                Api.getAccount localServerClient
+                    |> Task.map
+                        (\account ->
+                            { account = account
+                            , client = localServerClient
+                            }
+                        )
             )
         |> Task.attempt SignInSubmitResponse
 
