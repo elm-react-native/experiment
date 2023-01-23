@@ -4,6 +4,7 @@ import Api exposing (Client, Metadata)
 import Components exposing (bottomPadding, progressBar, videoPlayContainer)
 import Dict
 import Html exposing (Html)
+import Html.Lazy exposing (lazy4)
 import Json.Decode as Decode
 import Model exposing (..)
 import ReactNative
@@ -223,18 +224,22 @@ sectionContainer title children =
         ]
 
 
+sectionViewData client title isContinueWatching data =
+    sectionContainer title <|
+        List.map (itemView client isContinueWatching) data
+
+
 sectionView : Client -> String -> Bool -> RemoteData (List Metadata) -> Html Msg
 sectionView client title isContinueWatching resp =
-    sectionContainer title <|
-        case resp of
-            Just (Ok data) ->
-                List.map (itemView client isContinueWatching) data
+    case resp of
+        Just (Ok data) ->
+            lazy4 sectionViewData client title isContinueWatching data
 
-            Just (Err _) ->
-                [ text [ color "white" ] [ str "Load failed" ] ]
+        Just (Err _) ->
+            sectionContainer title [ text [ color "white" ] [ str "Load failed" ] ]
 
-            _ ->
-                []
+        _ ->
+            sectionContainer title []
 
 
 homeScreen : HomeModel -> a -> Html Msg
@@ -265,7 +270,7 @@ homeScreen model _ =
         , style { backgroundColor = Theme.backgroundColor }
         ]
     <|
-        [ sectionView model.client "Continue Watching" True model.continueWatching
+        [ lazy4 sectionView model.client "Continue Watching" True model.continueWatching
         ]
             ++ recentlyAddedSectionViews
             ++ libraryDetailsSectionViews

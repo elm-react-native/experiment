@@ -9,6 +9,7 @@ import Dict exposing (Dict)
 import EntityScreen exposing (entityScreen)
 import HomeScreen exposing (homeScreen)
 import Html exposing (Html)
+import Html.Lazy exposing (lazy)
 import Http
 import Json.Decode as Decode
 import Json.Encode as Encode
@@ -556,6 +557,18 @@ update msg model =
 -- VIEW
 
 
+accountAvatar account =
+    touchableOpacity
+        [ onPress <| Decode.succeed GotoAccount ]
+        [ case account of
+            Just acc ->
+                avatar acc 24
+
+            _ ->
+                null
+        ]
+
+
 root : Model -> Html Msg
 root model =
     case model of
@@ -572,17 +585,7 @@ root model =
                     , options
                         { headerTitle = "Home"
                         , headerLeft = \_ -> favicon 20
-                        , headerRight =
-                            \_ ->
-                                touchableOpacity
-                                    [ onPress <| Decode.succeed GotoAccount ]
-                                    [ case m.account of
-                                        Just account ->
-                                            avatar account 24
-
-                                        _ ->
-                                            null
-                                    ]
+                        , headerRight = \_ -> lazy accountAvatar m.account
                         , headerTintColor = "white"
                         , headerStyle = { backgroundColor = Theme.backgroundColor }
                         }
