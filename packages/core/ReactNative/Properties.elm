@@ -95,8 +95,10 @@ module ReactNative.Properties exposing
     , keyboardVerticalOffset
     , listFooterComponent
     , listFooterComponentStyle
+    , listFooterNode
     , listHeaderComponent
     , listHeaderComponentStyle
+    , listHeaderNode
     , listItemComponent
     , listKey
     , loadingIndicatorSource
@@ -544,6 +546,11 @@ listFooterComponentStyle =
     property "listFooterComponentStyle" << encode
 
 
+listFooterNode : Html msg -> Attribute msg
+listFooterNode =
+    property "ListFooterComponent" << encode
+
+
 listHeaderComponent : (() -> Html msg) -> Attribute msg
 listHeaderComponent =
     property "ListHeaderComponent" << encode
@@ -551,6 +558,11 @@ listHeaderComponent =
 
 listHeaderComponentStyle =
     property "listHeaderComponentStyle" << encode
+
+
+listHeaderNode : Html msg -> Attribute msg
+listHeaderNode =
+    property "ListHeaderComponent" << encode
 
 
 sectionSeparatorComponent : (() -> Html msg) -> Attribute msg

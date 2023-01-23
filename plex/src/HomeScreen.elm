@@ -11,6 +11,7 @@ import ReactNative
     exposing
         ( activityIndicator
         , button
+        , flatList
         , fragment
         , image
         , imageBackground
@@ -30,6 +31,7 @@ import ReactNative.Properties
         , contentContainerStyle
         , horizontal
         , imageStyle
+        , initialNumToRender
         , persistentScrollbar
         , showsHorizontalScrollIndicator
         , size
@@ -211,22 +213,32 @@ itemView client isContinueWatching metadata =
         ]
 
 
-sectionContainer : String -> List (Html Msg) -> Html Msg
-sectionContainer title children =
+sectionContainer : String -> Html Msg -> Html Msg
+sectionContainer title child =
     view [ style homeStyles.sectionContainer ]
         [ text [ style homeStyles.sectionTitle ] [ str title ]
-        , scrollView
-            [ contentContainerStyle homeStyles.sectionContent
-            , showsHorizontalScrollIndicator False
-            , horizontal True
-            ]
-            children
+        , child
         ]
+
+
+fixedSize : Float -> (a -> Int -> { length : Float, offset : Float, index : Int })
+fixedSize w =
+    \_ i -> { length = w, offset = w * toFloat i, index = i }
 
 
 sectionViewData client title isContinueWatching data =
     sectionContainer title <|
-        List.map (itemView client isContinueWatching) data
+        flatList
+            { renderItem = \{ item } -> itemView client isContinueWatching item
+            , keyExtractor = \item _ -> item.guid
+            , getItemLayout = Just <| fixedSize 110
+            , data = data
+            }
+            [ contentContainerStyle homeStyles.sectionContent
+            , showsHorizontalScrollIndicator False
+            , horizontal True
+            , initialNumToRender 4
+            ]
 
 
 sectionView : Client -> String -> Bool -> RemoteData (List Metadata) -> Html Msg
@@ -236,10 +248,10 @@ sectionView client title isContinueWatching resp =
             lazy4 sectionViewData client title isContinueWatching data
 
         Just (Err _) ->
-            sectionContainer title [ text [ color "white" ] [ str "Load failed" ] ]
+            sectionContainer title <| text [ style { color = "white" } ] [ str "Load failed" ]
 
         _ ->
-            sectionContainer title []
+            sectionContainer title null
 
 
 homeScreen : HomeModel -> a -> Html Msg

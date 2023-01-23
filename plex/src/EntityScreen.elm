@@ -1,4 +1,4 @@
-module EntityScreen exposing (entityScreen, episodesView, heroImage, heroInfo, heroLabel, heroPlayButton, heroProgressBar, heroSummary, heroTitle, ratingView, seasonView, seasonsView)
+module EntityScreen exposing (entityScreen)
 
 import Api exposing (Client, Metadata)
 import Components exposing (bottomPadding, chip, progressBar, videoPlayContainer)
@@ -9,6 +9,8 @@ import Model exposing (..)
 import ReactNative
     exposing
         ( activityIndicator
+        , flatList
+        , fragment
         , image
         , imageBackground
         , null
@@ -27,6 +29,9 @@ import ReactNative.Properties
         ( color
         , contentContainerStyle
         , imageStyle
+        , initialNumToRender
+        , listFooterNode
+        , listHeaderNode
         , resizeMode
         , size
         , source
@@ -283,55 +288,48 @@ heroSummary tvShow metadata =
             [ str summary ]
 
 
-episodesView : List Metadata -> Api.Client -> Html Msg
-episodesView eps client =
-    view
-        []
-        (List.map
-            (\ep ->
-                view []
-                    [ view [ style { flexDirection = "row", marginTop = 15, alignItems = "center" } ]
-                        [ imageBackground
-                            [ source
-                                { uri = Api.transcodedImageUrl ep.thumb 720 404 client
-                                , width = 720
-                                , height = 404
-                                , cache = "force-cache"
-                                }
-                            , style { width = 112, height = 63, justifyContent = "flex-end" }
-                            , imageStyle { borderRadius = 4, resizeMode = "contain" }
-                            ]
-                            [ videoPlayContainer 15 (Decode.succeed <| PlayVideo ep.ratingKey ep.viewOffset ep.duration)
-                            , case ep.lastViewedAt of
-                                Just _ ->
-                                    progressBar []
-                                        (case ep.viewOffset of
-                                            Just viewOffset ->
-                                                toFloat viewOffset / toFloat ep.duration
-
-                                            _ ->
-                                                1
-                                        )
+episodeView : Client -> Metadata -> Html Msg
+episodeView client ep =
+    view []
+        [ view [ style { flexDirection = "row", marginTop = 15, alignItems = "center" } ]
+            [ imageBackground
+                [ source
+                    { uri = Api.transcodedImageUrl ep.thumb 720 404 client
+                    , width = 720
+                    , height = 404
+                    , cache = "force-cache"
+                    }
+                , style { width = 112, height = 63, justifyContent = "flex-end" }
+                , imageStyle { borderRadius = 4, resizeMode = "contain" }
+                ]
+                [ videoPlayContainer 15 (Decode.succeed <| PlayVideo ep.ratingKey ep.viewOffset ep.duration)
+                , case ep.lastViewedAt of
+                    Just _ ->
+                        progressBar []
+                            (case ep.viewOffset of
+                                Just viewOffset ->
+                                    toFloat viewOffset / toFloat ep.duration
 
                                 _ ->
-                                    null
-                            ]
-                        , view [ style { marginLeft = 5 } ]
-                            [ text
-                                [ style
-                                    { color = "white"
-                                    , marginRight = 10
-                                    }
-                                ]
-                                [ str <| String.fromInt ep.index ++ ". " ++ ep.title ]
-                            , text [ style { color = "gray", fontSize = 12, marginTop = 3 } ] [ str <| formatDuration ep.duration ]
-                            ]
-                        ]
-                    , text [ style { color = "gray", fontSize = 12, marginTop = 4 } ] [ str ep.summary ]
+                                    1
+                            )
+
+                    _ ->
+                        null
+                ]
+            , view [ style { marginLeft = 5 } ]
+                [ text
+                    [ style
+                        { color = "white"
+                        , marginRight = 10
+                        }
                     ]
-            )
-            eps
-        )
+                    [ str <| String.fromInt ep.index ++ ". " ++ ep.title ]
+                , text [ style { color = "gray", fontSize = 12, marginTop = 3 } ] [ str <| formatDuration ep.duration ]
+                ]
+            ]
+        , text [ style { color = "gray", fontSize = 12, marginTop = 4 } ] [ str ep.summary ]
+        ]
 
 
 seasonView : Int -> TVShow -> Html Msg
@@ -345,6 +343,7 @@ seasonView selectedSeasonIndex show =
             |> Decode.map (\{ actionKey } -> ChangeSeason show.info.ratingKey actionKey)
             |> onPressMenuItem
         , isMenuPrimaryAction True
+        , style { marginTop = 20 }
         , menuConfig
             { menuTitle = show.info.title
             , menuItems =
@@ -377,43 +376,54 @@ seasonView selectedSeasonIndex show =
         ]
 
 
-seasonsView : TVShow -> Api.Client -> Html Msg
-seasonsView show client =
-    case findSeason show.selectedSeason show of
-        Just selectedSeason ->
+loadingEposidesIndicator marginTop =
+    view
+        [ style
+            { height = 50
+            , justifyContent = "center"
+            , alignItems = "center"
+            , marginTop = marginTop
+            }
+        ]
+        [ activityIndicator [] [] ]
+
+
+entityEposidesHeader tvShow =
+    case tvShow of
+        Just (Ok show) ->
+            case findSeason show.selectedSeason show of
+                Just selectedSeason ->
+                    fragment
+                        []
+                        [ seasonView selectedSeason.info.index show
+                        , case selectedSeason.episodes of
+                            Just (Ok _) ->
+                                null
+
+                            Just (Err _) ->
+                                view []
+                                    [ text [] [ str "Load episodes error" ]
+                                    ]
+
+                            _ ->
+                                loadingEposidesIndicator 20
+                        ]
+
+                _ ->
+                    null
+
+        Just (Err _) ->
             view [ style { marginTop = 20 } ]
-                [ seasonView selectedSeason.info.index show
-                , case selectedSeason.episodes of
-                    Just (Ok eps) ->
-                        episodesView eps client
-
-                    Just (Err _) ->
-                        view []
-                            [ text [] [ str "Load episodes error" ]
-                            ]
-
-                    _ ->
-                        view
-                            [ style
-                                { height = 50
-                                , justifyContent = "center"
-                                , alignItems = "center"
-                                }
-                            ]
-                            [ activityIndicator [] [] ]
+                [ text [] [ str "Load show failed." ]
                 ]
 
         _ ->
-            null
+            loadingEposidesIndicator 0
 
 
-entityScreen : HomeModel -> { isContinueWatching : Bool, metadata : Metadata } -> Html Msg
-entityScreen model { isContinueWatching, metadata } =
+entityInfo isContinueWatching tvShow metadata =
     let
-        client =
-            model.client
-
-        { title, label, showProgress, showPlayButton, showId, showEpisodes } =
+        { title, label, showProgress, showPlayButton, displayEpisodes } =
             case metadata.typ of
                 "episode" ->
                     { title = metadata.grandparentTitle
@@ -421,7 +431,7 @@ entityScreen model { isContinueWatching, metadata } =
                     , label = "S" ++ String.fromInt metadata.parentIndex ++ ":E" ++ String.fromInt metadata.index ++ " " ++ metadata.title
                     , showProgress = isContinueWatching
                     , showPlayButton = True
-                    , showEpisodes = True
+                    , displayEpisodes = True
                     }
 
                 "season" ->
@@ -430,7 +440,7 @@ entityScreen model { isContinueWatching, metadata } =
                     , label = ""
                     , showProgress = False
                     , showPlayButton = False
-                    , showEpisodes = True
+                    , displayEpisodes = True
                     }
 
                 "show" ->
@@ -439,7 +449,7 @@ entityScreen model { isContinueWatching, metadata } =
                     , label = ""
                     , showProgress = False
                     , showPlayButton = False
-                    , showEpisodes = True
+                    , displayEpisodes = True
                     }
 
                 "movie" ->
@@ -448,7 +458,7 @@ entityScreen model { isContinueWatching, metadata } =
                     , label = ""
                     , showProgress = isContinueWatching
                     , showPlayButton = True
-                    , showEpisodes = False
+                    , displayEpisodes = False
                     }
 
                 _ ->
@@ -457,12 +467,94 @@ entityScreen model { isContinueWatching, metadata } =
                     , label = ""
                     , showProgress = False
                     , showPlayButton = False
-                    , showEpisodes = False
+                    , displayEpisodes = False
+                    }
+    in
+    fragment []
+        [ heroTitle title
+        , heroInfo tvShow metadata
+        , if showPlayButton then
+            heroPlayButton metadata.ratingKey metadata.viewOffset metadata.duration isContinueWatching
+
+          else
+            null
+        , if String.isEmpty label then
+            null
+
+          else
+            heroLabel label
+        , if showProgress then
+            heroProgressBar (Maybe.withDefault metadata.duration metadata.viewOffset) metadata.duration label
+
+          else
+            null
+        , heroSummary tvShow metadata
+        , if displayEpisodes then
+            entityEposidesHeader tvShow
+
+          else
+            null
+        ]
+
+
+entityScreen : HomeModel -> { isContinueWatching : Bool, metadata : Metadata } -> Html Msg
+entityScreen model { isContinueWatching, metadata } =
+    let
+        client =
+            model.client
+
+        { showId, displayEpisodes } =
+            case metadata.typ of
+                "episode" ->
+                    { showId = metadata.grandparentRatingKey
+                    , displayEpisodes = True
+                    }
+
+                "season" ->
+                    { showId = metadata.parentRatingKey
+                    , displayEpisodes = True
+                    }
+
+                "show" ->
+                    { showId = metadata.ratingKey
+                    , displayEpisodes = True
+                    }
+
+                "movie" ->
+                    { showId = ""
+                    , displayEpisodes = False
+                    }
+
+                _ ->
+                    { showId = ""
+                    , displayEpisodes = False
                     }
 
         tvShow : RemoteData TVShow
         tvShow =
             Dict.get showId model.tvShows
+
+        episodes =
+            if displayEpisodes then
+                case tvShow of
+                    Just (Ok show) ->
+                        case findSeason show.selectedSeason show of
+                            Just selectedSeason ->
+                                case selectedSeason.episodes of
+                                    Just (Ok eps) ->
+                                        eps
+
+                                    _ ->
+                                        []
+
+                            _ ->
+                                []
+
+                    _ ->
+                        []
+
+            else
+                []
     in
     view
         [ style
@@ -472,49 +564,15 @@ entityScreen model { isContinueWatching, metadata } =
             }
         ]
         [ heroImage metadata.thumb client
-        , scrollView
-            [ contentContainerStyle { paddingHorizontal = 10 } ]
-            [ heroTitle title
-            , heroInfo tvShow metadata
-            , if showPlayButton then
-                heroPlayButton metadata.ratingKey metadata.viewOffset metadata.duration isContinueWatching
-
-              else
-                null
-            , if String.isEmpty label then
-                null
-
-              else
-                heroLabel label
-            , if showProgress then
-                heroProgressBar (Maybe.withDefault metadata.duration metadata.viewOffset) metadata.duration label
-
-              else
-                null
-            , heroSummary tvShow metadata
-            , if showEpisodes then
-                case tvShow of
-                    Just (Ok show) ->
-                        seasonsView show client
-
-                    Just (Err _) ->
-                        view [ style { marginTop = 20 } ]
-                            [ text [] [ str "Load show error" ]
-                            ]
-
-                    _ ->
-                        view
-                            [ style
-                                { height = 50
-                                , justifyContent = "center"
-                                , alignItems = "center"
-                                , marginTop = 20
-                                }
-                            ]
-                            [ activityIndicator [] [] ]
-
-              else
-                null
-            , bottomPadding
+        , flatList
+            { data = episodes
+            , keyExtractor = \ep _ -> ep.guid
+            , renderItem = \{ item } -> episodeView client item
+            , getItemLayout = Nothing
+            }
+            [ listHeaderNode <| entityInfo isContinueWatching tvShow metadata
+            , listFooterNode bottomPadding
+            , contentContainerStyle { paddingHorizontal = 10 }
+            , initialNumToRender 4
             ]
         ]
