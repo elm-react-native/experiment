@@ -81,7 +81,7 @@ videoScreen m _ =
             , pictureInPicture True
             , seekOnStart m.videoPlayer.initialPlaybackTime
             , onErrorMessage PlayVideoError
-            , onEnd <| Decode.succeed StopPlayVideo
+            , onEnd <| Decode.succeed OnVideoEnd
             , onBuffer OnVideoBuffer
             , onProgress (\p -> OnVideoProgress p.currentTime)
             , style styles.fullscreen

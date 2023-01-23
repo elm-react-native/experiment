@@ -1,4 +1,4 @@
-module Model exposing (HomeModel, LibrarySection, Model(..), Msg(..), RemoteData, TVSeason, TVShow, VideoPlayer, findSeason, initHomeModel, initialVideoPlayer, isVideoUrlReady, updateSelectedSeason, updateTVShow)
+module Model exposing (HomeModel, LibrarySection, Model(..), Msg(..), RemoteData, TVSeason, TVShow, VideoPlayer, findSeason, findTVShowByEpisodeRatingKey, initHomeModel, initialVideoPlayer, isVideoUrlReady, updateSelectedSeason, updateTVShow)
 
 import Api exposing (Account, Client, Library, Metadata, Section)
 import Browser.Navigation as N
@@ -113,6 +113,7 @@ type Msg
     | GotPlaySessionId String
     | GotScreenMetrics Dimensions.DisplayMetrics
     | StopPlayVideo
+    | OnVideoEnd
     | OnVideoBuffer Bool
     | OnVideoProgress Int
     | OnLeaveVideoScreen
@@ -158,3 +159,32 @@ updateTVShow fn showId tvShows =
 
 updateSelectedSeason seasonId showId tvShows =
     updateTVShow (\sh -> { sh | selectedSeason = seasonId }) showId tvShows
+
+
+findTVShowByEpisodeRatingKey : String -> Dict String (Result Http.Error TVShow) -> Maybe ( TVShow, TVSeason, Metadata )
+findTVShowByEpisodeRatingKey ratingKey tvShows =
+    tvShows
+        |> Dict.values
+        |> List.filterMap
+            (\tvShow ->
+                case tvShow of
+                    Ok show ->
+                        show.seasons
+                            |> List.filterMap
+                                (\season ->
+                                    case season.episodes of
+                                        Just (Ok episodes) ->
+                                            episodes
+                                                |> List.filter (\ep -> ep.ratingKey == ratingKey)
+                                                |> List.head
+                                                |> Maybe.map (\ep -> ( show, season, ep ))
+
+                                        _ ->
+                                            Nothing
+                                )
+                            |> List.head
+
+                    _ ->
+                        Nothing
+            )
+        |> List.head

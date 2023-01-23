@@ -348,6 +348,38 @@ playVideo ratingKey viewOffset duration ({ navKey, videoPlayer } as m) =
     )
 
 
+getNextEpisode ratingKey { tvShows } =
+    let
+        findNext pred items =
+            case items of
+                x :: y :: rest ->
+                    if pred x then
+                        Just y
+
+                    else
+                        findNext pred (y :: rest)
+
+                _ ->
+                    Nothing
+    in
+    case findTVShowByEpisodeRatingKey ratingKey tvShows of
+        Just ( show, season, _ ) ->
+            case season.episodes of
+                Just (Ok episodes) ->
+                    case findNext (\ep -> ep.ratingKey == ratingKey) episodes of
+                        Just next ->
+                            Just next
+
+                        Nothing ->
+                            Nothing
+
+                _ ->
+                    Nothing
+
+        _ ->
+            Nothing
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -556,6 +588,34 @@ update msg model =
             case model of
                 Home m ->
                     ( Home { m | refreshing = True }, Cmd.batch [ getLibraries m.client, getContinueWatching m.client ] )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        OnVideoEnd ->
+            case model of
+                Home ({ videoPlayer } as m) ->
+                    case getNextEpisode videoPlayer.ratingKey m of
+                        Just nextEpisode ->
+                            ( Home
+                                { m
+                                    | videoPlayer =
+                                        { videoPlayer
+                                            | initialPlaybackTime = Maybe.withDefault 0 nextEpisode.viewOffset
+                                            , ratingKey = nextEpisode.ratingKey
+                                        }
+                                }
+                            , Cmd.none
+                            )
+
+                        _ ->
+                            ( model
+                            , Cmd.batch
+                                [ Nav.goBack m.navKey
+                                , savePlaybackTime m.videoPlayer m.client
+                                , getContinueWatching m.client
+                                ]
+                            )
 
                 _ ->
                     ( model, Cmd.none )

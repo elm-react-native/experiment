@@ -9,7 +9,7 @@ const VideoPlayer = (props) => {
     if (props.seekOnStart) {
       ref.current.seek(props.seekOnStart / 1000);
     }
-  }, []);
+  }, [props.source.uri]);
 
   return <Video ref={ref} {...props} />;
 };
