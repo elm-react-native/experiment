@@ -42,23 +42,28 @@ type alias VideoPlayer =
 
 
 type alias HomeModel =
-    { sections : RemoteData (List Section)
+    { continueWatching : RemoteData (List Metadata)
+    , librariesRecentlyAdded : Dict String (Result Http.Error (List Metadata))
+    , librariesDetails : Dict String (Result Http.Error (List Metadata))
+    , libraries : List Library
     , tvShows : Dict String (Result Http.Error TVShow)
     , client : Client
     , account : Maybe Account
     , navKey : N.Key
-    , libraries : Dict String LibrarySection
     , videoPlayer : VideoPlayer
     }
 
 
+initHomeModel : Client -> N.Key -> HomeModel
 initHomeModel client navKey =
-    { sections = Nothing
+    { continueWatching = Nothing
+    , librariesRecentlyAdded = Dict.empty
+    , librariesDetails = Dict.empty
+    , libraries = []
     , account = Nothing
     , client = client
     , tvShows = Dict.empty
     , navKey = navKey
-    , libraries = Dict.empty
     , videoPlayer = initialVideoPlayer
     }
 
@@ -90,16 +95,14 @@ type Model
 type Msg
     = NoOp
     | SignInMsg SignInMsg
-    | ReloadSections
     | GotSavedClient (Maybe Client)
     | GotAccount (Result Http.Error Account)
-    | GotSections (Result Http.Error (List Section))
     | GotLibraries (Result Http.Error (List Library))
-    | GotLibrarySection String LibrarySection
+    | GotLibraryDetail String (Result Http.Error (List Metadata))
+    | GotLibraryRecentlyAdded String (Result Http.Error (List Metadata))
+    | GotContinueWatching (Result Http.Error (List Metadata))
     | GotTVShow String (Result Http.Error TVShow)
     | GotEpisodes String String (Result Http.Error (List Metadata))
-    | ShowSection String
-    | ShowEntity String String
     | GotoAccount
     | GotoEntity Bool Metadata
     | ChangeSeason String String

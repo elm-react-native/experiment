@@ -54,25 +54,28 @@ getAccount =
     Api.getAccount (hijackUnauthorizedError GotAccount)
 
 
-getSections : Client -> Cmd Msg
-getSections =
-    Api.getSections (hijackUnauthorizedError GotSections)
-
-
 getLibraries : Client -> Cmd Msg
 getLibraries =
     Api.getLibraries (hijackUnauthorizedError GotLibraries)
 
 
-getLibrarySection : Client -> Library -> Cmd Msg
-getLibrarySection client lib =
-    Api.getLibrary lib.key
-        (hijackUnauthorizedError <|
-            \data ->
-                GotLibrarySection lib.key <|
-                    { info = lib
-                    , data = Just data
-                    }
+getContinueWatching : Client -> Cmd Msg
+getContinueWatching =
+    Api.getContinueWatching GotContinueWatching
+
+
+getLibraryDetails : Client -> Library -> Cmd Msg
+getLibraryDetails client lib =
+    Api.getLibrary lib.key (hijackUnauthorizedError <| GotLibraryDetail lib.key) client
+
+
+getLibraryRecentlyAdded : Client -> Library -> Cmd Msg
+getLibraryRecentlyAdded client lib =
+    Api.getLibraryRecentlyAdded lib.key
+        (hijackUnauthorizedError
+            (\section ->
+                GotLibraryRecentlyAdded lib.key (Result.map .data section)
+            )
         )
         client
 
@@ -90,10 +93,6 @@ getTVShow id seasonId client =
 
 getSeasons : Metadata -> String -> Client -> Cmd Msg
 getSeasons tvShowInfo seasonId client =
-    let
-        _ =
-            Debug.log "getSeasons" tvShowInfo
-    in
     Api.getMetadataChildren tvShowInfo.ratingKey client
         |> Task.map (\seasons -> { info = tvShowInfo, seasons = List.map (\s -> { info = s, episodes = Nothing }) seasons, selectedSeason = seasonId })
         |> Task.attempt (hijackUnauthorizedError <| GotTVShow tvShowInfo.ratingKey)
@@ -167,6 +166,187 @@ updateEpisodes seasonId resp seasons =
         seasons
 
 
+gotSavedClient : Maybe Client -> N.Key -> ( Model, Cmd Msg )
+gotSavedClient savedClient navKey =
+    case savedClient of
+        Just client ->
+            ( Home <| initHomeModel client navKey
+            , Cmd.batch
+                [ getLibraries client
+                , getAccount client
+                , getContinueWatching client
+                ]
+            )
+
+        _ ->
+            ( SignIn { client = initialClient, navKey = navKey, submitting = False }
+            , Cmd.map SignInMsg <| Random.generate SignInModel.GotClientId Utils.generateIdentifier
+            )
+
+
+signInSubmitResponse client navKey =
+    ( Home <| initHomeModel client navKey
+    , Cmd.batch
+        [ saveClient client
+        , getLibraries client
+        , getAccount client
+        , getContinueWatching client
+        ]
+    )
+
+
+gotLibraries resp m =
+    case resp of
+        Ok libs ->
+            ( Home { m | libraries = libs }
+            , Cmd.batch <|
+                List.concatMap
+                    (\lib ->
+                        [ getLibraryDetails m.client lib
+                        , getLibraryRecentlyAdded m.client lib
+                        ]
+                    )
+                    libs
+            )
+
+        Err _ ->
+            ( Home m, Alert.showAlert (always NoOp) "Load libraries failed." [] )
+
+
+gotTVShow showId resp m =
+    case resp of
+        Ok respShow ->
+            ( Home { m | tvShows = Dict.insert showId resp m.tvShows }
+            , case findSeason respShow.selectedSeason respShow of
+                Just season ->
+                    case season.episodes of
+                        Just (Ok _) ->
+                            Cmd.none
+
+                        _ ->
+                            getEpisodes showId season.info.ratingKey m.client
+
+                _ ->
+                    Cmd.none
+            )
+
+        _ ->
+            ( Home m, Cmd.none )
+
+
+gotEpisodes showId seasonId resp m =
+    case Dict.get showId m.tvShows of
+        Just (Ok show) ->
+            let
+                seasons =
+                    updateEpisodes seasonId resp show.seasons
+            in
+            ( Home { m | tvShows = Dict.insert showId (Ok { show | seasons = seasons }) m.tvShows }, Cmd.none )
+
+        _ ->
+            ( Home m, Cmd.none )
+
+
+gotoEntity isContinueWatching metadata m =
+    let
+        getEpisodesIfNotFetched : String -> TVShow -> Cmd Msg
+        getEpisodesIfNotFetched seasonId show =
+            case findSeason seasonId show of
+                Just { info, episodes } ->
+                    case episodes of
+                        Just (Ok _) ->
+                            Cmd.none
+
+                        _ ->
+                            getEpisodes show.info.ratingKey info.ratingKey m.client
+
+                _ ->
+                    Cmd.none
+    in
+    ( case metadata.typ of
+        "episode" ->
+            Home { m | tvShows = updateSelectedSeason metadata.parentRatingKey metadata.grandparentRatingKey m.tvShows }
+
+        "season" ->
+            Home { m | tvShows = updateSelectedSeason metadata.ratingKey metadata.parentRatingKey m.tvShows }
+
+        _ ->
+            Home m
+    , Cmd.batch
+        [ Nav.push m.navKey "entity" { isContinueWatching = isContinueWatching, metadata = metadata }
+        , case metadata.typ of
+            "episode" ->
+                case Dict.get metadata.grandparentRatingKey m.tvShows of
+                    Just (Ok show) ->
+                        getEpisodesIfNotFetched metadata.parentRatingKey show
+
+                    _ ->
+                        getTVShow metadata.grandparentRatingKey metadata.parentRatingKey m.client
+
+            "season" ->
+                case Dict.get metadata.parentRatingKey m.tvShows of
+                    Just (Ok show) ->
+                        getEpisodesIfNotFetched metadata.parentRatingKey show
+
+                    _ ->
+                        getTVShow metadata.parentRatingKey metadata.ratingKey m.client
+
+            "show" ->
+                case Dict.get metadata.ratingKey m.tvShows of
+                    Just (Ok show) ->
+                        getEpisodesIfNotFetched "" show
+
+                    _ ->
+                        getSeasons metadata "" m.client
+
+            _ ->
+                Cmd.none
+        ]
+    )
+
+
+changeSeason showId seasonId m =
+    ( Home { m | tvShows = updateSelectedSeason seasonId showId m.tvShows }
+    , getEpisodes showId seasonId m.client
+    )
+
+
+signOut client navKey =
+    ( SignIn
+        { client = { client | token = "", serverAddress = initialClient.serverAddress }
+        , navKey = navKey
+        , submitting = False
+        }
+    , saveClient { client | token = "", serverAddress = "" }
+    )
+
+
+playVideo ratingKey viewOffset duration ({ navKey, videoPlayer } as m) =
+    ( Home
+        { m
+            | videoPlayer =
+                { videoPlayer
+                    | duration = duration
+                    , ratingKey = ratingKey
+                    , initialPlaybackTime = Maybe.withDefault 0 viewOffset
+                }
+        }
+    , Cmd.batch
+        [ Nav.push navKey "video" ()
+        , if videoPlayer.screenMetrics == Dimensions.initialDisplayMetrics then
+            Task.perform GotScreenMetrics Dimensions.getScreen
+
+          else
+            Cmd.none
+        , if String.isEmpty videoPlayer.sessionId then
+            Random.generate GotPlaySessionId Utils.generateIdentifier
+
+          else
+            Cmd.none
+        ]
+    )
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -176,14 +356,7 @@ update msg model =
         GotSavedClient savedClient ->
             case model of
                 Initial navKey ->
-                    case savedClient of
-                        Just client ->
-                            ( Home <| initHomeModel client navKey, Cmd.batch [ getSections client, getLibraries client, getAccount client ] )
-
-                        _ ->
-                            ( SignIn { client = initialClient, navKey = navKey, submitting = False }
-                            , Cmd.map SignInMsg <| Random.generate SignInModel.GotClientId Utils.generateIdentifier
-                            )
+                    gotSavedClient savedClient navKey
 
                 _ ->
                     ( model, Cmd.none )
@@ -191,9 +364,7 @@ update msg model =
         SignInMsg (SignInModel.SubmitResponse (Ok client)) ->
             case model of
                 SignIn { navKey } ->
-                    ( Home <| initHomeModel client navKey
-                    , Cmd.batch [ saveClient client, getSections client, getLibraries client, getAccount client ]
-                    )
+                    signInSubmitResponse client navKey
 
                 _ ->
                     ( model, Cmd.none )
@@ -210,47 +381,10 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
-        ReloadSections ->
+        GotLibraries resp ->
             case model of
                 Home m ->
-                    ( Home { m | sections = Nothing }, getSections m.client )
-
-                _ ->
-                    ( model, Cmd.none )
-
-        GotSections resp ->
-            ( case model of
-                Home m ->
-                    Home { m | sections = Just resp }
-
-                _ ->
-                    model
-            , Cmd.none
-            )
-
-        GotLibraries (Ok libs) ->
-            case model of
-                Home m ->
-                    ( Home
-                        { m
-                            | libraries =
-                                libs
-                                    |> List.map (\lib -> ( lib.key, { info = lib, data = Nothing } ))
-                                    |> Dict.fromList
-                        }
-                    , Cmd.batch <| List.map (getLibrarySection m.client) libs
-                    )
-
-                _ ->
-                    ( model, Cmd.none )
-
-        GotLibraries (Err _) ->
-            ( model, Task.perform (always NoOp) <| Alert.alert "Fetch libraries failed." [] )
-
-        GotLibrarySection libraryId resp ->
-            case model of
-                Home m ->
-                    ( Home { m | libraries = Dict.insert libraryId resp m.libraries }, Cmd.none )
+                    gotLibraries resp m
 
                 _ ->
                     ( model, Cmd.none )
@@ -258,24 +392,7 @@ update msg model =
         GotTVShow showId resp ->
             case model of
                 Home m ->
-                    case resp of
-                        Ok respShow ->
-                            ( Home { m | tvShows = Dict.insert showId resp m.tvShows }
-                            , case findSeason respShow.selectedSeason respShow of
-                                Just season ->
-                                    case season.episodes of
-                                        Just (Ok _) ->
-                                            Cmd.none
-
-                                        _ ->
-                                            getEpisodes showId season.info.ratingKey m.client
-
-                                _ ->
-                                    Cmd.none
-                            )
-
-                        _ ->
-                            ( model, Cmd.none )
+                    gotTVShow showId resp m
 
                 _ ->
                     ( model, Cmd.none )
@@ -283,25 +400,10 @@ update msg model =
         GotEpisodes showId seasonId resp ->
             case model of
                 Home m ->
-                    case Dict.get showId m.tvShows of
-                        Just (Ok show) ->
-                            let
-                                seasons =
-                                    updateEpisodes seasonId resp show.seasons
-                            in
-                            ( Home { m | tvShows = Dict.insert showId (Ok { show | seasons = seasons }) m.tvShows }, Cmd.none )
-
-                        _ ->
-                            ( model, Cmd.none )
+                    gotEpisodes showId seasonId resp m
 
                 _ ->
                     ( model, Cmd.none )
-
-        ShowSection _ ->
-            ( model, Cmd.none )
-
-        ShowEntity _ _ ->
-            ( model, Cmd.none )
 
         GotoAccount ->
             case model of
@@ -314,65 +416,7 @@ update msg model =
         GotoEntity isContinueWatching metadata ->
             case model of
                 Home m ->
-                    let
-                        getEpisodesIfNotFetched : String -> TVShow -> Cmd Msg
-                        getEpisodesIfNotFetched seasonId show =
-                            let
-                                targetSeason =
-                                    findSeason seasonId show
-                            in
-                            case targetSeason of
-                                Just { info, episodes } ->
-                                    case episodes of
-                                        Just (Ok _) ->
-                                            Cmd.none
-
-                                        _ ->
-                                            getEpisodes show.info.ratingKey info.ratingKey m.client
-
-                                _ ->
-                                    Cmd.none
-                    in
-                    ( case metadata.typ of
-                        "episode" ->
-                            Home { m | tvShows = updateSelectedSeason metadata.parentRatingKey metadata.grandparentRatingKey m.tvShows }
-
-                        "season" ->
-                            Home { m | tvShows = updateSelectedSeason metadata.ratingKey metadata.parentRatingKey m.tvShows }
-
-                        _ ->
-                            model
-                    , Cmd.batch
-                        [ Nav.push m.navKey "entity" { isContinueWatching = isContinueWatching, metadata = metadata }
-                        , case metadata.typ of
-                            "episode" ->
-                                case Dict.get metadata.grandparentRatingKey m.tvShows of
-                                    Just (Ok show) ->
-                                        getEpisodesIfNotFetched metadata.parentRatingKey show
-
-                                    _ ->
-                                        getTVShow metadata.grandparentRatingKey metadata.parentRatingKey m.client
-
-                            "season" ->
-                                case Dict.get metadata.parentRatingKey m.tvShows of
-                                    Just (Ok show) ->
-                                        getEpisodesIfNotFetched metadata.parentRatingKey show
-
-                                    _ ->
-                                        getTVShow metadata.parentRatingKey metadata.ratingKey m.client
-
-                            "show" ->
-                                case Dict.get metadata.ratingKey m.tvShows of
-                                    Just (Ok show) ->
-                                        getEpisodesIfNotFetched "" show
-
-                                    _ ->
-                                        getSeasons metadata "" m.client
-
-                            _ ->
-                                Cmd.none
-                        ]
-                    )
+                    gotoEntity isContinueWatching metadata m
 
                 _ ->
                     ( model, Cmd.none )
@@ -380,13 +424,7 @@ update msg model =
         ChangeSeason showId seasonId ->
             case model of
                 Home m ->
-                    let
-                        _ =
-                            Debug.log "ChangeSeason" seasonId
-                    in
-                    ( Home { m | tvShows = updateSelectedSeason seasonId showId m.tvShows }
-                    , getEpisodes showId seasonId m.client
-                    )
+                    changeSeason showId seasonId m
 
                 _ ->
                     ( model, Cmd.none )
@@ -394,13 +432,7 @@ update msg model =
         SignOut ->
             case model of
                 Home { client, navKey } ->
-                    ( SignIn
-                        { client = { client | token = "", serverAddress = initialClient.serverAddress }
-                        , navKey = navKey
-                        , submitting = False
-                        }
-                    , saveClient { client | token = "", serverAddress = "" }
-                    )
+                    signOut client navKey
 
                 _ ->
                     ( model, Cmd.none )
@@ -423,30 +455,8 @@ update msg model =
 
         PlayVideo ratingKey viewOffset duration ->
             case model of
-                Home ({ navKey, videoPlayer } as m) ->
-                    ( Home
-                        { m
-                            | videoPlayer =
-                                { videoPlayer
-                                    | duration = duration
-                                    , ratingKey = ratingKey
-                                    , initialPlaybackTime = Maybe.withDefault 0 viewOffset
-                                }
-                        }
-                    , Cmd.batch
-                        [ Nav.push navKey "video" ()
-                        , if videoPlayer.screenMetrics == Dimensions.initialDisplayMetrics then
-                            Task.perform GotScreenMetrics Dimensions.getScreen
-
-                          else
-                            Cmd.none
-                        , if String.isEmpty videoPlayer.sessionId then
-                            Random.generate GotPlaySessionId Utils.generateIdentifier
-
-                          else
-                            Cmd.none
-                        ]
-                    )
+                Home m ->
+                    playVideo ratingKey viewOffset duration m
 
                 _ ->
                     ( model, Cmd.none )
@@ -459,15 +469,11 @@ update msg model =
         StopPlayVideo ->
             case model of
                 Home m ->
-                    let
-                        _ =
-                            Debug.log "goBack" "should go back"
-                    in
                     ( model
                     , Cmd.batch
                         [ Nav.goBack m.navKey
                         , savePlaybackTime m.videoPlayer m.client
-                        , getSections m.client
+                        , getContinueWatching m.client
                         ]
                     )
 
@@ -494,7 +500,7 @@ update msg model =
             case model of
                 Home ({ client, videoPlayer } as m) ->
                     ( Home { m | videoPlayer = initialVideoPlayer }
-                    , Cmd.batch [ getSections m.client, savePlaybackTime videoPlayer client ]
+                    , Cmd.batch [ getContinueWatching m.client, savePlaybackTime videoPlayer client ]
                     )
 
                 _ ->
@@ -508,16 +514,42 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
-        GotAccount (Ok account) ->
+        GotAccount resp ->
             case model of
                 Home m ->
-                    ( Home { m | account = Just account }, Cmd.none )
+                    case resp of
+                        Ok account ->
+                            ( Home { m | account = Just account }, Cmd.none )
+
+                        _ ->
+                            ( model, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
 
-        GotAccount (Err _) ->
-            ( model, Cmd.none )
+        GotLibraryDetail key resp ->
+            case model of
+                Home m ->
+                    ( Home { m | librariesDetails = Dict.insert key resp m.librariesDetails }, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        GotLibraryRecentlyAdded key resp ->
+            case model of
+                Home m ->
+                    ( Home { m | librariesRecentlyAdded = Dict.insert key resp m.librariesRecentlyAdded }, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        GotContinueWatching resp ->
+            case model of
+                Home m ->
+                    ( Home { m | continueWatching = Just resp }, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
 
 
 

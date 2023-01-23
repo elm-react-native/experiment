@@ -5,7 +5,6 @@ import Browser
 import Browser.Navigation as N
 import Dict exposing (Dict)
 import EntityScreen exposing (entityScreen)
-import HomeScreen exposing (homeScreen)
 import Html exposing (Html)
 import Http
 import Json.Decode as Decode exposing (Decoder)

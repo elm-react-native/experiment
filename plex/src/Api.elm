@@ -1,4 +1,4 @@
-module Api exposing (Account, Client, Connection, Country, Director, Genre, Guid, Library, Location, Media, MediaPart, Metadata, Rating, Resource, Role, Section, Setting, SignInResponse, TimelineRequest, TimelineResponse, Writer, accountDecoder, clientGetJson, clientGetJsonTask, clientRequestUrl, firstAccountWithName, getAccount, getLibraries, getLibrary, getMetadata, getMetadataChildren, getResources, getSections, getSettings, httpJsonBodyResolver, initialClient, initialLibrary, initialMetadata, librariesDecoder, libraryDecoder, metadataDecoder, metadataListDecoder, playerTimeline, sectionsDecoder, settingsDecoder, signIn, timelineResponseDecoder, transcodedImageUrl)
+module Api exposing (Account, Client, Connection, Country, Director, Genre, Guid, Library, Location, Media, MediaPart, Metadata, Rating, Resource, Role, Section, Setting, SignInResponse, TimelineRequest, TimelineResponse, Writer, accountDecoder, clientGetJson, clientGetJsonTask, clientRequestUrl, firstAccountWithName, getAccount, getContinueWatching, getLibraries, getLibrary, getLibraryRecentlyAdded, getMetadata, getMetadataChildren, getResources, getSections, getSettings, httpJsonBodyResolver, initialClient, initialLibrary, initialMetadata, librariesDecoder, libraryDecoder, metadataDecoder, metadataListDecoder, playerTimeline, sectionsDecoder, settingsDecoder, signIn, timelineResponseDecoder, transcodedImageUrl)
 
 import Http
 import Json.Decode as Decode exposing (Decoder)
@@ -578,18 +578,27 @@ getLibraries =
     clientGetJson librariesDecoder "/library/sections"
 
 
+sectionDecoder : Decoder Section
+sectionDecoder =
+    Decode.map4
+        (\hubIdentifier title more data ->
+            { hubIdentifier = hubIdentifier, title = title, more = more, data = data }
+        )
+        (Decode.field "hubIdentifier" Decode.string)
+        (Decode.field "title" Decode.string)
+        (maybeFalse <| Decode.field "more" Decode.bool)
+        (maybeEmptyList <| Decode.field "Metadata" <| Decode.list metadataDecoder)
+
+
 sectionsDecoder : Decoder (List Section)
 sectionsDecoder =
+    Decode.at [ "MediaContainer", "Hub" ] <| Decode.list sectionDecoder
+
+
+firstSectionDecoder : Decoder Section
+firstSectionDecoder =
     Decode.at [ "MediaContainer", "Hub" ] <|
-        Decode.list <|
-            Decode.map4
-                (\hubIdentifier title more data ->
-                    { hubIdentifier = hubIdentifier, title = title, more = more, data = data }
-                )
-                (Decode.field "hubIdentifier" Decode.string)
-                (Decode.field "title" Decode.string)
-                (maybeFalse <| Decode.field "more" Decode.bool)
-                (maybeEmptyList <| Decode.field "Metadata" <| Decode.list metadataDecoder)
+        Decode.index 0 sectionDecoder
 
 
 metadataListDecoder : Decoder (List Metadata)
@@ -602,7 +611,17 @@ metadataListDecoder =
 
 getSections : (Result Http.Error (List Section) -> msg) -> Client -> Cmd msg
 getSections =
-    clientGetJson sectionsDecoder "/hubs?size=12"
+    clientGetJson sectionsDecoder "/hubs"
+
+
+getContinueWatching : (Result Http.Error (List Metadata) -> msg) -> Client -> Cmd msg
+getContinueWatching =
+    clientGetJson metadataListDecoder "/hubs/home/continueWatching"
+
+
+getLibraryRecentlyAdded : String -> (Result Http.Error Section -> msg) -> Client -> Cmd msg
+getLibraryRecentlyAdded key =
+    clientGetJson firstSectionDecoder <| "/hubs/promoted?excludeContinueWatching=1&count=12&contentDirectoryID=" ++ key
 
 
 getMetadata : String -> Client -> Task Http.Error Metadata

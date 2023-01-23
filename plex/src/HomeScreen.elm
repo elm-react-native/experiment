@@ -1,6 +1,6 @@
-module HomeScreen exposing (homeScreen, homeStyles, itemLabel, itemView, librarySectionView, retryGetSections, sectionContainer, sectionView)
+module HomeScreen exposing (homeScreen)
 
-import Api exposing (Client, Metadata, Section)
+import Api exposing (Client, Metadata)
 import Components exposing (bottomPadding, progressBar, videoPlayContainer)
 import Dict
 import Html exposing (Html)
@@ -223,73 +223,50 @@ sectionContainer title children =
         ]
 
 
-sectionView : Client -> Section -> Html Msg
-sectionView client section =
-    sectionContainer section.title <|
-        List.map (itemView client <| section.hubIdentifier == "home.continue") section.data
-
-
-librarySectionView : Client -> LibrarySection -> Html Msg
-librarySectionView client { info, data } =
-    sectionContainer info.title <|
-        case data of
-            Just (Ok metadata) ->
-                List.map (itemView client False) metadata
+sectionView : Client -> String -> Bool -> RemoteData (List Metadata) -> Html Msg
+sectionView client title isContinueWatching resp =
+    sectionContainer title <|
+        case resp of
+            Just (Ok data) ->
+                List.map (itemView client isContinueWatching) data
 
             Just (Err _) ->
-                [ text [] [ str "Load Error" ] ]
+                [ text [ color "white" ] [ str "Load failed" ] ]
 
             _ ->
-                [ view
-                    [ style homeStyles.loading ]
-                    [ activityIndicator [] [] ]
-                ]
-
-
-retryGetSections : String -> Html Msg
-retryGetSections s =
-    button [ title s, onPress <| Decode.succeed ReloadSections, color Theme.themeColor ] []
+                []
 
 
 homeScreen : HomeModel -> a -> Html Msg
 homeScreen model _ =
-    case model.sections of
-        Just (Ok ss) ->
-            let
-                sections =
-                    List.filter (\s -> (not <| List.isEmpty s.data) && s.hubIdentifier /= "home.ondeck") ss
+    let
+        client =
+            model.client
 
-                librarySections =
-                    Dict.values model.libraries
-            in
-            if List.isEmpty sections then
-                view []
-                    [ image [ source <| require "./assets/norecords.png", style { width = 60, height = 80 } ] []
-                    , retryGetSections "Reload"
-                    ]
+        recentlyAddedSectionViews =
+            List.map
+                (\lib ->
+                    sectionView client ("Recently Added in " ++ lib.title) False <|
+                        Dict.get lib.key model.librariesRecentlyAdded
+                )
+                model.libraries
 
-            else
-                scrollView
-                    [ persistentScrollbar False
-                    , contentContainerStyle homeStyles.container
-                    , style { backgroundColor = Theme.backgroundColor }
-                    ]
-                <|
-                    List.map (sectionView model.client) sections
-                        ++ List.map (librarySectionView model.client) librarySections
-                        ++ [ bottomPadding ]
-
-        Just (Err err) ->
-            let
-                _ =
-                    Debug.log "err" err
-            in
-            view [ style homeStyles.loading ]
-                [ ionicon "alert-circle-outline" [ size 60, color "darkred" ]
-                , retryGetSections "Retry"
-                ]
-
-        _ ->
-            view
-                [ style homeStyles.loading ]
-                [ activityIndicator [] [] ]
+        libraryDetailsSectionViews =
+            List.map
+                (\lib ->
+                    sectionView client lib.title False <|
+                        Dict.get lib.key model.librariesDetails
+                )
+                model.libraries
+    in
+    scrollView
+        [ persistentScrollbar False
+        , contentContainerStyle homeStyles.container
+        , style { backgroundColor = Theme.backgroundColor }
+        ]
+    <|
+        [ sectionView model.client "Continue Watching" True model.continueWatching
+        ]
+            ++ recentlyAddedSectionViews
+            ++ libraryDetailsSectionViews
+            ++ [ bottomPadding ]
