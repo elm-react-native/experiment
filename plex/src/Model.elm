@@ -51,6 +51,7 @@ type alias HomeModel =
     , account : Maybe Account
     , navKey : N.Key
     , videoPlayer : VideoPlayer
+    , refreshing : Bool
     }
 
 
@@ -65,6 +66,7 @@ initHomeModel client navKey =
     , tvShows = Dict.empty
     , navKey = navKey
     , videoPlayer = initialVideoPlayer
+    , refreshing = False
     }
 
 
@@ -116,6 +118,7 @@ type Msg
     | OnLeaveVideoScreen
     | SaveVideoPlayback Time.Posix
     | SignOut
+    | RefreshHomeScreen
 
 
 {-| fallback to first season when not find, return `Nothing` when seasons is empty

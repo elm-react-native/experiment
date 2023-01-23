@@ -16,6 +16,7 @@ import ReactNative
         , image
         , imageBackground
         , null
+        , refreshControl
         , require
         , scrollView
         , str
@@ -23,7 +24,7 @@ import ReactNative
         , touchableOpacity
         , view
         )
-import ReactNative.Events exposing (onPress)
+import ReactNative.Events exposing (onPress, onRefresh)
 import ReactNative.Icon exposing (ionicon)
 import ReactNative.Properties
     exposing
@@ -33,6 +34,8 @@ import ReactNative.Properties
         , imageStyle
         , initialNumToRender
         , persistentScrollbar
+        , refreshCtrl
+        , refreshing
         , showsHorizontalScrollIndicator
         , size
         , source
@@ -280,6 +283,11 @@ homeScreen model _ =
         [ persistentScrollbar False
         , contentContainerStyle homeStyles.container
         , style { backgroundColor = Theme.backgroundColor }
+        , refreshCtrl <|
+            refreshControl
+                [ onRefresh (Decode.succeed RefreshHomeScreen)
+                , refreshing model.refreshing
+                ]
         ]
     <|
         [ lazy4 sectionView model.client "Continue Watching" True model.continueWatching

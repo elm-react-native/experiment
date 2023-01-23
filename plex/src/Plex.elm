@@ -531,7 +531,7 @@ update msg model =
         GotLibraryDetail key resp ->
             case model of
                 Home m ->
-                    ( Home { m | librariesDetails = Dict.insert key resp m.librariesDetails }, Cmd.none )
+                    ( Home { m | librariesDetails = Dict.insert key resp m.librariesDetails, refreshing = False }, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
@@ -547,7 +547,15 @@ update msg model =
         GotContinueWatching resp ->
             case model of
                 Home m ->
-                    ( Home { m | continueWatching = Just resp }, Cmd.none )
+                    ( Home { m | continueWatching = Just resp, refreshing = False }, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        RefreshHomeScreen ->
+            case model of
+                Home m ->
+                    ( Home { m | refreshing = True }, Cmd.batch [ getLibraries m.client, getContinueWatching m.client ] )
 
                 _ ->
                     ( model, Cmd.none )
