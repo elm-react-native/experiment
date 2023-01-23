@@ -53,8 +53,6 @@ videoUri { ratingKey, sessionId, screenMetrics } client =
             else
                 ""
            )
-        ++ ("&X-Plex-Token=" ++ client.token)
-        ++ ("&X-Plex-Client-Identifier=" ++ client.id)
         ++ ("&X-Pler-Session-Identifier=" ++ sessionId)
 
 
