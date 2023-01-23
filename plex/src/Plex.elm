@@ -656,6 +656,7 @@ root model =
                         , headerRight = \_ -> lazy accountAvatar m.account
                         , headerTintColor = "white"
                         , headerStyle = { backgroundColor = Theme.backgroundColor }
+                        , orientation = "portrait"
                         }
                     , component homeScreen
                     ]
@@ -667,6 +668,7 @@ root model =
                         , headerBackTitle = Maybe.withDefault "" <| Maybe.map .name m.account
                         , headerTintColor = "white"
                         , headerStyle = { backgroundColor = Theme.backgroundColor }
+                        , orientation = "portrait"
                         }
                     , component accountScreen
                     ]
@@ -676,6 +678,7 @@ root model =
                     , options
                         { presentation = "modal"
                         , headerShown = False
+                        , orientation = "portrait"
                         }
                     , getId
                         (\{ params } ->
@@ -698,6 +701,7 @@ root model =
                         { presentation = "fullScreenModal"
                         , headerShown = False
                         , autoHideHomeIndicator = True
+                        , orientation = "landscape"
                         }
                     , component videoScreen
                     , Nav.listeners
