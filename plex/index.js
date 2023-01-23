@@ -10,13 +10,15 @@ import contextMenuResolveComponent from '@elm-react-native/react-native-ios-cont
 import videoResolveComponent from '@elm-react-native/react-native-video';
 
 AppRegistry.registerComponent(appName, () => () => (
-  <App
-    resolveComponent={tag => {
-      return (
-        vectorIconsResolveComponent(tag) ||
-        contextMenuResolveComponent(tag) ||
-        videoResolveComponent(tag)
-      );
-    }}
-  />
+  <React.StrictMode>
+    <App
+      resolveComponent={tag => {
+        return (
+          vectorIconsResolveComponent(tag) ||
+          contextMenuResolveComponent(tag) ||
+          videoResolveComponent(tag)
+        );
+      }}
+    />
+  </React.StrictMode>
 ));
