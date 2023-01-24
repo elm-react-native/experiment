@@ -470,6 +470,7 @@ type alias Section =
 type alias Client =
     { token : String
     , serverAddress : String
+    , serverName : String
     , id : String
     , email : String
     , password : String
@@ -759,6 +760,7 @@ initialClient : Client
 initialClient =
     { id = ""
     , serverAddress = "https://plex.tv/api/v2"
+    , serverName = ""
     , token = ""
     , email = ""
     , password = ""

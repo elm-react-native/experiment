@@ -62,7 +62,7 @@ import Task
 import Theme
 
 
-findLocalServer : List Api.Resource -> Maybe { serverAddress : String, token : String }
+findLocalServer : List Api.Resource -> Maybe { serverAddress : String, serverName : String, token : String }
 findLocalServer resources =
     resources
         |> List.filterMap
@@ -70,7 +70,11 @@ findLocalServer resources =
                 if resource.provides == "server" then
                     case List.head <| List.filter (\conn -> conn.local) resource.connections of
                         Just conn ->
-                            Just { serverAddress = conn.uri, token = resource.accessToken }
+                            Just
+                                { serverAddress = conn.uri
+                                , serverName = resource.name
+                                , token = resource.accessToken
+                                }
 
                         _ ->
                             Nothing
@@ -88,11 +92,12 @@ signInSubmit client =
         |> Task.andThen
             (\resources ->
                 case findLocalServer resources of
-                    Just { token, serverAddress } ->
+                    Just { token, serverAddress, serverName } ->
                         Task.succeed
                             { client
                                 | token = token
                                 , serverAddress = serverAddress
+                                , serverName = serverName
                                 , password = ""
                             }
 

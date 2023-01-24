@@ -119,10 +119,11 @@ savePlaybackTime player client =
 
 loadClient : Cmd Msg
 loadClient =
-    Task.map4
-        (\id token serverAddress email ->
+    Task.map5
+        (\id token serverAddress serverName email ->
             { token = token
             , serverAddress = serverAddress
+            , serverName = serverName
             , id = id
             , email = email
             , password = ""
@@ -131,6 +132,7 @@ loadClient =
         (Settings.get "clientId" <| Utils.maybeEmptyString Decode.string)
         (Settings.get "token" Decode.string)
         (Settings.get "serverAddress" Decode.string)
+        (Settings.get "serverName" Decode.string)
         (Settings.get "email" <| Utils.maybeEmptyString Decode.string)
         |> Task.attempt (Result.toMaybe >> GotSavedClient)
 
@@ -148,6 +150,7 @@ saveClient client =
         in
         Settings.set
             [ ( "serverAddress", encode client.serverAddress )
+            , ( "serverName", encode client.serverName )
             , ( "token", encode client.token )
             , ( "clientId", encode client.id )
             , ( "email", encode client.email )
@@ -647,7 +650,7 @@ root model =
                 [ screen
                     [ name "home"
                     , options
-                        { headerTitle = "Home"
+                        { headerTitle = m.client.serverName
                         , headerLeft = \_ -> favicon 20
                         , headerRight = \_ -> lazy accountAvatar m.account
                         , headerTintColor = "white"
