@@ -1,4 +1,4 @@
-module Components exposing (bottomPadding, chip, favicon, progressBar, videoPlay, videoPlayContainer)
+module Components exposing (bottomPadding, chip, favicon, progressBar, text, videoPlay, videoPlayContainer)
 
 import Browser
 import Html exposing (Attribute, Html)
@@ -9,6 +9,10 @@ import ReactNative.Icon exposing (ionicon)
 import ReactNative.Properties exposing (color, name, size, source, style)
 import Theme
 import Utils exposing (percentFloat)
+
+
+text props children =
+    ReactNative.text (style { color = "white", fontFamily = Theme.fontFamily } :: props) children
 
 
 videoPlay : Int -> Decoder msg -> Html msg
@@ -99,8 +103,7 @@ chip label =
         ]
         [ text
             [ style
-                { color = "white"
-                , fontSize = 8
+                { fontSize = 8
                 , fontWeight = "bold"
                 }
             ]

@@ -651,7 +651,10 @@ root model =
                         , headerLeft = \_ -> favicon 20
                         , headerRight = \_ -> lazy accountAvatar m.account
                         , headerTintColor = "white"
-                        , headerStyle = { backgroundColor = Theme.backgroundColor }
+                        , headerStyle =
+                            { fontFamily = Theme.fontFamily
+                            , backgroundColor = Theme.backgroundColor
+                            }
                         , orientation = "portrait"
                         }
                     , component homeScreen

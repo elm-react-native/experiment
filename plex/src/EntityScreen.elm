@@ -1,7 +1,7 @@
 module EntityScreen exposing (entityScreen)
 
 import Api exposing (Client, Metadata)
-import Components exposing (bottomPadding, chip, progressBar, videoPlayContainer)
+import Components exposing (bottomPadding, chip, progressBar, text, videoPlayContainer)
 import Dict
 import Html exposing (Html)
 import Json.Decode as Decode
@@ -17,7 +17,6 @@ import ReactNative
         , require
         , scrollView
         , str
-        , text
         , touchableOpacity
         , view
         )
@@ -75,7 +74,6 @@ entityTitle title =
         [ style
             { fontSize = 18
             , fontWeight = "bold"
-            , color = "white"
             , marginTop = 10
             }
         ]
@@ -146,8 +144,7 @@ entityGeneral tvShow metadata =
           else
             text
                 [ style
-                    { color = "white"
-                    , fontSize = 12
+                    { fontSize = 12
                     }
                 ]
                 [ str <| String.slice 0 4 originallyAvailableAt ]
@@ -165,7 +162,7 @@ entityGeneral tvShow metadata =
             null
 
           else
-            text [ style { color = "white", fontSize = 12 } ] [ str <| formatDuration metadata.duration ]
+            text [ style { fontSize = 12 } ] [ str <| formatDuration metadata.duration ]
         ]
 
 
@@ -188,7 +185,7 @@ ratingView score icon =
             , style size
             ]
             []
-        , text [ style { color = "white", fontSize = 12 } ] [ str <| percentFloat <| score / 10 ]
+        , text [ style { fontSize = 12 } ] [ str <| percentFloat <| score / 10 ]
         ]
 
 
@@ -206,7 +203,7 @@ entityPlayButton ratingKey viewOffset duration isContinueWatching =
                 , flexDirection = "row"
                 }
             ]
-            [ text [ style { color = "black", fontSize = 30, top = 2, right = 2 } ] [ str "⏵" ]
+            [ text [ style { color = "black", fontSize = 30, top = 2, right = 4 } ] [ str "⏵" ]
             , text [ style { color = "black", fontWeight = "bold" } ]
                 [ str <|
                     if isContinueWatching then
@@ -223,8 +220,7 @@ entityLabel : String -> Html msg
 entityLabel label =
     text
         [ style
-            { color = "white"
-            , fontWeight = "bold"
+            { fontWeight = "bold"
             , fontSize = 15
             , marginTop = 10
             }
@@ -284,7 +280,6 @@ entitySummary tvShow metadata =
         text
             [ style
                 { fontSize = 12
-                , color = "white"
                 , paddingVertical = 5
                 }
             , numberOfLines 3
@@ -316,7 +311,7 @@ episodeView client ep metrics =
                     , cache = "force-cache"
                     }
                 , style { width = 112, height = 63, justifyContent = "flex-end" }
-                , imageStyle { borderRadius = 4, resizeMode = "contain" }
+                , imageStyle { borderRadius = 6, resizeMode = "contain" }
                 ]
                 [ videoPlayContainer 15 (Decode.succeed <| PlayVideo ep.ratingKey ep.viewOffset ep.duration)
                 , case ep.lastViewedAt of
@@ -337,7 +332,7 @@ episodeView client ep metrics =
                 [ style { width = metrics.width - 20 - 5 - 112 }
                 ]
                 [ text
-                    [ style { color = "white" }, numberOfLines 2 ]
+                    [ numberOfLines 2 ]
                     [ str <| String.fromInt ep.index ++ ". " ++ ep.title ]
                 , text [ style { color = "gray", fontSize = 12, marginTop = 3 } ] [ str <| formatDuration ep.duration ]
                 ]
@@ -380,7 +375,6 @@ seasonView selectedSeasonIndex show =
             [ text
                 [ style
                     { fontWeight = "bold"
-                    , color = "white"
                     , marginRight = 5
                     }
                 ]

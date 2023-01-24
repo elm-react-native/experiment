@@ -4,6 +4,7 @@ import AccountScreen exposing (accountScreen, avatar)
 import Api exposing (Client, Metadata)
 import Browser
 import Browser.Navigation as N
+import Components exposing (text)
 import Dict exposing (Dict)
 import EntityScreen exposing (entityScreen)
 import Html exposing (Html)
@@ -20,7 +21,6 @@ import ReactNative
         , require
         , scrollView
         , str
-        , text
         , textInput
         , touchableOpacity
         , touchableWithoutFeedback
@@ -171,6 +171,7 @@ signInStyles =
             }
         , input =
             { borderBottomWidth = StyleSheet.hairlineWidth
+            , fontFamily = Theme.fontFamily
             , height = 44
             , marginBottom = 20
             , color = "white"
@@ -186,7 +187,7 @@ signInStyles =
         , buttonDisabled =
             { opacity = 0.5 }
         , buttonText =
-            { color = "white", fontSize = 16, fontWeight = "bold" }
+            { fontSize = 16, fontWeight = "bold" }
         }
 
 

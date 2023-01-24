@@ -3,6 +3,7 @@ module AccountScreen exposing (accountScreen, avatar, avatarStyles)
 import Api exposing (Account, Client, Metadata, Section)
 import Browser
 import Browser.Navigation as N
+import Components exposing (text)
 import Dict exposing (Dict)
 import EntityScreen exposing (entityScreen)
 import Html exposing (Html)
@@ -21,7 +22,6 @@ import ReactNative
         , require
         , scrollView
         , str
-        , text
         , textInput
         , touchableOpacity
         , touchableWithoutFeedback
@@ -78,7 +78,6 @@ avatarStyles size =
         , text =
             { fontSize = size
             , fontWeight = "bold"
-            , color = "white"
             , lineHeight = size
             }
         }
@@ -138,6 +137,6 @@ accountScreen model _ =
                     []
                 ]
             , view []
-                [ text [ style { color = "white" } ] [ str "Version 0.7" ] ]
+                [ text [] [ str "Version 0.7" ] ]
             ]
         ]

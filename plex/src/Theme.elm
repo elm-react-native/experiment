@@ -1,6 +1,11 @@
-module Theme exposing (backgroundColor, themeColor)
+module Theme exposing (backgroundColor, fontFamily, themeColor)
 
 import Utils exposing (quotRem)
+
+
+fontFamily : String
+fontFamily =
+    "Netflix Sans"
 
 
 themeColor : String

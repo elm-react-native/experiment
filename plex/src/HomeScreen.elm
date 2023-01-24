@@ -1,7 +1,7 @@
 module HomeScreen exposing (homeScreen)
 
 import Api exposing (Client, Metadata)
-import Components exposing (bottomPadding, progressBar, videoPlayContainer)
+import Components exposing (bottomPadding, progressBar, text, videoPlayContainer)
 import Dict
 import Html exposing (Html)
 import Html.Lazy exposing (lazy4)
@@ -20,7 +20,6 @@ import ReactNative
         , require
         , scrollView
         , str
-        , text
         , touchableOpacity
         , view
         )
@@ -58,14 +57,12 @@ homeStyles =
             , width = "100%"
             , backgroundColor = Theme.backgroundColor
             }
-        , loadErrorText = { fontSize = 15, color = "white" }
         , container = { backgroundColor = Theme.backgroundColor }
         , sectionContainer =
             { height = 180, paddingVertical = 5 }
         , sectionTitle =
             { fontSize = 15
             , fontWeight = "bold"
-            , color = "white"
             , marginLeft = 5
             , marginBottom = 4
             }
@@ -101,14 +98,12 @@ homeStyles =
             }
         , itemImageAltText =
             { fontSize = 12
-            , color = "white"
             , fontWeight = "bold"
             }
         , itemLabel =
             { fontSize = 10
             , lineHeight = 10
             , fontWeight = "bold"
-            , color = "white"
             }
         , itemLabelBackground =
             { alignItems = "center"
@@ -256,7 +251,7 @@ sectionView client title isContinueWatching resp =
             lazy4 sectionViewData client title isContinueWatching data
 
         Just (Err _) ->
-            sectionContainer title <| text [ style { color = "white" } ] [ str "Load failed" ]
+            sectionContainer title <| text [] [ str "Load failed" ]
 
         _ ->
             sectionContainer title null
