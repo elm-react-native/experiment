@@ -32,6 +32,7 @@ import ReactNative.Properties
         , initialNumToRender
         , listFooterNode
         , listHeaderNode
+        , numberOfLines
         , resizeMode
         , size
         , source
@@ -66,8 +67,8 @@ heroImage thumb client =
         ]
 
 
-heroTitle : String -> Html msg
-heroTitle title =
+entityTitle : String -> Html msg
+entityTitle title =
     text
         [ style
             { fontSize = 18
@@ -79,8 +80,8 @@ heroTitle title =
         [ str title ]
 
 
-heroInfo : RemoteData TVShow -> Metadata -> Html msg
-heroInfo tvShow metadata =
+entityGeneral : RemoteData TVShow -> Metadata -> Html msg
+entityGeneral tvShow metadata =
     let
         { originallyAvailableAt, contentRating, audienceRating, audienceRatingImage, duration } =
             case metadata.typ of
@@ -189,8 +190,8 @@ ratingView score icon =
         ]
 
 
-heroPlayButton : String -> Maybe Int -> Int -> Bool -> Html Msg
-heroPlayButton ratingKey viewOffset duration isContinueWatching =
+entityPlayButton : String -> Maybe Int -> Int -> Bool -> Html Msg
+entityPlayButton ratingKey viewOffset duration isContinueWatching =
     touchableOpacity [ onPress <| Decode.succeed <| PlayVideo ratingKey viewOffset duration ]
         [ view
             [ style
@@ -216,8 +217,8 @@ heroPlayButton ratingKey viewOffset duration isContinueWatching =
         ]
 
 
-heroLabel : String -> Html msg
-heroLabel label =
+entityLabel : String -> Html msg
+entityLabel label =
     text
         [ style
             { color = "white"
@@ -229,8 +230,8 @@ heroLabel label =
         [ str label ]
 
 
-heroProgressBar : Int -> Int -> String -> Html msg
-heroProgressBar viewOffset duration label =
+entityProgressBar : Int -> Int -> String -> Html msg
+entityProgressBar viewOffset duration label =
     let
         progress =
             toFloat viewOffset / toFloat duration
@@ -256,8 +257,8 @@ heroProgressBar viewOffset duration label =
         ]
 
 
-heroSummary : RemoteData TVShow -> Metadata -> Html msg
-heroSummary tvShow metadata =
+entitySummary : RemoteData TVShow -> Metadata -> Html msg
+entitySummary tvShow metadata =
     let
         summary =
             if metadata.typ == "show" then
@@ -282,8 +283,9 @@ heroSummary tvShow metadata =
             [ style
                 { fontSize = 12
                 , color = "white"
-                , marginTop = 5
+                , paddingVertical = 5
                 }
+            , numberOfLines 3
             ]
             [ str summary ]
 
@@ -328,7 +330,7 @@ episodeView client ep =
                 , text [ style { color = "gray", fontSize = 12, marginTop = 3 } ] [ str <| formatDuration ep.duration ]
                 ]
             ]
-        , text [ style { color = "gray", fontSize = 12, marginTop = 4 } ] [ str ep.summary ]
+        , text [ style { color = "gray", fontSize = 12, marginTop = 4 }, numberOfLines 3 ] [ str ep.summary ]
         ]
 
 
@@ -421,6 +423,91 @@ entityEposidesHeader tvShow =
             loadingEposidesIndicator 0
 
 
+entityWriters : RemoteData TVShow -> Metadata -> Html Msg
+entityWriters tvShow metadata =
+    let
+        writers =
+            if metadata.typ == "movie" then
+                metadata.writers
+
+            else
+                case tvShow of
+                    Just (Ok show) ->
+                        show.info.writers
+
+                    _ ->
+                        []
+    in
+    if List.isEmpty writers then
+        null
+
+    else
+        view [ style { flexDirection = "row" } ]
+            [ text [ style { color = "gray", fontSize = 11 }, numberOfLines 1 ]
+                [ str <|
+                    "Writers: "
+                        ++ String.join ", " (List.map .tag writers)
+                ]
+            ]
+
+
+entityDirectors : RemoteData TVShow -> Metadata -> Html Msg
+entityDirectors tvShow metadata =
+    let
+        directors =
+            if metadata.typ == "movie" then
+                metadata.directors
+
+            else
+                case tvShow of
+                    Just (Ok show) ->
+                        show.info.directors
+
+                    _ ->
+                        []
+    in
+    if List.isEmpty directors then
+        null
+
+    else
+        view [ style { flexDirection = "row" } ]
+            [ text [ style { color = "gray", fontSize = 11 }, numberOfLines 1 ]
+                [ str <|
+                    "Directors: "
+                        ++ String.join ", " (List.map .tag directors)
+                ]
+            ]
+
+
+entityCasts : RemoteData TVShow -> Metadata -> Html Msg
+entityCasts tvShow metadata =
+    let
+        casts =
+            if metadata.typ == "movie" then
+                metadata.roles
+
+            else
+                case tvShow of
+                    Just (Ok show) ->
+                        show.info.roles
+
+                    _ ->
+                        []
+    in
+    if List.isEmpty casts then
+        null
+
+    else
+        view [ style { flexDirection = "row" } ]
+            [ text [ style { color = "gray", fontSize = 11 }, numberOfLines 1 ]
+                [ str <|
+                    "Casts: "
+                        ++ String.join ", " (List.map .tag casts)
+                ]
+            ]
+
+
+entityInfo : Bool -> RemoteData TVShow -> Metadata -> Html Msg
 entityInfo isContinueWatching tvShow metadata =
     let
         { title, label, showProgress, showPlayButton, displayEpisodes } =
@@ -469,12 +556,28 @@ entityInfo isContinueWatching tvShow metadata =
                     , showPlayButton = False
                     , displayEpisodes = False
                     }
+
+        { directors, casts } =
+            if metadata.typ == "movide" then
+                { directors = metadata.directors
+                , casts = metadata.roles
+                }
+
+            else
+                case tvShow of
+                    Just (Ok show) ->
+                        { directors = show.info.directors
+                        , casts = show.info.roles
+                        }
+
+                    _ ->
+                        { directors = [], casts = [] }
     in
     fragment []
-        [ heroTitle title
-        , heroInfo tvShow metadata
+        [ entityTitle title
+        , entityGeneral tvShow metadata
         , if showPlayButton then
-            heroPlayButton metadata.ratingKey metadata.viewOffset metadata.duration isContinueWatching
+            entityPlayButton metadata.ratingKey metadata.viewOffset metadata.duration isContinueWatching
 
           else
             null
@@ -482,13 +585,16 @@ entityInfo isContinueWatching tvShow metadata =
             null
 
           else
-            heroLabel label
+            entityLabel label
         , if showProgress then
-            heroProgressBar (Maybe.withDefault metadata.duration metadata.viewOffset) metadata.duration label
+            entityProgressBar (Maybe.withDefault metadata.duration metadata.viewOffset) metadata.duration label
 
           else
             null
-        , heroSummary tvShow metadata
+        , entitySummary tvShow metadata
+        , entityDirectors tvShow metadata
+        , entityWriters tvShow metadata
+        , entityCasts tvShow metadata
         , if displayEpisodes then
             entityEposidesHeader tvShow
 

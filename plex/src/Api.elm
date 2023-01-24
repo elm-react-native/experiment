@@ -316,8 +316,22 @@ metadataDecoder =
                 (maybeEmptyString <| Decode.field "ratingImage" Decode.string)
                 (maybeFloatZero <| Decode.field "audienceRating" Decode.float)
                 (maybeEmptyString <| Decode.field "audienceRatingImage" Decode.string)
+
+        decoder6 =
+            Decode.map4
+                (\data directors roles writers ->
+                    { data
+                        | directors = directors
+                        , roles = roles
+                        , writers = writers
+                    }
+                )
+                decoder5
+                (maybeEmptyList <| Decode.field "Director" <| Decode.list directorDecoder)
+                (maybeEmptyList <| Decode.field "Role" <| Decode.list roleDecoder)
+                (maybeEmptyList <| Decode.field "Writer" <| Decode.list writerDecoder)
     in
-    decoder5
+    decoder6
 
 
 type alias Director =
@@ -330,25 +344,17 @@ type alias Director =
 directorDecoder : Decoder Director
 directorDecoder =
     Decode.map3 Director
-        (Decode.field "id" Decode.int)
+        (maybeZero <| Decode.field "id" Decode.int)
         (Decode.field "tag" Decode.string)
-        (Decode.field "filter" Decode.string)
-
-
-encodedDirector : Director -> Encode.Value
-encodedDirector director =
-    Encode.object
-        [ ( "id", Encode.int director.id )
-        , ( "tag", Encode.string director.tag )
-        , ( "filter", Encode.string director.filter )
-        ]
+        (maybeEmptyString <| Decode.field "filter" Decode.string)
 
 
 type alias Writer =
-    { id : Int
-    , tag : String
-    , filter : String
-    }
+    Director
+
+
+writerDecoder =
+    directorDecoder
 
 
 type alias Genre =
@@ -376,6 +382,16 @@ type alias Role =
     , role : String
     , thumb : String
     }
+
+
+roleDecoder : Decoder Role
+roleDecoder =
+    Decode.map5 Role
+        (Decode.field "tag" Decode.string)
+        (maybeEmptyString <| Decode.field "filter" Decode.string)
+        (maybeEmptyString <| Decode.field "tagKey" Decode.string)
+        (maybeEmptyString <| Decode.field "role" Decode.string)
+        (maybeEmptyString <| Decode.field "thumb" Decode.string)
 
 
 type alias Country =
