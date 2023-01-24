@@ -26,6 +26,7 @@ import ReactNative
         )
 import ReactNative.Events exposing (onPress, onRefresh)
 import ReactNative.Icon exposing (ionicon)
+import ReactNative.PixelRatio as PixelRatio
 import ReactNative.Properties
     exposing
         ( color
@@ -185,7 +186,11 @@ itemView client isContinueWatching metadata =
         , imageBackground
             [ style homeStyles.itemImage
             , source
-                { uri = Api.transcodedImageUrl thumb 480 719 client
+                { uri =
+                    Api.transcodedImageUrl thumb
+                        (PixelRatio.getPixelSizeForLayoutSize 100)
+                        (PixelRatio.getPixelSizeForLayoutSize 142)
+                        client
                 , width = 480
                 , height = 719
                 }

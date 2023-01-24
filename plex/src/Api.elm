@@ -747,11 +747,11 @@ getSettings =
     clientGetJson settingsDecoder "/settings"
 
 
-transcodedImageUrl : String -> Int -> Int -> Client -> String
+transcodedImageUrl : String -> Float -> Float -> Client -> String
 transcodedImageUrl thumb width height client =
     clientRequestUrl "/photo/:/transcode" client
-        ++ ("&width=" ++ String.fromInt width)
-        ++ ("&height=" ++ String.fromInt height)
+        ++ ("&width=" ++ String.fromFloat width)
+        ++ ("&height=" ++ String.fromFloat height)
         ++ ("&url=" ++ Url.percentEncode thumb)
 
 

@@ -24,6 +24,7 @@ import ReactNative
 import ReactNative.ContextMenuIOS exposing (MenuItem, contextMenuButton, isMenuPrimaryAction, menuConfig, onPressMenuItem, pressEventMenuItemDecoder)
 import ReactNative.Events exposing (onPress)
 import ReactNative.Icon exposing (ionicon)
+import ReactNative.PixelRatio as PixelRatio
 import ReactNative.Properties
     exposing
         ( color
@@ -296,7 +297,11 @@ episodeView client ep =
         [ view [ style { flexDirection = "row", marginTop = 15, alignItems = "center" } ]
             [ imageBackground
                 [ source
-                    { uri = Api.transcodedImageUrl ep.thumb 720 404 client
+                    { uri =
+                        Api.transcodedImageUrl ep.thumb
+                            (PixelRatio.getPixelSizeForLayoutSize 112)
+                            (PixelRatio.getPixelSizeForLayoutSize 63)
+                            client
                     , width = 720
                     , height = 404
                     , cache = "force-cache"
