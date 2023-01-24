@@ -530,7 +530,7 @@ clientGetJsonTask decoder path client =
         , headers = [ Http.header "Accept" "application/json" ]
         , body = Http.emptyBody
         , resolver = Http.stringResolver <| httpJsonBodyResolver decoder
-        , timeout = Just 10000
+        , timeout = Just 15000
         }
 
 
@@ -542,7 +542,7 @@ clientPostJsonTask body decoder path client =
         , headers = [ Http.header "Accept" "application/json" ]
         , body = Http.jsonBody body
         , resolver = Http.stringResolver <| httpJsonBodyResolver decoder
-        , timeout = Just 10000
+        , timeout = Just 15000
         }
 
 
@@ -554,7 +554,7 @@ clientGetJson decoder path tagger client =
         , headers = [ Http.header "Accept" "application/json" ]
         , body = Http.emptyBody
         , expect = Http.expectJson tagger decoder
-        , timeout = Just 10000
+        , timeout = Just 15000
         , tracker = Nothing
         }
 
