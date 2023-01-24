@@ -176,6 +176,7 @@ gotSavedClient savedClient navKey =
                 [ getLibraries client
                 , getAccount client
                 , getContinueWatching client
+                , Task.perform GotScreenMetrics Dimensions.getScreen
                 ]
             )
 
@@ -334,11 +335,6 @@ playVideo ratingKey viewOffset duration ({ navKey, videoPlayer } as m) =
         }
     , Cmd.batch
         [ Nav.push navKey "video" ()
-        , if videoPlayer.screenMetrics == Dimensions.initialDisplayMetrics then
-            Task.perform GotScreenMetrics Dimensions.getScreen
-
-          else
-            Cmd.none
         , if String.isEmpty videoPlayer.sessionId then
             Random.generate GotPlaySessionId Utils.generateIdentifier
 
@@ -472,8 +468,8 @@ update msg model =
 
         GotScreenMetrics screenMetrics ->
             case model of
-                Home ({ videoPlayer } as m) ->
-                    ( Home { m | videoPlayer = { videoPlayer | screenMetrics = screenMetrics } }, Cmd.none )
+                Home m ->
+                    ( Home { m | screenMetrics = screenMetrics }, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )

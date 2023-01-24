@@ -7,7 +7,7 @@ import Json.Encode as Encode
 import Maybe
 import Model exposing (HomeModel, Msg(..), VideoPlayer, isVideoUrlReady)
 import ReactNative exposing (fragment, null, touchableOpacity, touchableWithoutFeedback, view)
-import ReactNative.Dimensions as Dimensions
+import ReactNative.Dimensions as Dimensions exposing (DisplayMetrics)
 import ReactNative.Platform as Platform
 import ReactNative.Properties exposing (color, component, componentModel, getId, name, options, size, source, style)
 import ReactNative.StyleSheet as StyleSheet
@@ -35,8 +35,8 @@ import ReactNative.Video
 import Time
 
 
-videoUri : VideoPlayer -> Api.Client -> String
-videoUri { ratingKey, sessionId, screenMetrics } client =
+videoUri : DisplayMetrics -> VideoPlayer -> Api.Client -> String
+videoUri screenMetrics { ratingKey, sessionId } client =
     Api.clientRequestUrl "/video/:/transcode/universal/start.m3u8" client
         ++ ("&path=%2Flibrary%2Fmetadata%2F" ++ ratingKey)
         ++ "&fastSeek=1"
@@ -73,7 +73,7 @@ videoScreen : HomeModel -> () -> Html Msg
 videoScreen m _ =
     if isVideoUrlReady m.videoPlayer then
         video
-            [ source { uri = videoUri m.videoPlayer m.client }
+            [ source { uri = videoUri m.screenMetrics m.videoPlayer m.client }
             , controls True
             , fullscreenOrientation "landscape"
             , fullscreenAutorotate True

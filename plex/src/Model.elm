@@ -4,7 +4,7 @@ import Api exposing (Account, Client, Library, Metadata, Section)
 import Browser.Navigation as N
 import Dict exposing (Dict)
 import Http
-import ReactNative.Dimensions as Dimensions
+import ReactNative.Dimensions as Dimensions exposing (DisplayMetrics)
 import SignInModel exposing (SignInModel, SignInMsg)
 import Time
 
@@ -32,7 +32,6 @@ type alias LibrarySection =
 
 type alias VideoPlayer =
     { sessionId : String
-    , screenMetrics : Dimensions.DisplayMetrics
     , duration : Int
     , ratingKey : String
     , playbackTime : Int
@@ -52,6 +51,7 @@ type alias HomeModel =
     , navKey : N.Key
     , videoPlayer : VideoPlayer
     , refreshing : Bool
+    , screenMetrics : DisplayMetrics
     }
 
 
@@ -67,13 +67,13 @@ initHomeModel client navKey =
     , navKey = navKey
     , videoPlayer = initialVideoPlayer
     , refreshing = False
+    , screenMetrics = Dimensions.initialDisplayMetrics
     }
 
 
 initialVideoPlayer : VideoPlayer
 initialVideoPlayer =
     { sessionId = ""
-    , screenMetrics = Dimensions.initialDisplayMetrics
     , duration = 0
     , ratingKey = ""
     , playbackTime = 0
@@ -84,8 +84,7 @@ initialVideoPlayer =
 
 isVideoUrlReady : VideoPlayer -> Bool
 isVideoUrlReady videoPlayer =
-    (not <| String.isEmpty videoPlayer.sessionId)
-        && (videoPlayer.screenMetrics /= Dimensions.initialDisplayMetrics)
+    not <| String.isEmpty videoPlayer.sessionId
 
 
 type Model

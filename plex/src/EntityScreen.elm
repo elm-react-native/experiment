@@ -22,6 +22,7 @@ import ReactNative
         , view
         )
 import ReactNative.ContextMenuIOS exposing (MenuItem, contextMenuButton, isMenuPrimaryAction, menuConfig, onPressMenuItem, pressEventMenuItemDecoder)
+import ReactNative.Dimensions exposing (DisplayMetrics)
 import ReactNative.Events exposing (onPress)
 import ReactNative.Icon exposing (ionicon)
 import ReactNative.PixelRatio as PixelRatio
@@ -291,10 +292,18 @@ entitySummary tvShow metadata =
             [ str summary ]
 
 
-episodeView : Client -> Metadata -> Html Msg
-episodeView client ep =
-    view []
-        [ view [ style { flexDirection = "row", marginTop = 15, alignItems = "center" } ]
+episodeView : Client -> Metadata -> DisplayMetrics -> Html Msg
+episodeView client ep metrics =
+    fragment []
+        [ view
+            [ style
+                { flexDirection = "row"
+                , marginTop = 15
+                , alignItems = "center"
+                , gap = 5
+                , overflow = "hidden"
+                }
+            ]
             [ imageBackground
                 [ source
                     { uri =
@@ -324,13 +333,11 @@ episodeView client ep =
                     _ ->
                         null
                 ]
-            , view [ style { marginLeft = 5 } ]
+            , view
+                [ style { width = metrics.width - 20 - 5 - 112 }
+                ]
                 [ text
-                    [ style
-                        { color = "white"
-                        , marginRight = 10
-                        }
-                    ]
+                    [ style { color = "white" }, numberOfLines 2 ]
                     [ str <| String.fromInt ep.index ++ ". " ++ ep.title ]
                 , text [ style { color = "gray", fontSize = 12, marginTop = 3 } ] [ str <| formatDuration ep.duration ]
                 ]
@@ -678,7 +685,7 @@ entityScreen model { isContinueWatching, metadata } =
         , flatList
             { data = episodes
             , keyExtractor = \ep _ -> ep.guid
-            , renderItem = \{ item } -> episodeView client item
+            , renderItem = \{ item } -> episodeView client item model.screenMetrics
             , getItemLayout = Nothing
             }
             [ listHeaderNode <| entityInfo isContinueWatching tvShow metadata
