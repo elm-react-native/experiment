@@ -138,6 +138,6 @@ accountScreen model _ =
                     []
                 ]
             , view []
-                [ text [ style { color = "white" } ] [ str "Version 0.6" ] ]
+                [ text [ style { color = "white" } ] [ str "Version 0.7" ] ]
             ]
         ]
