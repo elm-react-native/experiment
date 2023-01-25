@@ -3,7 +3,7 @@
   "source-directories": [
     "packages/core",
     "packages/react-native-ios-context-menu",
-    "packages/react-native-picker",
+    "packages/react-native-slider",
     "packages/react-native-vector-icons",
     "packages/react-native-video",
     "demo/src",

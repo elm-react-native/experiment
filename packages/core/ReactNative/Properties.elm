@@ -66,6 +66,7 @@ module ReactNative.Properties exposing
     , endFillColor
     , fadeDuration
     , fadingEdgeLength
+    , floatValue
     , focusable
     , getId
     , getItem
@@ -86,6 +87,7 @@ module ReactNative.Properties exposing
     , initialScrollIndex
     , inputAccessoryViewID
     , inputMode
+    , intValue
     , invertStickyHeaders
     , inverted
     , ios_backgroundColor
@@ -266,6 +268,14 @@ contentContainerStyle =
 
 boolValue =
     property "value" << Encode.bool
+
+
+intValue =
+    property "value" << Encode.int
+
+
+floatValue =
+    property "value" << Encode.float
 
 
 pinchGestureEnabled =

@@ -15,7 +15,11 @@ module ReactNative.Events exposing
     , onDrawerStateChange
     , onEndReached
     , onError
+    , onFloat
+    , onFloatValueChange
     , onFocus
+    , onInt
+    , onIntValueChange
     , onLayout
     , onLongPress
     , onMagicTap
@@ -58,6 +62,10 @@ onString event tagger =
 
 onInt event tagger =
     on event <| Decode.map tagger Decode.int
+
+
+onFloat event tagger =
+    on event <| Decode.map tagger Decode.float
 
 
 onBool event tagger =
@@ -111,6 +119,16 @@ onSubmitEditing =
 onBoolValueChange : (Bool -> msg) -> Attribute msg
 onBoolValueChange =
     onBool "valueChange"
+
+
+onIntValueChange : (Int -> msg) -> Attribute msg
+onIntValueChange =
+    onInt "valueChange"
+
+
+onFloatValueChange : (Float -> msg) -> Attribute msg
+onFloatValueChange =
+    onFloat "valueChange"
 
 
 onStringValueChange : (String -> msg) -> Attribute msg
