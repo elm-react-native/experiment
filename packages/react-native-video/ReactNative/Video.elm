@@ -1,4 +1,4 @@
-module ReactNative.Video exposing (PlayerProgress, contentStartTime, controls, disableDisconnectError, fullscreen, fullscreenAutorotate, fullscreenOrientation, minLoadRetryCount, onBuffer, onEnd, onError, onErrorMessage, onFullscreenPlayerDidDismiss, onFullscreenPlayerWillDismiss, onLoad, onPlaybackStateChanged, onProgress, onReadyForDisplay, onSeek, paused, pictureInPicture, playWhenInactive, playerProgressDecoder, preventsDisplaySleepDuringVideoPlayback, progressUpdateInterval, rate, repeat, seekOnStart, video)
+module ReactNative.Video exposing (PlayerProgress, allowsExternalPlayback, contentStartTime, controls, disableDisconnectError, fullscreen, fullscreenAutorotate, fullscreenOrientation, minLoadRetryCount, onBuffer, onEnd, onError, onErrorMessage, onFullscreenPlayerDidDismiss, onFullscreenPlayerWillDismiss, onLoad, onPlaybackStateChanged, onProgress, onReadyForDisplay, onSeek, paused, pictureInPicture, playWhenInactive, playerProgressDecoder, preventsDisplaySleepDuringVideoPlayback, progressUpdateInterval, rate, repeat, seekOnStart, video)
 
 import Html exposing (Attribute, Html, node)
 import Json.Decode as Decode exposing (Decoder)
@@ -13,6 +13,10 @@ video =
 
 controls =
     property "controls" << Encode.bool
+
+
+allowsExternalPlayback =
+    property "allowsExternalPlayback" << Encode.bool
 
 
 fullscreen =

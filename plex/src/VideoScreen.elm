@@ -13,7 +13,8 @@ import ReactNative.Properties exposing (color, component, componentModel, getId,
 import ReactNative.StyleSheet as StyleSheet
 import ReactNative.Video
     exposing
-        ( contentStartTime
+        ( allowsExternalPlayback
+        , contentStartTime
         , controls
         , fullscreen
         , fullscreenAutorotate
@@ -85,6 +86,7 @@ videoScreen m _ =
             , onBuffer OnVideoBuffer
             , onProgress (\p -> OnVideoProgress p.currentTime)
             , style styles.fullscreen
+            , allowsExternalPlayback False
             ]
             []
 
