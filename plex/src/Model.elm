@@ -37,6 +37,7 @@ type alias VideoPlayer =
     , playbackTime : Int
     , isBuffering : Bool
     , initialPlaybackTime : Int
+    , metadata : Maybe Metadata
     }
 
 
@@ -79,6 +80,7 @@ initialVideoPlayer =
     , playbackTime = 0
     , isBuffering = False
     , initialPlaybackTime = 0
+    , metadata = Nothing
     }
 
 
@@ -103,6 +105,7 @@ type Msg
     | GotLibraryRecentlyAdded String (Result Http.Error (List Metadata))
     | GotContinueWatching (Result Http.Error (List Metadata))
     | GotTVShow String (Result Http.Error TVShow)
+    | GotStreams String (Result Http.Error Metadata)
     | GotEpisodes String String (Result Http.Error (List Metadata))
     | GotoAccount
     | GotoEntity Bool Metadata

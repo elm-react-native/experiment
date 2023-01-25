@@ -3,6 +3,7 @@ module Api exposing (Account, Client, Connection, Country, Director, Genre, Guid
 import Http
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode exposing (Value)
+import Media exposing (mediaDecoder, streamDecoder)
 import Task exposing (Task)
 import Url
 import Utils exposing (maybeEmptyList, maybeEmptyString, maybeFalse, maybeFloatZero, maybeZero)
@@ -63,39 +64,16 @@ type alias Location =
     { id : Int, path : String }
 
 
+type alias Media =
+    Media.Media
 
---type alias MediaContainer metadata =
---    { size : Int -- The number of libraries.
---    , allowSync : Bool -- 1 - allow syncing content from this library.  0 - don't allow syncing content from this library.
---    , identifier : String -- The type of item.
---    , art : String -- Background artwork used to represent the library.
---    , librarySectionID : String -- The unique key associated with the library.
---    , librarySectionTitle : String -- The title of the library.
---    , librarySectionUUID : String -- Unique GUID identifier for the library.
---    , mediaTagPrefix : String -- Prefix for the media tag.
---    , medidTagVersion : Int -- Media tag version. Note: This could be a date and time value.
---    , thumb : String -- The thumbnail for the library.
---    , title1 : String -- The title of the library. Note: This appears to be internally created, and can't be changed by the server owner.
---    , title2 : String -- A descriptive title for the library.
---    , sortAsc : Bool -- 1 - the library is sorted in ascending order. 0 - the library is sorted in descending order.
---    , viewGroup : String -- The group type used to view the library.
---    , viewMode : Int -- Unknown integer value.
---    , nocache : Bool
---    , metadata : List metadata
---    }
---type alias Hub =
---    { hubKey : String
---    , key : String
---    , title : String
---    , typ : String
---    , hubIdentifier : String
---    , context : String
---    , size : Int
---    , more : Bool
---    , style : String
---    , promoted : Bool
---    , metadata : List Metadata
---    }
+
+type alias MediaPart =
+    Media.MediaPart
+
+
+type alias Stream =
+    Media.Stream
 
 
 type alias Metadata =
@@ -121,7 +99,7 @@ type alias Metadata =
     , audienceRatingImage : String -- The image associated with the audience rating.
     , chapterSource : String --   The chapter source type.
     , ratingImage : String -- The image associated with the rating.
-    , media : List Media
+    , medias : List Media
     , originalTitle : String
     , includedAt : Int
     , index : Int
@@ -183,7 +161,7 @@ initialMetadata =
     , audienceRatingImage = ""
     , chapterSource = ""
     , ratingImage = ""
-    , media = []
+    , medias = []
     , originalTitle = ""
     , includedAt = 0
     , index = 0
@@ -318,18 +296,20 @@ metadataDecoder =
                 (maybeEmptyString <| Decode.field "audienceRatingImage" Decode.string)
 
         decoder6 =
-            Decode.map4
-                (\data directors roles writers ->
+            Decode.map5
+                (\data directors roles writers medias ->
                     { data
                         | directors = directors
                         , roles = roles
                         , writers = writers
+                        , medias = medias
                     }
                 )
                 decoder5
                 (maybeEmptyList <| Decode.field "Director" <| Decode.list directorDecoder)
                 (maybeEmptyList <| Decode.field "Role" <| Decode.list roleDecoder)
                 (maybeEmptyList <| Decode.field "Writer" <| Decode.list writerDecoder)
+                (maybeEmptyList <| Decode.field "Media" <| Decode.list mediaDecoder)
     in
     decoder6
 
@@ -396,41 +376,6 @@ roleDecoder =
 
 type alias Country =
     { tag : String, filter : String, id : Int }
-
-
-type alias Media =
-    { id : String --  Unique ID associated with the item.
-    , duration : Int --    The length of the item in milliseconds.
-    , bitrate : Int -- The bitrate of the item.
-    , width : Float
-    , height : Float
-    , aspectRatio : Float
-    , audioChannels : Int
-    , audioCodec : String
-    , videoCodec : String
-    , videoResolution : String
-    , optimizedForStreaming : Bool
-    , container : String
-    , videoFrameRate : String
-    , videoProfile : String --    The video profile of the media.
-    , audioProfile : String
-    , has64bitOffsets : Bool
-    , part : List MediaPart
-    }
-
-
-type alias MediaPart =
-    { id : String --  Unique ID associated with the part.
-    , key : String -- The unique relative path for the part that is used at its key.
-    , duration : Int --    The length of the part in milliseconds.
-    , file : String --    The file associated with the part.
-    , size : Int --    The file size of the part.
-    , audioProfile : String
-    , container : String --   The type of media container.
-    , has64bitOffsets : Bool
-    , optimizedForStreaming : Bool
-    , videoProfile : String --    The video profile associated with the video part.
-    }
 
 
 type alias Account =

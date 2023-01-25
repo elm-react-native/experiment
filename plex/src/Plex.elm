@@ -92,6 +92,12 @@ getTVShow id seasonId client =
         |> Task.attempt (hijackUnauthorizedError <| GotTVShow id)
 
 
+getStreams : String -> Client -> Cmd Msg
+getStreams id client =
+    Api.getMetadata id client
+        |> Task.attempt (hijackUnauthorizedError <| GotStreams id)
+
+
 getSeasons : Metadata -> String -> Client -> Cmd Msg
 getSeasons tvShowInfo seasonId client =
     Api.getMetadataChildren tvShowInfo.ratingKey client
@@ -326,7 +332,7 @@ signOut client navKey =
     )
 
 
-playVideo ratingKey viewOffset duration ({ navKey, videoPlayer } as m) =
+playVideo ratingKey viewOffset duration ({ navKey, videoPlayer, client } as m) =
     ( Home
         { m
             | videoPlayer =
@@ -338,6 +344,7 @@ playVideo ratingKey viewOffset duration ({ navKey, videoPlayer } as m) =
         }
     , Cmd.batch
         [ Nav.push navKey "video" ()
+        , getStreams ratingKey client
         , if String.isEmpty videoPlayer.sessionId then
             Random.generate GotPlaySessionId Utils.generateIdentifier
 
@@ -615,6 +622,14 @@ update msg model =
                                 , getContinueWatching m.client
                                 ]
                             )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        GotStreams _ data ->
+            case model of
+                Home ({ videoPlayer } as m) ->
+                    ( Home { m | videoPlayer = { videoPlayer | metadata = Result.toMaybe data } }, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
