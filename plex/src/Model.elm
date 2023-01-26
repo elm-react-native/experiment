@@ -1,6 +1,6 @@
 module Model exposing (HomeModel, LibrarySection, Model(..), Msg(..), RemoteData, TVSeason, TVShow, VideoPlayer, findSeason, findTVShowByEpisodeRatingKey, initHomeModel, initialVideoPlayer, isVideoUrlReady, updateSelectedSeason, updateTVShow)
 
-import Api exposing (Account, Client, Library, Metadata, Section)
+import Api exposing (Account, Client, Library, Metadata, Section, initialMetadata)
 import Browser.Navigation as N
 import Dict exposing (Dict)
 import Http
@@ -32,12 +32,26 @@ type alias LibrarySection =
 
 type alias VideoPlayer =
     { sessionId : String
-    , duration : Int
-    , ratingKey : String
     , playbackTime : Int
     , isBuffering : Bool
-    , initialPlaybackTime : Int
-    , metadata : Maybe Metadata
+    , seekTime : Int
+    , metadata : Metadata
+    , showControls : Bool
+    , seeking : Bool
+    , playing : Bool
+    }
+
+
+initialVideoPlayer : VideoPlayer
+initialVideoPlayer =
+    { sessionId = ""
+    , playbackTime = 0
+    , isBuffering = False
+    , seekTime = 0
+    , metadata = initialMetadata
+    , showControls = False
+    , seeking = False
+    , playing = True
     }
 
 
@@ -72,18 +86,6 @@ initHomeModel client navKey =
     }
 
 
-initialVideoPlayer : VideoPlayer
-initialVideoPlayer =
-    { sessionId = ""
-    , duration = 0
-    , ratingKey = ""
-    , playbackTime = 0
-    , isBuffering = False
-    , initialPlaybackTime = 0
-    , metadata = Nothing
-    }
-
-
 isVideoUrlReady : VideoPlayer -> Bool
 isVideoUrlReady videoPlayer =
     not <| String.isEmpty videoPlayer.sessionId
@@ -110,7 +112,7 @@ type Msg
     | GotoAccount
     | GotoEntity Bool Metadata
     | ChangeSeason String String
-    | PlayVideo String (Maybe Int) Int
+    | PlayVideo Metadata
     | PlayVideoError String
     | GotPlaySessionId String
     | GotScreenMetrics Dimensions.DisplayMetrics
@@ -122,6 +124,11 @@ type Msg
     | SaveVideoPlayback Time.Posix
     | SignOut
     | RefreshHomeScreen
+    | ToggleVideoPlayerControls
+    | HideVideoPlayerControls
+    | OnVideoSeek Int
+    | ChangeSeeking Bool Int
+    | ChangePlaying Bool
 
 
 {-| fallback to first season when not find, return `Nothing` when seasons is empty

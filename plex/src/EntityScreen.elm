@@ -1,4 +1,4 @@
-module EntityScreen exposing (entityScreen)
+module EntityScreen exposing (entityScreen, episodeTitle)
 
 import Api exposing (Client, Metadata)
 import Components exposing (bottomPadding, chip, progressBar, text, videoPlayContainer)
@@ -189,9 +189,18 @@ ratingView score icon =
         ]
 
 
-entityPlayButton : String -> Maybe Int -> Int -> Bool -> Html Msg
-entityPlayButton ratingKey viewOffset duration isContinueWatching =
-    touchableOpacity [ onPress <| Decode.succeed <| PlayVideo ratingKey viewOffset duration ]
+entityPlayButton : Metadata -> Bool -> Html Msg
+entityPlayButton ({ ratingKey, viewOffset, duration, typ } as metadata) isContinueWatching =
+    let
+        title =
+            case typ of
+                "episode" ->
+                    episodeTitle metadata
+
+                _ ->
+                    metadata.title
+    in
+    touchableOpacity [ onPress <| Decode.succeed <| PlayVideo metadata ]
         [ view
             [ style
                 { justifyContent = "center"
@@ -203,11 +212,11 @@ entityPlayButton ratingKey viewOffset duration isContinueWatching =
                 , flexDirection = "row"
                 }
             ]
-            [ text [ style { color = "black", fontSize = 30, top = 2, right = 4 } ] [ str "⏵" ]
+            [ ionicon "play" [ color "black", size 18, style { paddingRight = 5 } ]
             , text [ style { color = "black", fontWeight = "bold" } ]
                 [ str <|
                     if isContinueWatching then
-                        " Resume"
+                        "Resume"
 
                     else
                         "Play"
@@ -313,7 +322,7 @@ episodeView client ep metrics =
                 , style { width = 112, height = 63, justifyContent = "flex-end" }
                 , imageStyle { borderRadius = 6, resizeMode = "contain" }
                 ]
-                [ videoPlayContainer 15 (Decode.succeed <| PlayVideo ep.ratingKey ep.viewOffset ep.duration)
+                [ videoPlayContainer 15 (Decode.succeed <| PlayVideo ep)
                 , case ep.lastViewedAt of
                     Just _ ->
                         progressBar []
@@ -513,6 +522,10 @@ entityCasts tvShow metadata =
             ]
 
 
+episodeTitle ep =
+    "S" ++ String.fromInt ep.parentIndex ++ ":E" ++ String.fromInt ep.index ++ " " ++ ep.title
+
+
 entityInfo : Bool -> RemoteData TVShow -> Metadata -> Html Msg
 entityInfo isContinueWatching tvShow metadata =
     let
@@ -583,7 +596,7 @@ entityInfo isContinueWatching tvShow metadata =
         [ entityTitle title
         , entityGeneral tvShow metadata
         , if showPlayButton then
-            entityPlayButton metadata.ratingKey metadata.viewOffset metadata.duration isContinueWatching
+            entityPlayButton metadata isContinueWatching
 
           else
             null

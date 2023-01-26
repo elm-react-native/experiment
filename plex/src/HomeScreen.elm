@@ -202,7 +202,7 @@ itemView client isContinueWatching metadata =
             ]
           <|
             if isContinueWatching then
-                [ videoPlayContainer 30 (Decode.succeed <| PlayVideo videoRatingKey viewOffset duration)
+                [ videoPlayContainer 30 (Decode.succeed <| PlayVideo metadata)
                 , itemLabel label
                 ]
 

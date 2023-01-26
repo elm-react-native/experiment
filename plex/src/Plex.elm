@@ -6,7 +6,7 @@ import Browser
 import Browser.Navigation as N
 import Components exposing (favicon)
 import Dict exposing (Dict)
-import EntityScreen exposing (entityScreen)
+import EntityScreen exposing (entityScreen, episodeTitle)
 import HomeScreen exposing (homeScreen)
 import Html exposing (Html)
 import Html.Lazy exposing (lazy)
@@ -114,10 +114,10 @@ getEpisodes showId seasonId client =
 savePlaybackTime : VideoPlayer -> Client -> Cmd Msg
 savePlaybackTime player client =
     Api.playerTimeline
-        { ratingKey = player.ratingKey
+        { ratingKey = player.metadata.ratingKey
         , state = "playing"
         , time = player.playbackTime
-        , duration = player.duration
+        , duration = player.metadata.duration
         }
         (hijackUnauthorizedError <| always NoOp)
         client
@@ -332,14 +332,13 @@ signOut client navKey =
     )
 
 
-playVideo ratingKey viewOffset duration ({ navKey, videoPlayer, client } as m) =
+playVideo ({ ratingKey, viewOffset, typ } as metadata) ({ navKey, videoPlayer, client } as m) =
     ( Home
         { m
             | videoPlayer =
                 { videoPlayer
-                    | duration = duration
-                    , ratingKey = ratingKey
-                    , initialPlaybackTime = Maybe.withDefault 0 viewOffset
+                    | seekTime = Maybe.withDefault 0 viewOffset
+                    , metadata = metadata
                 }
         }
     , Cmd.batch
@@ -492,10 +491,10 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
-        PlayVideo ratingKey viewOffset duration ->
+        PlayVideo metadata ->
             case model of
                 Home m ->
-                    playVideo ratingKey viewOffset duration m
+                    playVideo metadata m
 
                 _ ->
                     ( model, Cmd.none )
@@ -601,14 +600,14 @@ update msg model =
         OnVideoEnd ->
             case model of
                 Home ({ videoPlayer } as m) ->
-                    case getNextEpisode videoPlayer.ratingKey m of
+                    case getNextEpisode videoPlayer.metadata.ratingKey m of
                         Just nextEpisode ->
                             ( Home
                                 { m
                                     | videoPlayer =
                                         { videoPlayer
-                                            | initialPlaybackTime = Maybe.withDefault 0 nextEpisode.viewOffset
-                                            , ratingKey = nextEpisode.ratingKey
+                                            | seekTime = Maybe.withDefault 0 nextEpisode.viewOffset
+                                            , metadata = nextEpisode
                                         }
                                 }
                             , Cmd.none
@@ -629,7 +628,69 @@ update msg model =
         GotStreams _ data ->
             case model of
                 Home ({ videoPlayer } as m) ->
-                    ( Home { m | videoPlayer = { videoPlayer | metadata = Result.toMaybe data } }, Cmd.none )
+                    ( Home { m | videoPlayer = { videoPlayer | metadata = Result.withDefault videoPlayer.metadata data } }, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        ToggleVideoPlayerControls ->
+            case model of
+                Home ({ videoPlayer } as m) ->
+                    ( Home { m | videoPlayer = { videoPlayer | showControls = not videoPlayer.showControls } }, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        OnVideoSeek time ->
+            case model of
+                Home ({ videoPlayer } as m) ->
+                    ( Home { m | videoPlayer = { videoPlayer | playbackTime = time } }, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        ChangeSeeking seeking time ->
+            case model of
+                Home ({ videoPlayer } as m) ->
+                    let
+                        _ =
+                            Debug.log "seeking" seeking
+                    in
+                    ( Home
+                        { m
+                            | videoPlayer =
+                                if seeking then
+                                    { videoPlayer | seeking = seeking }
+
+                                else
+                                    { videoPlayer
+                                        | seeking = seeking
+                                        , seekTime = time
+                                        , playbackTime = time
+                                    }
+                        }
+                    , Cmd.none
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        ChangePlaying playing ->
+            case model of
+                Home ({ videoPlayer } as m) ->
+                    let
+                        _ =
+                            Debug.log "playing" playing
+                    in
+                    ( Home { m | videoPlayer = { videoPlayer | playing = playing } }, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        HideVideoPlayerControls ->
+            case model of
+                Home ({ videoPlayer } as m) ->
+                    ( Home { m | videoPlayer = { videoPlayer | showControls = False } }, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
@@ -734,7 +795,14 @@ subs model =
     case model of
         Home m ->
             if isVideoUrlReady m.videoPlayer then
-                Time.every (10 * 1000) SaveVideoPlayback
+                Sub.batch
+                    [ Time.every (10 * 1000) SaveVideoPlayback
+                    , if m.videoPlayer.showControls && not m.videoPlayer.seeking then
+                        Time.every (5 * 1000) (always HideVideoPlayerControls)
+
+                      else
+                        Sub.none
+                    ]
 
             else
                 Sub.none
