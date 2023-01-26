@@ -6,10 +6,10 @@ const VideoPlayer = (props) => {
   const ref = React.useRef(null);
 
   React.useEffect(() => {
-    if (props.seekOnStart) {
-      ref.current.seek(props.seekOnStart / 1000);
+    if (props.seekTime) {
+      ref.current.seek(props.seekTime / 1000);
     }
-  }, [props.source.uri]);
+  }, [props.source.uri, props.seekTime]);
 
   return <Video ref={ref} {...props} />;
 };
