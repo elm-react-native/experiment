@@ -1,15 +1,15 @@
 import React from "react";
 import Video from "react-native-video";
 
-const VideoPlayer = (props) => {
+const VideoPlayer = ({ seekTime, ...props }) => {
   // console.log('VideoPlayer props: ', props);
   const ref = React.useRef(null);
 
   React.useEffect(() => {
-    if (props.seekTime) {
-      ref.current.seek(props.seekTime / 1000);
+    if (seekTime) {
+      ref.current.seek(seekTime / 1000);
     }
-  }, [props.source.uri, props.seekTime]);
+  }, [props.source.uri, seekTime]);
 
   return <Video ref={ref} {...props} />;
 };
