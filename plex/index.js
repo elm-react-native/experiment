@@ -1,7 +1,7 @@
 // @refresh reset
 
 import React from 'react';
-import {useCallback} from 'react';
+import {useCallback, useState, useRef} from 'react';
 import {View, AppRegistry, Platform, LogBox, NativeModules} from 'react-native';
 import {name as appName} from './app.json';
 import App from '@elm-module/Plex';
@@ -47,28 +47,61 @@ class XhrProxy {
 }
 
 AppRegistry.registerComponent(appName, () => () => {
-  const [uri, setUri] = React.useState('');
-  const [xhr, setXhr] = React.useState(null);
+  const [xhr, setXhr] = useState(null);
+  const webViewRef = useRef(null);
 
-  const INJECTED_JAVASCRIPT = `(function() {
-  const xhr = new XMLHttpRequest();
-  xhr.open('GET', '${uri}');
-  xhr.send();
-  let received = 0;
-  const send = function(msg) {
-    window.ReactNativeWebView.postMessage(JSON.stringify({...msg, readyState: xhr.readyState}));
-  };
-  xhr.addEventListener('error', (err) => send({message:err.toString()}));
-  xhr.addEventListener('load', () => send({load:true}));
-  xhr.addEventListener('progress', () => {
-    if (xhr.readyState === XMLHttpRequest.DONE) return;
-    const newData = xhr.responseText.slice(received);
-    if (newData.length) {
-      send({newData});
-      received += newData.length;
+  const INJECTED_JAVASCRIPT = `
+(function () {
+  let stopStreamSubtitle;
+
+  window.onmessage = msg => {
+    const action = JSON.parse(msg.data);
+    if (action.type === 'start') {
+      stopStreamSubtitle = streamSubtitle(action.url);
+    } else if (action.type === 'stop') {
+      if (stopStreamSubtitle) stopStreamSubtitle();
     }
-  }, false);
+  };
+
+  function streamSubtitle(url) {
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', url);
+    xhr.send();
+    let received = 0;
+    const send = function (msg) {
+      window.ReactNativeWebView.postMessage(
+        JSON.stringify({...msg, readyState: xhr.readyState}),
+      );
+    };
+    xhr.addEventListener('error', err => send({message: err.toString()}));
+    xhr.addEventListener('load', () => send({load: true}));
+    xhr.addEventListener(
+      'progress',
+      () => {
+        if (xhr.readyState === XMLHttpRequest.DONE) return;
+        const newData = xhr.responseText.slice(received);
+        if (newData.length) {
+          send({newData});
+          received += newData.length;
+        }
+      },
+      false,
+    );
+  }
 })();`;
+
+  const sendStartStreamSubtitle = useCallback(url => {
+    if (!webViewRef.current) return;
+    console.log('sendStartStreamSubtitle', url);
+    webViewRef.current.postMessage(JSON.stringify({type: 'start', url}));
+  }, []);
+
+  const sendStopStreamSubtitle = useCallback(() => {
+    console.log('sendStopStreamSubtitle');
+
+    if (!webViewRef.current) return;
+    webViewRef.current.postMessage(JSON.stringify({type: 'stop'}));
+  }, []);
 
   const onSubtitleMessage = useCallback(
     ({nativeEvent}) => {
@@ -88,12 +121,12 @@ AppRegistry.registerComponent(appName, () => () => {
     const assStreamer = new AssStreamer();
 
     ports.startSubtitle.subscribe(async arg => {
-      setUri('about:blank');
       assStreamer.cancel();
+      sendStopStreamSubtitle();
 
       console.log('startSubtitle', arg);
+      sendStartStreamSubtitle(arg.url);
       const xhr = new XhrProxy();
-      setUri(arg.url);
       setXhr(xhr);
 
       assStreamer.start(arg.ratingKey, xhr, dialogues => {
@@ -103,16 +136,17 @@ AppRegistry.registerComponent(appName, () => () => {
     });
     ports.stopSubtitle.subscribe(async () => {
       console.log('stopSubtitle');
-      setUri('about:blank');
       assStreamer.cancel();
+      sendStopStreamSubtitle();
     });
   }, []);
 
   return (
     <React.StrictMode>
-      <View>
+      <View style={{width: 0, height: 0, overflow: 'hidden'}}>
         <WebView
-          source={{html: uri}}
+          ref={webViewRef}
+          source={{html: 'subtitle'}}
           injectedJavaScriptBeforeContentLoaded={INJECTED_JAVASCRIPT}
           onMessage={onSubtitleMessage}
         />
