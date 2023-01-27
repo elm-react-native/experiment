@@ -182,14 +182,19 @@ videoPlayerControlsIcon sz name pressMsg =
     ionicon name [ size sz, color "white", onPress <| Decode.succeed <| pressMsg ]
 
 
-videoPlayerControlsImageIcon sz src pressMsg =
+videoPlayerControlsImageIcon sz src label pressMsg =
     touchableOpacity
-        [ onPress <| Decode.succeed <| pressMsg ]
+        [ onPress <| Decode.succeed <| pressMsg, style { flexDirection = "row", gap = 4, alignItems = "center" } ]
         [ image
             [ source src
             , style { width = sz, height = sz }
             ]
             []
+        , if String.isEmpty label then
+            null
+
+          else
+            text [ style { fontSize = 15, fontWeight = "bold" } ] [ str label ]
         ]
 
 
@@ -219,13 +224,13 @@ videoPlayerControlsBody videoPlayer =
                 , flexGrow = 1
                 }
             ]
-            [ videoPlayerControlsImageIcon 35 (require "./assets/backward.png") <| ChangeSeeking False (max 0 <| videoPlayer.playbackTime - 10 * 1000)
+            [ videoPlayerControlsImageIcon 35 (require "./assets/backward.png") "" <| ChangeSeeking False (max 0 <| videoPlayer.playbackTime - 10 * 1000)
             , if videoPlayer.playing then
                 videoPlayerControlsIcon 55 "pause" <| ChangePlaying False
 
               else
                 videoPlayerControlsIcon 55 "play" <| ChangePlaying True
-            , videoPlayerControlsImageIcon 35 (require "./assets/forward.png") <| ChangeSeeking False (min videoPlayer.metadata.duration <| videoPlayer.playbackTime + 10 * 1000)
+            , videoPlayerControlsImageIcon 35 (require "./assets/forward.png") "" <| ChangeSeeking False (min videoPlayer.metadata.duration <| videoPlayer.playbackTime + 10 * 1000)
             ]
         ]
 
@@ -281,26 +286,11 @@ videoPlayerControlsFooter videoPlayer =
             , bottom = 0
             }
         ]
-        [ view [ style { flexDirection = "row", gap = 3, alignItems = "center" } ]
-            [ videoPlayerControlsImageIcon 25 (require "./assets/speed.png") NoOp
-            , text [ style { fontSize = 12, fontWeight = "bold" } ] [ str "Speed (1x)" ]
-            ]
-        , view [ style { flexDirection = "row", gap = 3, alignItems = "center" } ]
-            [ videoPlayerControlsImageIcon 25 (require "./assets/speed.png") NoOp
-            , text [ style { fontSize = 12, fontWeight = "bold" } ] [ str "Lock" ]
-            ]
-        , view [ style { flexDirection = "row", gap = 3, alignItems = "center" } ]
-            [ videoPlayerControlsImageIcon 25 (require "./assets/speed.png") NoOp
-            , text [ style { fontSize = 12, fontWeight = "bold" } ] [ str "Episodes" ]
-            ]
-        , view [ style { flexDirection = "row", gap = 3, alignItems = "center" } ]
-            [ videoPlayerControlsImageIcon 25 (require "./assets/subtitle.png") NoOp
-            , text [ style { fontSize = 12, fontWeight = "bold" } ] [ str "Subtitles" ]
-            ]
-        , view [ style { flexDirection = "row", gap = 3, alignItems = "center" } ]
-            [ videoPlayerControlsImageIcon 25 (require "./assets/subtitle.png") NoOp
-            , text [ style { fontSize = 12, fontWeight = "bold" } ] [ str "Next Episode" ]
-            ]
+        [ videoPlayerControlsImageIcon 25 (require "./assets/speed.png") "Speed (1x)" NoOp
+        , videoPlayerControlsImageIcon 25 (require "./assets/speed.png") "Lock" NoOp
+        , videoPlayerControlsImageIcon 25 (require "./assets/episodes.png") "Episodes" NoOp
+        , videoPlayerControlsImageIcon 25 (require "./assets/subtitle.png") "Subtitles" NoOp
+        , videoPlayerControlsImageIcon 25 (require "./assets/next-ep.png") "Next Episode" NoOp
         ]
 
 
