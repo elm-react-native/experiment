@@ -386,6 +386,9 @@ const ElmRoot = (props) => {
       },
       onModelChanged: setModel,
     });
+    if (props.onInit) {
+      props.onInit(elmApp);
+    }
   }, []);
 
   if (

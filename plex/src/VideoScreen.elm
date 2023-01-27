@@ -4,6 +4,7 @@ import Api
 import Components exposing (text)
 import EntityScreen exposing (episodeTitle)
 import Html exposing (Html)
+import Html.Lazy exposing (lazy)
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Maybe
@@ -32,6 +33,7 @@ import ReactNative.Video
         , onPlaybackStateChanged
         , onProgress
         , onReadyForDisplay
+        , onSeek
         , paused
         , pictureInPicture
         , playWhenInactive
@@ -241,7 +243,12 @@ videoPlayerControlsProgress videoPlayer =
             , width = "100%"
             }
         ]
-        [ slider
+        [ text
+            [ style { fontSize = 14 } ]
+            [ str <|
+                formatDuration videoPlayer.playbackTime videoPlayer.metadata.duration
+            ]
+        , slider
             [ minimumValue 0
             , maximumValue videoPlayer.metadata.duration
             , thumbTintColor Theme.themeColor
@@ -317,6 +324,51 @@ videoPlayerControls videoPlayer =
         ]
 
 
+subtitleText : String -> Html msg
+subtitleText s =
+    view
+        [ style
+            { backgroundColor = "#000000c0"
+            , alignItems = "center"
+            , justifyContent = "center"
+            , paddingHorizontal = 5
+            , paddingVertical = 3
+            , width = "auto"
+            }
+        ]
+        [ text [ style { fontSize = 18 } ] [ str s ] ]
+
+
+videoPlayerSubtitle { subtitle, playbackTime, seeking } =
+    if seeking then
+        null
+
+    else
+        let
+            s =
+                subtitle
+                    |> List.filter (\dialogue -> dialogue.start <= playbackTime && playbackTime <= dialogue.end)
+                    |> List.map .text
+                    |> String.join "\n"
+                    |> String.trim
+        in
+        if String.isEmpty s then
+            null
+
+        else
+            view
+                [ style
+                    { width = "100%"
+                    , minHeight = 70
+                    , bottom = 0
+                    , left = 0
+                    , position = "absolute"
+                    }
+                , style { alignItems = "center" }
+                ]
+                [ lazy subtitleText s ]
+
+
 videoScreen : HomeModel -> () -> Html Msg
 videoScreen ({ videoPlayer, screenMetrics, client } as m) _ =
     if isVideoUrlReady videoPlayer then
@@ -330,11 +382,13 @@ videoScreen ({ videoPlayer, screenMetrics, client } as m) _ =
                 , onEnd <| Decode.succeed OnVideoEnd
                 , onBuffer OnVideoBuffer
                 , onProgress (\p -> OnVideoProgress p.currentTime)
+                , onSeek <| Decode.succeed OnVideoSeeked
                 , style styles.fullscreen
                 , allowsExternalPlayback False
                 , paused <| (not videoPlayer.playing || videoPlayer.seeking)
                 ]
                 []
+            , videoPlayerSubtitle videoPlayer
             , touchableWithoutFeedback
                 [ onPress <| Decode.succeed ToggleVideoPlayerControls ]
                 [ view [ style styles.fullscreen ]

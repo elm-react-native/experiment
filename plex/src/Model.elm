@@ -1,4 +1,4 @@
-module Model exposing (HomeModel, LibrarySection, Model(..), Msg(..), RemoteData, TVSeason, TVShow, VideoPlayer, findSeason, findTVShowByEpisodeRatingKey, initHomeModel, initialVideoPlayer, isVideoUrlReady, updateSelectedSeason, updateTVShow)
+module Model exposing (Dialogue, HomeModel, LibrarySection, Model(..), Msg(..), RemoteData, TVSeason, TVShow, VideoPlayer, findSeason, findTVShowByEpisodeRatingKey, initHomeModel, initialVideoPlayer, isVideoUrlReady, updateSelectedSeason, updateTVShow)
 
 import Api exposing (Account, Client, Library, Metadata, Section, initialMetadata)
 import Browser.Navigation as N
@@ -39,6 +39,7 @@ type alias VideoPlayer =
     , showControls : Bool
     , seeking : Bool
     , playing : Bool
+    , subtitle : List Dialogue
     }
 
 
@@ -52,6 +53,7 @@ initialVideoPlayer =
     , showControls = False
     , seeking = False
     , playing = True
+    , subtitle = []
     }
 
 
@@ -97,6 +99,14 @@ type Model
     | Home HomeModel
 
 
+type alias Dialogue =
+    { id : Int
+    , start : Int
+    , end : Int
+    , text : String
+    }
+
+
 type Msg
     = NoOp
     | SignInMsg SignInMsg
@@ -127,8 +137,10 @@ type Msg
     | ToggleVideoPlayerControls
     | HideVideoPlayerControls
     | OnVideoSeek Int
+    | OnVideoSeeked
     | ChangeSeeking Bool Int
     | ChangePlaying Bool
+    | GotSubtitle (List Dialogue)
 
 
 {-| fallback to first season when not find, return `Nothing` when seasons is empty
