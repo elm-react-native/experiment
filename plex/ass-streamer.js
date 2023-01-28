@@ -64,13 +64,18 @@ export default class AssStreamer {
 }
 
 const simplifyDialogue = dialogue => {
+  const text = dialogue.parts
+    .filter(p => p instanceof libjass.parts.Text)
+    .map(p => p.value)
+    .join('');
+  const start = Math.round(dialogue.start * 1000);
+  const end = Math.round(dialogue.end * 1000);
   return {
-    id: dialogue.id,
-    start: Math.round(dialogue.start * 1000),
-    end: Math.round(dialogue.end * 1000),
-    text: dialogue.parts
-      .filter(p => p instanceof libjass.parts.Text)
-      .map(p => p.value)
-      .join(''),
+    hash: `${start}${end}${text}`,
+    data: {
+      start,
+      end,
+      text,
+    },
   };
 };

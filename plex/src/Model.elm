@@ -101,8 +101,7 @@ type Model
 
 
 type alias Dialogue =
-    { id : Int
-    , start : Int
+    { start : Int
     , end : Int
     , text : String
     }
@@ -110,8 +109,7 @@ type alias Dialogue =
 
 dialogueDecoder : Decoder Dialogue
 dialogueDecoder =
-    Decode.map4 Dialogue
-        (Decode.field "id" Decode.int)
+    Decode.map3 Dialogue
         (Decode.field "start" Decode.int)
         (Decode.field "end" Decode.int)
         (Decode.field "text" Decode.string)

@@ -10,6 +10,8 @@ export default props => {
   const [loaded, setLoaded] = useState(false);
 
   const assStreamerRef = useRef(new AssStreamer());
+  const uniqueDialogsRef = useRef(new Set());
+
   const onMessage = useCallback(({nativeEvent}) => {
     if (!assStreamerRef.current) return;
     const xhrProxy = assStreamerRef.current.xhrProxy;
@@ -35,8 +37,17 @@ export default props => {
     }
 
     assStreamerRef.current.start(new XhrProxy(), dialogues => {
-      console.log(dialogues);
-      props.onDialogues && props.onDialogues(dialogues);
+      if (!props.onDialogues) return;
+
+      props.onDialogues(
+        dialogues
+          .filter(d => !uniqueDialogsRef.current.has(d.hash))
+          .map(d => d.data),
+      );
+
+      for (const d of dialogues) {
+        uniqueDialogsRef.current.add(d.hash);
+      }
     });
 
     webViewRef.current.postMessage(

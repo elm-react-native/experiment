@@ -672,7 +672,7 @@ update msg model =
         OnVideoSeeked ->
             case model of
                 Home ({ videoPlayer, client } as m) ->
-                    ( Home { m | videoPlayer = { videoPlayer | subtitle = [], seeking = False } }
+                    ( Home { m | videoPlayer = { videoPlayer | seeking = False } }
                     , Cmd.none
                     )
 
@@ -718,6 +718,10 @@ update msg model =
                     ( model, Cmd.none )
 
         GotSubtitle dialogues ->
+            let
+                _ =
+                    Debug.log "dialogues" dialogues
+            in
             case model of
                 Home ({ videoPlayer } as m) ->
                     ( Home { m | videoPlayer = { videoPlayer | subtitle = videoPlayer.subtitle ++ dialogues } }, Cmd.none )
