@@ -27,7 +27,6 @@ import ReactNative.Properties exposing (color, component, componentModel, getId,
 import ReactNative.Settings as Settings
 import SignInModel exposing (SignInModel, SignInMsg)
 import SignInScreen exposing (signInScreen, signInUpdate)
-import Subtitle exposing (startSubtitle, stopSubtitle, subtitleReceiver)
 import Task
 import Theme
 import Time
@@ -336,14 +335,6 @@ signOut client navKey =
     )
 
 
-getSubtitleUrl client ratingKey sessionId =
-    Api.clientRequestUrl "/video/:/transcode/universal/subtitles" client
-        ++ "hasMDE=1&path=%2Flibrary%2Fmetadata%2F592&addDebugOverlay=0&autoAdjustQuality=0&directStreamAudio=1&mediaBufferSize=102400&subtitles=auto&Accept-Language=en&X-Plex-Client-Profile-Extra=append-transcode-target-codec%28type%3DvideoProfile%26context%3Dstreaming%26audioCodec%3Daac%26protocol%3Ddash%29&X-Plex-Incomplete-Segments=1&X-Plex-Product=Plex%20Web&X-Plex-Version=4.87.2&X-Plex-Platform=Safari&X-Plex-Platform-Version=16.2&X-Plex-Features=external-media%2Cindirect-media%2Chub-style-list&X-Plex-Model=bundled&X-Plex-Device=OSX&X-Plex-Device-Name=Safari&X-Plex-Device-Screen-Resolution=807x981%2C1920x1080"
-        --++ "hasMDE=1&path=%2Flibrary%2Fmetadata%2F592&mediaIndex=0&partIndex=0&protocol=hls&fastSeek=1&directPlay=0&directStream=1&subtitleSize=100&audioBoost=100&location=lan&addDebugOverlay=0&autoAdjustQuality=0&directStreamAudio=1&mediaBufferSize=102400&subtitles=auto&Accept-Language=en&X-Plex-Client-Profile-Extra=append-transcode-target-codec%28type%3DvideoProfile%26context%3Dstreaming%26audioCodec%3Daac%252Cac3%252Ceac3%26protocol%3Dhls%29&X-Plex-Incomplete-Segments=1&X-Plex-Product=Plex%20Web&X-Plex-Version=4.87.2&X-Plex-Platform=Safari&X-Plex-Platform-Version=605.1&X-Plex-Features=external-media%2Cindirect-media%2Chub-style-list&X-Plex-Model=bundled&X-Plex-Device=iOS&X-Plex-Device-Name=Safari&X-Plex-Device-Screen-Resolution=980x1669%2C390x844&X-Plex-Language=en"
-        ++ ("&X-Pler-Session-Identifier=" ++ sessionId)
-        ++ ("&session=" ++ sessionId)
-
-
 playVideo ({ ratingKey, viewOffset, typ } as metadata) ({ navKey, videoPlayer, client } as m) =
     ( Home
         { m
@@ -531,7 +522,6 @@ update msg model =
                         [ Nav.goBack m.navKey
                         , savePlaybackTime m.videoPlayer m.client
                         , getContinueWatching m.client
-                        , stopSubtitle ()
                         ]
                     )
 
@@ -654,15 +644,6 @@ update msg model =
                     in
                     ( Home { m | videoPlayer = { videoPlayer | metadata = metadata } }
                     , Cmd.none
-                      --, case downloadSubtitleUrl metadata of
-                      --    Just url ->
-                      --        let
-                      --            _ =
-                      --                Debug.log "url" url
-                      --        in
-                      --        downloadSubtitle url
-                      --    Nothing ->
-                      --        Cmd.none
                     )
 
                 _ ->
@@ -688,10 +669,7 @@ update msg model =
             case model of
                 Home ({ videoPlayer, client } as m) ->
                     ( Home { m | videoPlayer = { videoPlayer | subtitle = [] } }
-                    , startSubtitle
-                        { url = getSubtitleUrl client videoPlayer.metadata.ratingKey videoPlayer.sessionId
-                        , ratingKey = videoPlayer.metadata.ratingKey
-                        }
+                    , Cmd.none
                     )
 
                 _ ->
@@ -717,19 +695,7 @@ update msg model =
                                         , playbackTime = time
                                     }
                         }
-                    , if seeking then
-                        let
-                            ( a, b ) =
-                                subittleTimeRange videoPlayer.subtitle
-                        in
-                        if a <= time && time <= b then
-                            Cmd.none
-
-                        else
-                            stopSubtitle ()
-
-                      else
-                        Cmd.none
+                    , Cmd.none
                     )
 
                 _ ->
@@ -865,7 +831,6 @@ subs model =
             if isVideoUrlReady m.videoPlayer then
                 Sub.batch
                     [ Time.every (10 * 1000) SaveVideoPlayback
-                    , subtitleReceiver GotSubtitle
                     , if m.videoPlayer.showControls && not m.videoPlayer.seeking then
                         Time.every (5 * 1000) (always HideVideoPlayerControls)
 

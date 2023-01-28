@@ -1,9 +1,10 @@
-module Model exposing (Dialogue, HomeModel, LibrarySection, Model(..), Msg(..), RemoteData, TVSeason, TVShow, VideoPlayer, findSeason, findTVShowByEpisodeRatingKey, initHomeModel, initialVideoPlayer, isVideoUrlReady, updateSelectedSeason, updateTVShow)
+module Model exposing (Dialogue, HomeModel, LibrarySection, Model(..), Msg(..), RemoteData, TVSeason, TVShow, VideoPlayer, dialogueDecoder, findSeason, findTVShowByEpisodeRatingKey, initHomeModel, initialVideoPlayer, isVideoUrlReady, updateSelectedSeason, updateTVShow)
 
 import Api exposing (Account, Client, Library, Metadata, Section, initialMetadata)
 import Browser.Navigation as N
 import Dict exposing (Dict)
 import Http
+import Json.Decode as Decode exposing (Decoder)
 import ReactNative.Dimensions as Dimensions exposing (DisplayMetrics)
 import SignInModel exposing (SignInModel, SignInMsg)
 import Time
@@ -105,6 +106,15 @@ type alias Dialogue =
     , end : Int
     , text : String
     }
+
+
+dialogueDecoder : Decoder Dialogue
+dialogueDecoder =
+    Decode.map4 Dialogue
+        (Decode.field "id" Decode.int)
+        (Decode.field "start" Decode.int)
+        (Decode.field "end" Decode.int)
+        (Decode.field "text" Decode.string)
 
 
 type Msg

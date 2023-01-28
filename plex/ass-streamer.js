@@ -3,21 +3,21 @@ import libjass from 'libjass';
 
 export default class AssStreamer {
   ass = null;
-  id = null;
   stream = null;
+  xhrProxy = null;
 
   _pollDialogueTimerId = null;
   _dialoguesCount = 0;
 
-  async start(ratingKey, xhrProxy, dialogueHandler) {
+  async start(xhrProxy, dialogueHandler) {
     this.cancel();
 
     try {
+      this.xhrProxy = xhrProxy;
       const stream = new libjass.parser.XhrStream(xhrProxy);
       const streamParser = new libjass.parser.StreamParser(stream);
 
       this.ass = await streamParser.minimalASS;
-      this.id = ratingKey;
 
       this._cancelPollDialogue();
       this.pollDialogues(dialogueHandler);
@@ -56,8 +56,8 @@ export default class AssStreamer {
 
       this._cancelPollDialogue();
 
+      this.xhrProxy = null;
       this.ass = null;
-      this.id = null;
       this.stream = null;
     }
   }
