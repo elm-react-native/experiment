@@ -297,7 +297,7 @@ videoPlayerControlsFooter videoPlayer =
             }
         ]
         [ videoPlayerControlsImageIcon 25 (require "./assets/speed.png") "Speed (1x)" NoOp
-        , videoPlayerControlsImageIcon 25 (require "./assets/speed.png") "Lock" NoOp
+        , videoPlayerControlsImageIcon 25 (require "./assets/lock-open.png") "Lock" NoOp
         , videoPlayerControlsImageIcon 25 (require "./assets/episodes.png") "Episodes" NoOp
         , videoPlayerControlsImageIcon 25 (require "./assets/subtitle.png") "Subtitles" NoOp
         , videoPlayerControlsImageIcon 25 (require "./assets/next-ep.png") "Next Episode" NoOp
