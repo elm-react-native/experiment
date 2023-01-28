@@ -6,7 +6,7 @@ const VideoPlayer = ({ seekTime, ...props }) => {
   const ref = React.useRef(null);
 
   React.useEffect(() => {
-    if (seekTime) {
+    if (typeof seekTime === "number") {
       ref.current.seek(seekTime / 1000);
     }
   }, [props.source.uri, seekTime]);

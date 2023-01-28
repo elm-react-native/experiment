@@ -539,7 +539,11 @@ update msg model =
         OnVideoProgress time ->
             case model of
                 Home ({ videoPlayer } as m) ->
-                    ( Home { m | videoPlayer = { videoPlayer | playbackTime = time } }, Cmd.none )
+                    if videoPlayer.seeking then
+                        ( model, Cmd.none )
+
+                    else
+                        ( Home { m | videoPlayer = { videoPlayer | playbackTime = time } }, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
@@ -668,7 +672,7 @@ update msg model =
         OnVideoSeeked ->
             case model of
                 Home ({ videoPlayer, client } as m) ->
-                    ( Home { m | videoPlayer = { videoPlayer | subtitle = [] } }
+                    ( Home { m | videoPlayer = { videoPlayer | subtitle = [], seeking = False } }
                     , Cmd.none
                     )
 
@@ -678,20 +682,16 @@ update msg model =
         ChangeSeeking seeking time ->
             case model of
                 Home ({ videoPlayer } as m) ->
-                    let
-                        _ =
-                            Debug.log "seeking" seeking
-                    in
                     ( Home
                         { m
                             | videoPlayer =
                                 if seeking then
-                                    { videoPlayer | seeking = seeking }
+                                    { videoPlayer | seeking = True }
 
                                 else
                                     { videoPlayer
-                                        | seeking = seeking
-                                        , seekTime = time
+                                      -- not seeking = False here, set seeking to False in OnVideoSeeked event
+                                        | seekTime = time
                                         , playbackTime = time
                                     }
                         }
@@ -704,10 +704,6 @@ update msg model =
         ChangePlaying playing ->
             case model of
                 Home ({ videoPlayer } as m) ->
-                    let
-                        _ =
-                            Debug.log "playing" playing
-                    in
                     ( Home { m | videoPlayer = { videoPlayer | playing = playing } }, Cmd.none )
 
                 _ ->
