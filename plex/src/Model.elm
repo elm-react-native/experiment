@@ -1,4 +1,4 @@
-module Model exposing (Dialogue, HomeModel, LibrarySection, Model(..), Msg(..), RemoteData, TVSeason, TVShow, VideoPlayer, dialogueDecoder, findSeason, findTVShowByEpisodeRatingKey, initHomeModel, initialVideoPlayer, isVideoUrlReady, updateSelectedSeason, updateTVShow)
+module Model exposing (Dialogue, HomeModel, LibrarySection, Model(..), Msg(..), RemoteData, SeekStage(..), TVSeason, TVShow, VideoPlayer, dialogueDecoder, findSeason, findTVShowByEpisodeRatingKey, initHomeModel, initialVideoPlayer, isVideoUrlReady, updateSelectedSeason, updateTVShow)
 
 import Api exposing (Account, Client, Library, Metadata, Section, initialMetadata)
 import Browser.Navigation as N
@@ -115,6 +115,13 @@ dialogueDecoder =
         (Decode.field "text" Decode.string)
 
 
+type SeekStage
+    = SeekStart
+    | Seeking
+    | SeekRelease
+    | SeekEnd
+
+
 type Msg
     = NoOp
     | SignInMsg SignInMsg
@@ -144,9 +151,7 @@ type Msg
     | RefreshHomeScreen
     | ToggleVideoPlayerControls
     | HideVideoPlayerControls
-    | OnVideoSeek Int
-    | OnVideoSeeked
-    | ChangeSeeking Bool Int
+    | OnVideoSeek SeekStage Int
     | ChangePlaying Bool
     | GotSubtitle (List Dialogue)
 

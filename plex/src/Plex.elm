@@ -543,6 +543,10 @@ update msg model =
                         ( model, Cmd.none )
 
                     else
+                        --let
+                        --    _ =
+                        --        Debug.log "playbackTime" time
+                        --in
                         ( Home { m | videoPlayer = { videoPlayer | playbackTime = time, isBuffering = False } }, Cmd.none )
 
                 _ ->
@@ -661,39 +665,28 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
-        OnVideoSeek time ->
-            case model of
-                Home ({ videoPlayer } as m) ->
-                    ( Home { m | videoPlayer = { videoPlayer | playbackTime = time } }, Cmd.none )
-
-                _ ->
-                    ( model, Cmd.none )
-
-        OnVideoSeeked ->
-            case model of
-                Home ({ videoPlayer, client } as m) ->
-                    ( Home { m | videoPlayer = { videoPlayer | seeking = False } }
-                    , Cmd.none
-                    )
-
-                _ ->
-                    ( model, Cmd.none )
-
-        ChangeSeeking seeking time ->
+        OnVideoSeek stage time ->
             case model of
                 Home ({ videoPlayer } as m) ->
                     ( Home
                         { m
                             | videoPlayer =
-                                if seeking then
-                                    { videoPlayer | seeking = True }
+                                case stage of
+                                    SeekStart ->
+                                        { videoPlayer | seeking = True }
 
-                                else
-                                    { videoPlayer
-                                      -- not seeking = False here, set seeking to False in OnVideoSeeked event
-                                        | seekTime = time
-                                        , playbackTime = time
-                                    }
+                                    Seeking ->
+                                        { videoPlayer | playbackTime = time, seeking = True }
+
+                                    SeekRelease ->
+                                        { videoPlayer
+                                            | seekTime = time
+                                            , playbackTime = time
+                                            , seeking = True
+                                        }
+
+                                    SeekEnd ->
+                                        { videoPlayer | seeking = False }
                         }
                     , Cmd.none
                     )
@@ -718,10 +711,10 @@ update msg model =
                     ( model, Cmd.none )
 
         GotSubtitle dialogues ->
-            let
-                _ =
-                    Debug.log "dialogues" dialogues
-            in
+            --let
+            --    _ =
+            --        Debug.log "dialogues" dialogues
+            --in
             case model of
                 Home ({ videoPlayer } as m) ->
                     ( Home { m | videoPlayer = { videoPlayer | subtitle = videoPlayer.subtitle ++ dialogues } }, Cmd.none )
