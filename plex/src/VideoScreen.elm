@@ -8,7 +8,7 @@ import Html.Lazy exposing (lazy)
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Maybe
-import Model exposing (HomeModel, Msg(..), SeekStage(..), VideoPlayer, dialogueDecoder, isVideoUrlReady)
+import Model exposing (HomeModel, Msg(..), SeekStage(..), VideoPlayer, VideoPlayerControlAction(..), dialogueDecoder, isVideoUrlReady)
 import ReactNative exposing (activityIndicator, button, fragment, image, null, require, str, touchableOpacity, touchableWithoutFeedback, view)
 import ReactNative.Dimensions as Dimensions exposing (DisplayMetrics)
 import ReactNative.Events exposing (onFloatValueChange, onPress)
@@ -294,13 +294,13 @@ videoPlayerControlsBody videoPlayer =
                 , flexGrow = 1
                 }
             ]
-            [ videoPlayerControlsImageIcon 35 (require "./assets/backward.png") "" <| OnVideoSeek SeekRelease (max 0 <| videoPlayer.playbackTime - 10 * 1000)
+            [ videoPlayerControlsImageIcon 35 (require "./assets/backward.png") "" <| VideoPlayerControl <| SeekAction SeekRelease (max 0 <| videoPlayer.playbackTime - 10 * 1000)
             , if videoPlayer.playing then
-                videoPlayerControlsIcon 55 "pause" <| ChangePlaying False
+                videoPlayerControlsIcon 55 "pause" <| VideoPlayerControl TogglePlay
 
               else
-                videoPlayerControlsIcon 55 "play" <| ChangePlaying True
-            , videoPlayerControlsImageIcon 35 (require "./assets/forward.png") "" <| OnVideoSeek SeekRelease (min videoPlayer.metadata.duration <| videoPlayer.playbackTime + 10 * 1000)
+                videoPlayerControlsIcon 55 "play" <| VideoPlayerControl TogglePlay
+            , videoPlayerControlsImageIcon 35 (require "./assets/forward.png") "" <| VideoPlayerControl <| SeekAction SeekRelease (min videoPlayer.metadata.duration <| videoPlayer.playbackTime + 10 * 1000)
             ]
         ]
 
@@ -330,9 +330,9 @@ videoPlayerControlsProgress videoPlayer =
             , minimumTrackTintColor Theme.themeColor
             , intValue <| videoPlayer.playbackTime
             , style { flexGrow = 1, marginBottom = 2, alignSelf = "center" }
-            , onSlidingStart <| round >> OnVideoSeek SeekStart
-            , onFloatValueChange <| round >> OnVideoSeek Seeking
-            , onSlidingComplete <| round >> OnVideoSeek SeekRelease
+            , onSlidingStart <| round >> SeekAction SeekStart >> VideoPlayerControl
+            , onFloatValueChange <| round >> SeekAction Seeking >> VideoPlayerControl
+            , onSlidingComplete <| round >> SeekAction SeekRelease >> VideoPlayerControl
             ]
             []
         , text
@@ -398,7 +398,21 @@ videoPlayerSubtitle { subtitle, playbackTime, seeking } =
         let
             s =
                 subtitle
-                    |> List.filter (\dialogue -> dialogue.start <= playbackTime && playbackTime <= dialogue.end)
+                    |> List.filter
+                        (\dialogue ->
+                            if dialogue.start <= playbackTime && playbackTime <= dialogue.end then
+                                let
+                                    _ =
+                                        Debug.log "dialogue" dialogue
+
+                                    _ =
+                                        Debug.log "playbackTime" playbackTime
+                                in
+                                True
+
+                            else
+                                False
+                        )
                     |> List.map .text
                     |> String.join "\n"
                     |> String.trim
@@ -431,7 +445,7 @@ videoScreen ({ videoPlayer, screenMetrics, client } as m) _ =
                 , onEnd <| Decode.succeed OnVideoEnd
                 , onBuffer OnVideoBuffer
                 , onProgress (\p -> OnVideoProgress p.currentTime)
-                , onSeek <| Decode.succeed <| OnVideoSeek SeekEnd videoPlayer.playbackTime
+                , onSeek <| Decode.succeed <| VideoPlayerControl <| SeekAction SeekEnd videoPlayer.playbackTime
                 , style styles.fullscreen
                 , allowsExternalPlayback False
                 , paused <| (not videoPlayer.playing || videoPlayer.seeking)

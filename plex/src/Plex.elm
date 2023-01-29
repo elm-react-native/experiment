@@ -14,6 +14,7 @@ import Http
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Model exposing (..)
+import Process
 import Random
 import ReactNative exposing (fragment, null, touchableOpacity, touchableWithoutFeedback, view)
 import ReactNative.ActionSheetIOS as ActionSheetIOS
@@ -388,6 +389,34 @@ getNextEpisode ratingKey { tvShows } =
             Nothing
 
 
+videoPlayerControlAction action videoPlayer =
+    case action of
+        SeekAction stage time ->
+            case stage of
+                SeekStart ->
+                    { videoPlayer | seeking = True }
+
+                Seeking ->
+                    { videoPlayer | playbackTime = time, seeking = True }
+
+                SeekRelease ->
+                    { videoPlayer
+                        | seekTime = time
+                        , playbackTime = time
+                        , seeking = True
+                    }
+
+                SeekEnd ->
+                    { videoPlayer | seeking = False }
+
+        TogglePlay ->
+            { videoPlayer | playing = not videoPlayer.playing }
+
+
+extendTimeToHideControsl =
+    Task.perform (\now -> UpdateTimeToHideControls <| Time.posixToMillis now + 5000) Time.now
+
+
 subittleTimeRange : List Dialogue -> ( Int, Int )
 subittleTimeRange subtitle =
     ( subtitle |> List.map .start |> List.minimum |> Maybe.withDefault 0
@@ -660,52 +689,68 @@ update msg model =
         ToggleVideoPlayerControls ->
             case model of
                 Home ({ videoPlayer } as m) ->
-                    ( Home { m | videoPlayer = { videoPlayer | showControls = not videoPlayer.showControls } }, Cmd.none )
-
-                _ ->
-                    ( model, Cmd.none )
-
-        OnVideoSeek stage time ->
-            case model of
-                Home ({ videoPlayer } as m) ->
                     ( Home
                         { m
                             | videoPlayer =
-                                case stage of
-                                    SeekStart ->
-                                        { videoPlayer | seeking = True }
-
-                                    Seeking ->
-                                        { videoPlayer | playbackTime = time, seeking = True }
-
-                                    SeekRelease ->
-                                        { videoPlayer
-                                            | seekTime = time
-                                            , playbackTime = time
-                                            , seeking = True
-                                        }
-
-                                    SeekEnd ->
-                                        { videoPlayer | seeking = False }
+                                { videoPlayer
+                                    | showControls = not videoPlayer.showControls
+                                    , timeToHideControls = Nothing
+                                }
                         }
-                    , Cmd.none
+                    , if videoPlayer.showControls then
+                        Cmd.none
+
+                      else
+                        extendTimeToHideControsl
                     )
 
                 _ ->
                     ( model, Cmd.none )
 
-        ChangePlaying playing ->
+        VideoPlayerControl action ->
             case model of
                 Home ({ videoPlayer } as m) ->
-                    ( Home { m | videoPlayer = { videoPlayer | playing = playing } }, Cmd.none )
+                    ( Home { m | videoPlayer = videoPlayerControlAction action videoPlayer }
+                    , extendTimeToHideControsl
+                    )
 
                 _ ->
                     ( model, Cmd.none )
 
-        HideVideoPlayerControls ->
+        UpdateTimeToHideControls now ->
             case model of
                 Home ({ videoPlayer } as m) ->
-                    ( Home { m | videoPlayer = { videoPlayer | showControls = False } }, Cmd.none )
+                    ( Home { m | videoPlayer = { videoPlayer | timeToHideControls = Just now } }, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        HideVideoPlayerControls now ->
+            case model of
+                Home ({ videoPlayer } as m) ->
+                    let
+                        ( vp, cmd ) =
+                            case videoPlayer.timeToHideControls of
+                                Just time ->
+                                    if now >= time then
+                                        ( { videoPlayer | showControls = False, timeToHideControls = Nothing }, Cmd.none )
+
+                                    else if time - now > 5000 then
+                                        -- this should not happen, just incase there are bugs causing timeToHideControls be wrong value
+                                        ( { videoPlayer | timeToHideControls = Just (now + 5000) }, Cmd.none )
+
+                                    else
+                                        ( videoPlayer
+                                        , (time - now)
+                                            |> toFloat
+                                            |> Process.sleep
+                                            |> Task.perform (\_ -> HideVideoPlayerControls time)
+                                        )
+
+                                _ ->
+                                    ( videoPlayer, Cmd.none )
+                    in
+                    ( Home { m | videoPlayer = vp }, cmd )
 
                 _ ->
                     ( model, Cmd.none )
@@ -825,7 +870,7 @@ subs model =
                 Sub.batch
                     [ Time.every (10 * 1000) SaveVideoPlayback
                     , if m.videoPlayer.showControls && not m.videoPlayer.seeking then
-                        Time.every (5 * 1000) (always HideVideoPlayerControls)
+                        Time.every (5 * 1000) (Time.posixToMillis >> HideVideoPlayerControls)
 
                       else
                         Sub.none

@@ -1,4 +1,4 @@
-module Model exposing (Dialogue, HomeModel, LibrarySection, Model(..), Msg(..), RemoteData, SeekStage(..), TVSeason, TVShow, VideoPlayer, dialogueDecoder, findSeason, findTVShowByEpisodeRatingKey, initHomeModel, initialVideoPlayer, isVideoUrlReady, updateSelectedSeason, updateTVShow)
+module Model exposing (Dialogue, HomeModel, LibrarySection, Model(..), Msg(..), RemoteData, SeekStage(..), TVSeason, TVShow, VideoPlayer, VideoPlayerControlAction(..), dialogueDecoder, findSeason, findTVShowByEpisodeRatingKey, initHomeModel, initialVideoPlayer, isVideoUrlReady, updateSelectedSeason, updateTVShow)
 
 import Api exposing (Account, Client, Library, Metadata, Section, initialMetadata)
 import Browser.Navigation as N
@@ -41,6 +41,7 @@ type alias VideoPlayer =
     , seeking : Bool
     , playing : Bool
     , subtitle : List Dialogue
+    , timeToHideControls : Maybe Int
     }
 
 
@@ -55,6 +56,7 @@ initialVideoPlayer =
     , seeking = False
     , playing = True
     , subtitle = []
+    , timeToHideControls = Nothing
     }
 
 
@@ -122,6 +124,11 @@ type SeekStage
     | SeekEnd
 
 
+type VideoPlayerControlAction
+    = TogglePlay
+    | SeekAction SeekStage Int
+
+
 type Msg
     = NoOp
     | SignInMsg SignInMsg
@@ -149,11 +156,11 @@ type Msg
     | SaveVideoPlayback Time.Posix
     | SignOut
     | RefreshHomeScreen
-    | ToggleVideoPlayerControls
-    | HideVideoPlayerControls
-    | OnVideoSeek SeekStage Int
-    | ChangePlaying Bool
     | GotSubtitle (List Dialogue)
+    | ToggleVideoPlayerControls
+    | HideVideoPlayerControls Int
+    | UpdateTimeToHideControls Int
+    | VideoPlayerControl VideoPlayerControlAction
 
 
 {-| fallback to first season when not find, return `Nothing` when seasons is empty
