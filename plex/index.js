@@ -9,8 +9,6 @@ import vectorIconsResolveComponent from '@elm-react-native/react-native-vector-i
 import contextMenuResolveComponent from '@elm-react-native/react-native-ios-context-menu';
 import videoResolveComponent from '@elm-react-native/react-native-video';
 import sliderResolveComponent from '@elm-react-native/react-native-slider';
-import AssStreamer from './ass-streamer';
-import {WebView} from 'react-native-webview';
 import SubtitleStream from './subtitle';
 
 LogBox.ignoreLogs(['Could not find Fiber with id']);

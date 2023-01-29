@@ -543,7 +543,7 @@ update msg model =
                         ( model, Cmd.none )
 
                     else
-                        ( Home { m | videoPlayer = { videoPlayer | playbackTime = time } }, Cmd.none )
+                        ( Home { m | videoPlayer = { videoPlayer | playbackTime = time, isBuffering = False } }, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )

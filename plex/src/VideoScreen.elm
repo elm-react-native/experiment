@@ -156,6 +156,16 @@ styles =
             , left = 4
             , right = 4
             }
+        , subtitleContainer =
+            { backgroundColor = "#00000060"
+            , alignItems = "center"
+            , justifyContent = "center"
+            , paddingHorizontal = 5
+            , paddingVertical = 3
+            , width = "auto"
+            , borderRadius = 3
+            }
+        , subtitle = { fontSize = 18 }
         }
 
 
@@ -326,17 +336,8 @@ videoPlayerControls videoPlayer =
 
 subtitleText : String -> Html msg
 subtitleText s =
-    view
-        [ style
-            { backgroundColor = "#000000c0"
-            , alignItems = "center"
-            , justifyContent = "center"
-            , paddingHorizontal = 5
-            , paddingVertical = 3
-            , width = "auto"
-            }
-        ]
-        [ text [ style { fontSize = 18 } ] [ str s ] ]
+    view [ style styles.subtitleContainer ]
+        [ text [ style styles.subtitle ] [ str s ] ]
 
 
 videoPlayerSubtitle { subtitle, playbackTime, seeking } =
@@ -363,8 +364,8 @@ videoPlayerSubtitle { subtitle, playbackTime, seeking } =
                     , bottom = 0
                     , left = 0
                     , position = "absolute"
+                    , alignItems = "center"
                     }
-                , style { alignItems = "center" }
                 ]
                 [ lazy subtitleText s ]
 
@@ -375,8 +376,6 @@ videoScreen ({ videoPlayer, screenMetrics, client } as m) _ =
         view [ style styles.container ]
             [ video
                 [ source { uri = videoUri screenMetrics videoPlayer client }
-                , playWhenInactive True
-                , pictureInPicture True
                 , seekTime videoPlayer.seekTime
                 , onErrorMessage PlayVideoError
                 , onEnd <| Decode.succeed OnVideoEnd
@@ -386,6 +385,7 @@ videoScreen ({ videoPlayer, screenMetrics, client } as m) _ =
                 , style styles.fullscreen
                 , allowsExternalPlayback False
                 , paused <| (not videoPlayer.playing || videoPlayer.seeking)
+                , resizeMode "cover"
                 ]
                 []
             , subtitleStream
