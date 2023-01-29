@@ -97,11 +97,30 @@ videoUri : DisplayMetrics -> VideoPlayer -> Api.Client -> String
 videoUri screenMetrics { sessionId, metadata } client =
     Api.clientRequestUrl "/video/:/transcode/universal/start.m3u8" client
         ++ ("&path=%2Flibrary%2Fmetadata%2F" ++ metadata.ratingKey)
-        ++ "&fastSeek=1"
-        ++ "&mediaBufferSize=102400"
+        ++ "&hasMDE=1"
+        ++ "&mediaIndex=0"
+        ++ "&partIndex=0"
         ++ "&protocol=hls"
+        ++ "&fastSeek=1"
+        ++ "&directPlay=0"
+        ++ "&directStream=1"
+        ++ "&subtitleSize=100"
+        ++ "&audioBoost=100"
+        ++ "&location=lan"
+        ++ "&addDebugOverlay=0"
+        ++ "&autoAdjustQuality=0"
+        ++ "&directStreamAudio=1"
+        ++ "&mediaBufferSize=102400"
+        ++ "&subtitles=auto"
+        ++ "&Accept-Language=en"
+        ++ "&X-Plex-Client-Profile-Extra=append-transcode-target-codec%28type%3DvideoProfile%26context%3Dstreaming%26audioCodec%3Daac%252Cac3%252Ceac3%26protocol%3Dhls%29"
+        ++ "&X-Plex-Incomplete-Segments=1"
+        ++ "&X-Plex-Product=Plex%20Web"
+        ++ "&X-Plex-Version=4.87.2"
+        ++ "&X-Plex-Platform=Safari"
+        ++ "&X-Plex-Platform-Version=605.1"
+        ++ "&X-Plex-Features=external-media%2Cindirect-media%2Chub-style-list"
         ++ "&X-Plex-Model=bundled"
-        ++ ("&X-Plex-Device-Screen-Resolution=" ++ String.fromFloat screenMetrics.width ++ "x" ++ String.fromFloat screenMetrics.height)
         ++ (if Platform.os == "ios" then
                 "&X-Plex-Device=iOS"
 
@@ -111,14 +130,45 @@ videoUri screenMetrics { sessionId, metadata } client =
             else
                 ""
            )
-getSubtitleUrl client ratingKey sessionId =
+        ++ "&X-Plex-Device-Name=Safari"
+        --++ "&X-Plex-Device-Screen-Resolution=980x1646%2C393x852"
+        ++ ("&X-Plex-Device-Screen-Resolution=" ++ String.fromFloat screenMetrics.width ++ "x" ++ String.fromFloat screenMetrics.height)
+        ++ "&X-Plex-Language=en"
+        ++ ("&X-Pler-Session-Identifier=" ++ sessionId)
+        ++ ("&session=" ++ sessionId)
+
+
+getSubtitleUrl client screenMetrics ratingKey sessionId =
     Api.clientRequestUrl "/video/:/transcode/universal/subtitles" client
         ++ ("&hasMDE=1&path=%2Flibrary%2Fmetadata%2F" ++ ratingKey)
-        ++ "&mediaIndex=0&partIndex=0&protocol=hls&fastSeek=1&directPlay=0&directStream=1&subtitleSize=100&audioBoost=100&location=lan&addDebugOverlay=0&autoAdjustQuality=0&directStreamAudio=1&mediaBufferSize=102400&subtitles=auto&Accept-Language=en&X-Plex-Client-Profile-Extra=append-transcode-target-codec%28type%3DvideoProfile%26context%3Dstreaming%26audioCodec%3Daac%252Cac3%252Ceac3%26protocol%3Dhls%29&X-Plex-Incomplete-Segments=1&X-Plex-Product=Plex%20Web&X-Plex-Version=4.87.2&X-Plex-Platform=Safari&X-Plex-Platform-Version=605.1&X-Plex-Features=external-media%2Cindirect-media%2Chub-style-list&X-Plex-Model=bundled&X-Plex-Device=iOS&X-Plex-Device-Name=Safari&X-Plex-Device-Screen-Resolution=979x444%2C390x844&X-Plex-Language=en"
-        --hasMDE=1&path=%2Flibrary%2Fmetadata%2F592&mediaIndex=0&partIndex=0&protocol=hls&fastSeek=1&directPlay=0&directStream=1&subtitleSize=100&audioBoost=100&location=lan&addDebugOverlay=0&autoAdjustQuality=0&directStreamAudio=1&mediaBufferSize=102400&session=595tc879v3exnjf6zgqp3nxs&subtitles=auto&Accept-Language=en&X-Plex-Session-Identifier=u5x07z1rjfcni6w27qv1sl5d&X-Plex-Client-Profile-Extra=append-transcode-target-codec%28type%3DvideoProfile%26context%3Dstreaming%26audioCodec%3Daac%252Cac3%252Ceac3%26protocol%3Dhls%29&X-Plex-Incomplete-Segments=1&X-Plex-Product=Plex%20Web&X-Plex-Version=4.87.2&X-Plex-Client-Identifier=4n392ycctsm0yy92hphudfi2&X-Plex-Platform=Safari&X-Plex-Platform-Version=605.1&X-Plex-Features=external-media%2Cindirect-media%2Chub-style-list&X-Plex-Model=bundled&X-Plex-Device=iOS&X-Plex-Device-Name=Safari&X-Plex-Device-Screen-Resolution=980x1646%2C393x852&X-Plex-Token=xqNghArzsvYHFP9HF3ZL&X-Plex-Language=en
-        --++ "hasMDE=1&path=%2Flibrary%2Fmetadata%2F592&mediaIndex=0&partIndex=0&protocol=hls&fastSeek=1&directPlay=0&directStream=1&subtitleSize=100&audioBoost=100&location=lan&addDebugOverlay=0&autoAdjustQuality=0&directStreamAudio=1&mediaBufferSize=102400&subtitles=auto&Accept-Language=en&X-Plex-Client-Profile-Extra=append-transcode-target-codec%28type%3DvideoProfile%26context%3Dstreaming%26audioCodec%3Daac%252Cac3%252Ceac3%26protocol%3Dhls%29&X-Plex-Incomplete-Segments=1&X-Plex-Product=Plex%20Web&X-Plex-Version=4.87.2&X-Plex-Platform=Safari&X-Plex-Platform-Version=605.1&X-Plex-Features=external-media%2Cindirect-media%2Chub-style-list&X-Plex-Model=bundled&X-Plex-Device=iOS&X-Plex-Device-Name=Safari&X-Plex-Device-Screen-Resolution=979x444%2C390x844&X-Plex-Language=en"
-        --++ "hasMDE=1&path=%2Flibrary%2Fmetadata%2F592&addDebugOverlay=0&autoAdjustQuality=0&directStreamAudio=1&mediaBufferSize=102400&subtitles=auto&Accept-Language=en&X-Plex-Client-Profile-Extra=append-transcode-target-codec%28type%3DvideoProfile%26context%3Dstreaming%26audioCodec%3Daac%26protocol%3Ddash%29&X-Plex-Incomplete-Segments=1&X-Plex-Product=Plex%20Web&X-Plex-Version=4.87.2&X-Plex-Platform=Safari&X-Plex-Platform-Version=16.2&X-Plex-Features=external-media%2Cindirect-media%2Chub-style-list&X-Plex-Model=bundled&X-Plex-Device=OSX&X-Plex-Device-Name=Safari&X-Plex-Device-Screen-Resolution=807x981%2C1920x1080"
-        --++ "hasMDE=1&path=%2Flibrary%2Fmetadata%2F592&mediaIndex=0&partIndex=0&protocol=hls&fastSeek=1&directPlay=0&directStream=1&subtitleSize=100&audioBoost=100&location=lan&addDebugOverlay=0&autoAdjustQuality=0&directStreamAudio=1&mediaBufferSize=102400&subtitles=auto&Accept-Language=en&X-Plex-Client-Profile-Extra=append-transcode-target-codec%28type%3DvideoProfile%26context%3Dstreaming%26audioCodec%3Daac%252Cac3%252Ceac3%26protocol%3Dhls%29&X-Plex-Incomplete-Segments=1&X-Plex-Product=Plex%20Web&X-Plex-Version=4.87.2&X-Plex-Platform=Safari&X-Plex-Platform-Version=605.1&X-Plex-Features=external-media%2Cindirect-media%2Chub-style-list&X-Plex-Model=bundled&X-Plex-Device=iOS&X-Plex-Device-Name=Safari&X-Plex-Device-Screen-Resolution=980x1669%2C390x844&X-Plex-Language=en"
+        ++ "&mediaIndex=0"
+        ++ "&partIndex=0"
+        ++ "&protocol=hls"
+        ++ "&fastSeek=1"
+        ++ "&directPlay=0"
+        ++ "&directStream=1"
+        ++ "&subtitleSize=100"
+        ++ "&audioBoost=100"
+        ++ "&location=lan"
+        ++ "&addDebugOverlay=0"
+        ++ "&autoAdjustQuality=0"
+        ++ "&directStreamAudio=1"
+        ++ "&mediaBufferSize=102400"
+        ++ "&subtitles=auto"
+        ++ "&Accept-Language=en"
+        ++ "&X-Plex-Client-Profile-Extra=append-transcode-target-codec%28type%3DvideoProfile%26context%3Dstreaming%26audioCodec%3Daac%252Cac3%252Ceac3%26protocol%3Dhls%29"
+        ++ "&X-Plex-Incomplete-Segments=1"
+        ++ "&X-Plex-Product=Plex%20Web"
+        ++ "&X-Plex-Version=4.87.2"
+        ++ "&X-Plex-Platform=Safari"
+        ++ "&X-Plex-Platform-Version=605.1"
+        ++ "&X-Plex-Features=external-media%2Cindirect-media%2Chub-style-list"
+        ++ "&X-Plex-Model=bundled"
+        ++ "&X-Plex-Device=iOS"
+        ++ "&X-Plex-Device-Name=Safari"
+        --++ "&X-Plex-Device-Screen-Resolution=980x1646%2C393x852"
+        ++ ("&X-Plex-Device-Screen-Resolution=" ++ String.fromFloat screenMetrics.width ++ "x" ++ String.fromFloat screenMetrics.height)
+        ++ "&X-Plex-Language=en"
         ++ ("&X-Pler-Session-Identifier=" ++ sessionId)
         ++ ("&session=" ++ sessionId)
 
@@ -389,7 +439,7 @@ videoScreen ({ videoPlayer, screenMetrics, client } as m) _ =
                 ]
                 []
             , subtitleStream
-                [ SubtitleStream.url <| getSubtitleUrl client videoPlayer.metadata.ratingKey videoPlayer.sessionId
+                [ SubtitleStream.url <| getSubtitleUrl client screenMetrics videoPlayer.metadata.ratingKey videoPlayer.sessionId
                 , SubtitleStream.playbackTime videoPlayer.seekTime
                 , SubtitleStream.onDialogues <| Decode.map GotSubtitle <| Decode.list dialogueDecoder
                 ]
