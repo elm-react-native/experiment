@@ -407,13 +407,13 @@ videoPlayerControlAction action videoPlayer =
                     }
 
                 SeekEnd ->
-                    { videoPlayer | seeking = False }
+                    { videoPlayer | seeking = False, subtitleSeekTime = time }
 
         TogglePlay ->
             { videoPlayer | playing = not videoPlayer.playing }
 
 
-extendTimeToHideControsl =
+extendTimeToHideControls =
     Task.perform (\now -> UpdateTimeToHideControls <| Time.posixToMillis now + 5000) Time.now
 
 
@@ -701,7 +701,7 @@ update msg model =
                         Cmd.none
 
                       else
-                        extendTimeToHideControsl
+                        extendTimeToHideControls
                     )
 
                 _ ->
@@ -711,7 +711,7 @@ update msg model =
             case model of
                 Home ({ videoPlayer } as m) ->
                     ( Home { m | videoPlayer = videoPlayerControlAction action videoPlayer }
-                    , extendTimeToHideControsl
+                    , extendTimeToHideControls
                     )
 
                 _ ->

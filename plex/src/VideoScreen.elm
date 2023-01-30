@@ -454,7 +454,7 @@ videoScreen ({ videoPlayer, screenMetrics, client } as m) _ =
                 []
             , subtitleStream
                 [ SubtitleStream.url <| getSubtitleUrl client screenMetrics videoPlayer.metadata.ratingKey videoPlayer.sessionId
-                , SubtitleStream.playbackTime videoPlayer.seekTime
+                , SubtitleStream.playbackTime videoPlayer.subtitleSeekTime
                 , SubtitleStream.onDialogues <| Decode.map GotSubtitle <| Decode.list dialogueDecoder
                 ]
                 []

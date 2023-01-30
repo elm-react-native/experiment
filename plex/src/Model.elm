@@ -36,6 +36,7 @@ type alias VideoPlayer =
     , playbackTime : Int
     , isBuffering : Bool
     , seekTime : Int
+    , subtitleSeekTime : Int
     , metadata : Metadata
     , showControls : Bool
     , seeking : Bool
@@ -51,6 +52,7 @@ initialVideoPlayer =
     , playbackTime = 0
     , isBuffering = False
     , seekTime = 0
+    , subtitleSeekTime = 0
     , metadata = initialMetadata
     , showControls = False
     , seeking = False
