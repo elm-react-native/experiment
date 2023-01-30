@@ -116,12 +116,24 @@ getEpisodes showId seasonId client =
 
 
 savePlaybackTime : VideoPlayer -> Client -> Cmd Msg
-savePlaybackTime player client =
+savePlaybackTime videoPlayer client =
+    let
+        state =
+            case videoPlayer.state of
+                Playing ->
+                    "playing"
+
+                Paused ->
+                    "paused"
+
+                Stopped ->
+                    "stopped"
+    in
     Api.playerTimeline
-        { ratingKey = player.metadata.ratingKey
-        , state = "playing"
-        , time = player.playbackTime
-        , duration = player.metadata.duration
+        { ratingKey = videoPlayer.metadata.ratingKey
+        , state = state
+        , time = videoPlayer.playbackTime
+        , duration = videoPlayer.metadata.duration
         }
         (hijackUnauthorizedError <| always NoOp)
         client
@@ -343,6 +355,7 @@ playVideo ({ ratingKey, viewOffset, typ } as metadata) ({ navKey, videoPlayer, c
                 { videoPlayer
                     | seekTime = Maybe.withDefault 0 viewOffset
                     , metadata = metadata
+                    , state = Playing
                 }
         }
     , Cmd.batch
@@ -389,6 +402,7 @@ getNextEpisode ratingKey { tvShows } =
             Nothing
 
 
+videoPlayerControlAction : VideoPlayerControlAction -> VideoPlayer -> VideoPlayer
 videoPlayerControlAction action videoPlayer =
     case action of
         SeekAction stage time ->
@@ -410,7 +424,14 @@ videoPlayerControlAction action videoPlayer =
                     { videoPlayer | seeking = False, subtitleSeekTime = time }
 
         TogglePlay ->
-            { videoPlayer | playing = not videoPlayer.playing }
+            { videoPlayer
+                | state =
+                    if videoPlayer.state == Playing then
+                        Paused
+
+                    else
+                        Playing
+            }
 
 
 extendTimeToHideControls =
@@ -545,12 +566,16 @@ update msg model =
 
         StopPlayVideo ->
             case model of
-                Home m ->
-                    ( model
+                Home ({ videoPlayer, client, navKey } as m) ->
+                    let
+                        vp =
+                            { videoPlayer | state = Stopped }
+                    in
+                    ( Home { m | videoPlayer = vp }
                     , Cmd.batch
-                        [ Nav.goBack m.navKey
-                        , savePlaybackTime m.videoPlayer m.client
-                        , getContinueWatching m.client
+                        [ Nav.goBack navKey
+                        , savePlaybackTime vp client
+                        , getContinueWatching client
                         ]
                     )
 
@@ -585,7 +610,7 @@ update msg model =
             case model of
                 Home ({ client, videoPlayer } as m) ->
                     ( Home { m | videoPlayer = initialVideoPlayer }
-                    , Cmd.batch [ getContinueWatching m.client, savePlaybackTime videoPlayer client ]
+                    , Cmd.batch [ getContinueWatching m.client, savePlaybackTime { videoPlayer | state = Stopped } client ]
                     )
 
                 _ ->
@@ -594,7 +619,11 @@ update msg model =
         SaveVideoPlayback _ ->
             case model of
                 Home ({ client, videoPlayer } as m) ->
-                    ( model, savePlaybackTime videoPlayer client )
+                    if videoPlayer.state == Stopped then
+                        ( model, Cmd.none )
+
+                    else
+                        ( model, savePlaybackTime videoPlayer client )
 
                 _ ->
                     ( model, Cmd.none )
@@ -646,7 +675,7 @@ update msg model =
 
         OnVideoEnd ->
             case model of
-                Home ({ videoPlayer } as m) ->
+                Home ({ videoPlayer, client } as m) ->
                     case getNextEpisode videoPlayer.metadata.ratingKey m of
                         Just nextEpisode ->
                             ( Home
@@ -657,15 +686,15 @@ update msg model =
                                             , metadata = nextEpisode
                                         }
                                 }
-                            , Cmd.none
+                            , savePlaybackTime { videoPlayer | state = Stopped } client
                             )
 
                         _ ->
                             ( model
                             , Cmd.batch
                                 [ Nav.goBack m.navKey
-                                , savePlaybackTime m.videoPlayer m.client
-                                , getContinueWatching m.client
+                                , savePlaybackTime { videoPlayer | state = Stopped } client
+                                , getContinueWatching client
                                 ]
                             )
 
@@ -709,9 +738,21 @@ update msg model =
 
         VideoPlayerControl action ->
             case model of
-                Home ({ videoPlayer } as m) ->
-                    ( Home { m | videoPlayer = videoPlayerControlAction action videoPlayer }
-                    , extendTimeToHideControls
+                Home ({ videoPlayer, client } as m) ->
+                    let
+                        vp =
+                            videoPlayerControlAction action videoPlayer
+                    in
+                    ( Home { m | videoPlayer = vp }
+                    , Cmd.batch
+                        [ extendTimeToHideControls
+                        , case action of
+                            TogglePlay ->
+                                savePlaybackTime vp client
+
+                            _ ->
+                                Cmd.none
+                        ]
                     )
 
                 _ ->

@@ -1,4 +1,4 @@
-module Model exposing (Dialogue, HomeModel, LibrarySection, Model(..), Msg(..), RemoteData, SeekStage(..), TVSeason, TVShow, VideoPlayer, VideoPlayerControlAction(..), dialogueDecoder, findSeason, findTVShowByEpisodeRatingKey, initHomeModel, initialVideoPlayer, isVideoUrlReady, updateSelectedSeason, updateTVShow)
+module Model exposing (Dialogue, HomeModel, LibrarySection, Model(..), Msg(..), PlaybackState(..), RemoteData, SeekStage(..), TVSeason, TVShow, VideoPlayer, VideoPlayerControlAction(..), dialogueDecoder, findSeason, findTVShowByEpisodeRatingKey, initHomeModel, initialVideoPlayer, isVideoUrlReady, updateSelectedSeason, updateTVShow)
 
 import Api exposing (Account, Client, Library, Metadata, Section, initialMetadata)
 import Browser.Navigation as N
@@ -31,6 +31,12 @@ type alias LibrarySection =
     { info : Library, data : RemoteData (List Metadata) }
 
 
+type PlaybackState
+    = Playing
+    | Paused
+    | Stopped
+
+
 type alias VideoPlayer =
     { sessionId : String
     , playbackTime : Int
@@ -40,7 +46,7 @@ type alias VideoPlayer =
     , metadata : Metadata
     , showControls : Bool
     , seeking : Bool
-    , playing : Bool
+    , state : PlaybackState
     , subtitle : List Dialogue
     , timeToHideControls : Maybe Int
     }
@@ -56,7 +62,7 @@ initialVideoPlayer =
     , metadata = initialMetadata
     , showControls = False
     , seeking = False
-    , playing = True
+    , state = Stopped
     , subtitle = []
     , timeToHideControls = Nothing
     }

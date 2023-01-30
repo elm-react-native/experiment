@@ -5,10 +5,10 @@ import Components exposing (text)
 import EntityScreen exposing (episodeTitle)
 import Html exposing (Html)
 import Html.Lazy exposing (lazy)
-import Json.Decode as Decode
+import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import Maybe
-import Model exposing (HomeModel, Msg(..), SeekStage(..), VideoPlayer, VideoPlayerControlAction(..), dialogueDecoder, isVideoUrlReady)
+import Model exposing (HomeModel, Msg(..), PlaybackState(..), SeekStage(..), VideoPlayer, VideoPlayerControlAction(..), dialogueDecoder, isVideoUrlReady)
 import ReactNative exposing (activityIndicator, button, fragment, image, null, require, str, touchableOpacity, touchableWithoutFeedback, view)
 import ReactNative.Dimensions as Dimensions exposing (DisplayMetrics)
 import ReactNative.Events exposing (onFloatValueChange, onPress)
@@ -228,6 +228,7 @@ videoTitle metadata =
             metadata.title
 
 
+videoPlayerControlsHeader : VideoPlayer -> Html Msg
 videoPlayerControlsHeader videoPlayer =
     view
         [ style
@@ -268,6 +269,7 @@ videoPlayerControlsImageIcon sz src label pressMsg =
         ]
 
 
+videoPlayerControlsBody : VideoPlayer -> Html Msg
 videoPlayerControlsBody videoPlayer =
     view
         [ style
@@ -281,12 +283,7 @@ videoPlayerControlsBody videoPlayer =
         ]
         [ view
             [ style
-                { display =
-                    if videoPlayer.seeking then
-                        "none"
-
-                    else
-                        "flex"
+                { display = "flex"
                 , flexDirection = "row"
                 , gap = 110
                 , justifyContent = "center"
@@ -295,7 +292,7 @@ videoPlayerControlsBody videoPlayer =
                 }
             ]
             [ videoPlayerControlsImageIcon 35 (require "./assets/backward.png") "" <| VideoPlayerControl <| SeekAction SeekRelease (max 0 <| videoPlayer.playbackTime - 10 * 1000)
-            , if videoPlayer.playing then
+            , if videoPlayer.state == Playing then
                 videoPlayerControlsIcon 55 "pause" <| VideoPlayerControl TogglePlay
 
               else
@@ -364,12 +361,13 @@ videoPlayerControlsFooter videoPlayer =
         ]
 
 
+videoPlayerControls : VideoPlayer -> Html Msg
 videoPlayerControls videoPlayer =
     view
         [ style styles.fullscreen
         , style
             { display =
-                if videoPlayer.showControls || videoPlayer.seeking then
+                if videoPlayer.showControls then
                     "flex"
 
                 else
@@ -448,7 +446,7 @@ videoScreen ({ videoPlayer, screenMetrics, client } as m) _ =
                 , onSeek <| Decode.succeed <| VideoPlayerControl <| SeekAction SeekEnd videoPlayer.playbackTime
                 , style styles.fullscreen
                 , allowsExternalPlayback False
-                , paused <| (not videoPlayer.playing || videoPlayer.seeking)
+                , paused <| (videoPlayer.state /= Playing || videoPlayer.seeking)
                 , resizeMode "cover"
                 ]
                 []
