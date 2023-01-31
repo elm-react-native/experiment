@@ -318,7 +318,7 @@ videoPlayerControlsProgress videoPlayer =
         [ text
             [ style { fontSize = 14 } ]
             [ str <|
-                formatDuration videoPlayer.playbackTime videoPlayer.metadata.duration
+                formatDuration (min videoPlayer.playbackTime videoPlayer.metadata.duration) videoPlayer.metadata.duration
             ]
         , slider
             [ minimumValue 0
@@ -335,7 +335,7 @@ videoPlayerControlsProgress videoPlayer =
         , text
             [ style { fontSize = 14 } ]
             [ str <|
-                formatDuration (videoPlayer.metadata.duration - videoPlayer.playbackTime) videoPlayer.metadata.duration
+                formatDuration (max 0 <| videoPlayer.metadata.duration - videoPlayer.playbackTime) videoPlayer.metadata.duration
             ]
         ]
 
