@@ -1,17 +1,23 @@
 module ReactNative.Animated exposing
     ( AnimationResult
     , Value
+    , add
     , create
     , createXY
+    , diffClamp
+    , divide
     , event
     , event2
     , getLayout
     , interpolate
     , mapping
+    , modulo
+    , multiply
     , reset
     , setValue
     , spring
     , start
+    , subtract
     , timing
     , view
     )
@@ -52,22 +58,34 @@ view =
     node "Animated.View"
 
 
+add : Value -> Value -> Value
+add a b =
+    a
 
---add : Value -> Value -> Value
---add a b =
---    a
---subtract : Value -> Value -> Value
---subtract a b =
---    a
---multiply : Value -> Value -> Value
---multiply a b =
---    a
---modulo : Value -> Value -> Value
---modulo a b =
---    a
---diffClamp : Int -> Int -> Value -> Value
---diffClamp min max a =
---    a
+
+subtract : Value -> Value -> Value
+subtract a b =
+    a
+
+
+multiply : Value -> Value -> Value
+multiply a b =
+    a
+
+
+modulo : Value -> Float -> Value
+modulo a b =
+    a
+
+
+divide : Value -> Value -> Value
+divide a b =
+    a
+
+
+diffClamp : Int -> Int -> Value -> Value
+diffClamp min max a =
+    a
 
 
 interpolate : cfg -> Value -> Value

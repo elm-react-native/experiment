@@ -405,6 +405,26 @@ var $author$project$ReactNative$Animated$interpolate = F2(
     });
   });
 
+var $author$project$ReactNative$Animated$multiply = F2(
+  function (a, b) {
+    return Animated.multiply(a, b);
+  });
+var $author$project$ReactNative$Animated$subtract = F2(
+  function (a, b) {
+    return Animated.subtract(a, b);
+  });
+var $author$project$ReactNative$Animated$add = F2(
+  function (a, b) {
+    return Animated.add(a, b);
+  });
+var $author$project$ReactNative$Animated$divide = F2(
+  function (a, b) {
+    return Animated.divide(a, b);
+  });
+var $author$project$ReactNative$Animated$modulo = F2(
+  function (a, b) {
+    return Animated.modulo(a, b);
+  });
 var $author$project$ReactNative$Animated$stop = function (v) {
   return _Scheduler_binding(function(callback) {
     v.stop();

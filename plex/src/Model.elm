@@ -5,6 +5,7 @@ import Browser.Navigation as N
 import Dict exposing (Dict)
 import Http
 import Json.Decode as Decode exposing (Decoder)
+import ReactNative.Animated as Animated
 import ReactNative.Dimensions as Dimensions exposing (DisplayMetrics)
 import SignInModel exposing (SignInModel, SignInMsg)
 import Time
@@ -49,6 +50,8 @@ type alias VideoPlayer =
     , state : PlaybackState
     , subtitle : List Dialogue
     , timeToHideControls : Maybe Int
+    , playerControlsAnimatedValue : Animated.Value
+    , hidingControls : Bool
     }
 
 
@@ -65,6 +68,8 @@ initialVideoPlayer =
     , state = Stopped
     , subtitle = []
     , timeToHideControls = Nothing
+    , playerControlsAnimatedValue = Animated.create 0
+    , hidingControls = False
     }
 
 
@@ -169,6 +174,7 @@ type Msg
     | HideVideoPlayerControls Int
     | UpdateTimeToHideControls Int
     | VideoPlayerControl VideoPlayerControlAction
+    | HideVideoPlayerControlsAnimationFinish
 
 
 {-| fallback to first season when not find, return `Nothing` when seasons is empty

@@ -19,7 +19,9 @@ import Random
 import ReactNative exposing (fragment, null, touchableOpacity, touchableWithoutFeedback, view)
 import ReactNative.ActionSheetIOS as ActionSheetIOS
 import ReactNative.Alert as Alert
+import ReactNative.Animated as Animated
 import ReactNative.Dimensions as Dimensions
+import ReactNative.Easing as Easing
 import ReactNative.Events exposing (onPress)
 import ReactNative.Keyboard as Keyboard
 import ReactNative.Navigation as Nav exposing (screen, stackNavigator)
@@ -445,6 +447,22 @@ subittleTimeRange subtitle =
     )
 
 
+hideVideoPlayerControlsAnimation : Animated.Value -> Cmd Msg
+hideVideoPlayerControlsAnimation animatedValue =
+    animatedValue
+        |> Animated.timing { toValue = 0, duration = 200, easing = Easing.cubic }
+        |> Animated.start
+        |> Task.perform (always NoOp)
+
+
+showVideoPlayerControlsAnimation : Animated.Value -> Cmd Msg
+showVideoPlayerControlsAnimation animatedValue =
+    animatedValue
+        |> Animated.timing { toValue = 1, duration = 200, easing = Easing.cubic }
+        |> Animated.start
+        |> Task.perform (always NoOp)
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -723,14 +741,18 @@ update msg model =
                             | videoPlayer =
                                 { videoPlayer
                                     | showControls = not videoPlayer.showControls
+                                    , hidingControls = videoPlayer.showControls
                                     , timeToHideControls = Nothing
                                 }
                         }
                     , if videoPlayer.showControls then
-                        Cmd.none
+                        hideVideoPlayerControlsAnimation videoPlayer.playerControlsAnimatedValue
 
                       else
-                        extendTimeToHideControls
+                        Cmd.batch
+                            [ extendTimeToHideControls
+                            , showVideoPlayerControlsAnimation videoPlayer.playerControlsAnimatedValue
+                            ]
                     )
 
                 _ ->
@@ -774,7 +796,13 @@ update msg model =
                             case videoPlayer.timeToHideControls of
                                 Just time ->
                                     if now >= time then
-                                        ( { videoPlayer | showControls = False, timeToHideControls = Nothing }, Cmd.none )
+                                        ( { videoPlayer
+                                            | showControls = False
+                                            , hidingControls = True
+                                            , timeToHideControls = Nothing
+                                          }
+                                        , hideVideoPlayerControlsAnimation videoPlayer.playerControlsAnimatedValue
+                                        )
 
                                     else if time - now > 5000 then
                                         -- this should not happen, just incase there are bugs causing timeToHideControls be wrong value
@@ -804,6 +832,14 @@ update msg model =
             case model of
                 Home ({ videoPlayer } as m) ->
                     ( Home { m | videoPlayer = { videoPlayer | subtitle = videoPlayer.subtitle ++ dialogues } }, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        HideVideoPlayerControlsAnimationFinish ->
+            case model of
+                Home ({ videoPlayer } as m) ->
+                    ( Home { m | videoPlayer = { videoPlayer | hidingControls = False } }, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )

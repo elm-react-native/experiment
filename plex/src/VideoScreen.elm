@@ -10,6 +10,7 @@ import Json.Encode as Encode
 import Maybe
 import Model exposing (HomeModel, Msg(..), PlaybackState(..), SeekStage(..), VideoPlayer, VideoPlayerControlAction(..), dialogueDecoder, isVideoUrlReady)
 import ReactNative exposing (activityIndicator, button, fragment, image, null, require, str, touchableOpacity, touchableWithoutFeedback, view)
+import ReactNative.Animated as Animated
 import ReactNative.Dimensions as Dimensions exposing (DisplayMetrics)
 import ReactNative.Events exposing (onFloatValueChange, onPress)
 import ReactNative.Icon exposing (ionicon, materialIcon)
@@ -230,15 +231,17 @@ videoTitle metadata =
 
 videoPlayerControlsHeader : VideoPlayer -> Html Msg
 videoPlayerControlsHeader videoPlayer =
-    view
+    Animated.view
         [ style
             { position = "absolute"
-            , top = 0
             , left = 0
             , width = "100%"
             , paddingTop = 30
             , alignItems = "center"
             , justifyContent = "center"
+            , top =
+                Animated.multiply (Animated.create -20)
+                    (Animated.subtract (Animated.create 1) videoPlayer.playerControlsAnimatedValue)
             }
         ]
         [ text [ style { fontSize = 16, fontWeight = "bold" } ]
@@ -310,8 +313,6 @@ videoPlayerControlsProgress videoPlayer =
             , justifyContent = "space-around"
             , gap = 20
             , paddingHorizontal = 20
-            , position = "absolute"
-            , bottom = 50
             , width = "100%"
             }
         ]
@@ -348,9 +349,7 @@ videoPlayerControlsFooter videoPlayer =
             , paddingHorizontal = 80
             , height = 50
             , alignItems = "flex-start"
-            , position = "absolute"
             , width = "100%"
-            , bottom = 0
             }
         ]
         [ videoPlayerControlsImageIcon 25 (require "./assets/speed.png") "Speed (1x)" NoOp
@@ -367,7 +366,7 @@ videoPlayerControls videoPlayer =
         [ style styles.fullscreen
         , style
             { display =
-                if videoPlayer.showControls then
+                if videoPlayer.showControls || videoPlayer.hidingControls then
                     "flex"
 
                 else
@@ -377,8 +376,18 @@ videoPlayerControls videoPlayer =
         ]
         [ videoPlayerControlsHeader videoPlayer
         , videoPlayerControlsBody videoPlayer
-        , videoPlayerControlsProgress videoPlayer
-        , videoPlayerControlsFooter videoPlayer
+        , Animated.view
+            [ style
+                { position = "absolute"
+                , width = "100%"
+                , bottom =
+                    Animated.multiply (Animated.create -20)
+                        (Animated.subtract (Animated.create 1) videoPlayer.playerControlsAnimatedValue)
+                }
+            ]
+            [ videoPlayerControlsProgress videoPlayer
+            , videoPlayerControlsFooter videoPlayer
+            ]
         ]
 
 
@@ -396,21 +405,7 @@ videoPlayerSubtitle { subtitle, playbackTime, seeking } =
         let
             s =
                 subtitle
-                    |> List.filter
-                        (\dialogue ->
-                            if dialogue.start <= playbackTime && playbackTime <= dialogue.end then
-                                let
-                                    _ =
-                                        Debug.log "dialogue" dialogue
-
-                                    _ =
-                                        Debug.log "playbackTime" playbackTime
-                                in
-                                True
-
-                            else
-                                False
-                        )
+                    |> List.filter (\dialogue -> dialogue.start <= playbackTime && playbackTime <= dialogue.end)
                     |> List.map .text
                     |> String.join "\n"
                     |> String.trim
@@ -459,7 +454,7 @@ videoScreen ({ videoPlayer, screenMetrics, client } as m) _ =
             , videoPlayerSubtitle videoPlayer
             , touchableWithoutFeedback
                 [ onPress <| Decode.succeed ToggleVideoPlayerControls ]
-                [ view [ style styles.fullscreen ]
+                [ Animated.view [ style styles.fullscreen, style { opacity = videoPlayer.playerControlsAnimatedValue } ]
                     [ videoPlayerControls videoPlayer
                     , if videoPlayer.isBuffering && not videoPlayer.seeking then
                         activityIndicator [ style styles.center, stringSize "large" ] []
