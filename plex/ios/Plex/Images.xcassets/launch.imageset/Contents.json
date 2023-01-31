@@ -1,17 +1,17 @@
 {
   "images" : [
     {
-      "filename" : "launch1.png",
+      "filename" : "plex-favicon copy 1.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "launch2.png",
+      "filename" : "plex-favicon 1.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
-      "filename" : "launch.png",
+      "filename" : "plex-favicon.png",
       "idiom" : "universal",
       "scale" : "3x"
     }
