@@ -356,8 +356,10 @@ playVideo ({ ratingKey, viewOffset, typ } as metadata) ({ navKey, videoPlayer, c
             | videoPlayer =
                 { videoPlayer
                     | seekTime = Maybe.withDefault 0 viewOffset
+                    , playbackTime = Maybe.withDefault 0 viewOffset
                     , metadata = metadata
                     , state = Playing
+                    , subtitle = []
                 }
         }
     , Cmd.batch
@@ -372,7 +374,7 @@ playVideo ({ ratingKey, viewOffset, typ } as metadata) ({ navKey, videoPlayer, c
     )
 
 
-getNextEpisode ratingKey { tvShows } =
+getNextEpisode ratingKey tvShows =
     let
         findNext pred items =
             case items of
@@ -404,11 +406,11 @@ getNextEpisode ratingKey { tvShows } =
             Nothing
 
 
-videoPlayerControlAction : VideoPlayerControlAction -> VideoPlayer -> VideoPlayer
-videoPlayerControlAction action videoPlayer =
+videoPlayerControlAction : Client -> Dict String (Result Http.Error TVShow) -> VideoPlayerControlAction -> VideoPlayer -> ( VideoPlayer, Cmd Msg )
+videoPlayerControlAction client tvShows action videoPlayer =
     case action of
         SeekAction stage time ->
-            case stage of
+            ( case stage of
                 SeekStart ->
                     { videoPlayer | seeking = True }
 
@@ -424,16 +426,40 @@ videoPlayerControlAction action videoPlayer =
 
                 SeekEnd ->
                     { videoPlayer | seeking = False, subtitleSeekTime = time }
+            , Cmd.none
+            )
 
         TogglePlay ->
-            { videoPlayer
+            ( { videoPlayer
                 | state =
                     if videoPlayer.state == Playing then
                         Paused
 
                     else
                         Playing
-            }
+              }
+            , Cmd.none
+            )
+
+        NextEpisode ->
+            case getNextEpisode videoPlayer.metadata.ratingKey tvShows of
+                Just metadata ->
+                    let
+                        startTime =
+                            Maybe.withDefault 0 metadata.viewOffset
+                    in
+                    ( { videoPlayer
+                        | state = Playing
+                        , seekTime = startTime
+                        , playbackTime = startTime
+                        , metadata = metadata
+                        , subtitle = []
+                      }
+                    , Cmd.none
+                    )
+
+                _ ->
+                    ( videoPlayer, Cmd.none )
 
 
 extendTimeToHideControls =
@@ -693,8 +719,8 @@ update msg model =
 
         OnVideoEnd ->
             case model of
-                Home ({ videoPlayer, client } as m) ->
-                    case getNextEpisode videoPlayer.metadata.ratingKey m of
+                Home ({ videoPlayer, client, tvShows } as m) ->
+                    case getNextEpisode videoPlayer.metadata.ratingKey tvShows of
                         Just nextEpisode ->
                             ( Home
                                 { m
@@ -702,6 +728,7 @@ update msg model =
                                         { videoPlayer
                                             | seekTime = Maybe.withDefault 0 nextEpisode.viewOffset
                                             , metadata = nextEpisode
+                                            , subtitle = []
                                         }
                                 }
                             , savePlaybackTime { videoPlayer | state = Stopped } client
@@ -760,14 +787,15 @@ update msg model =
 
         VideoPlayerControl action ->
             case model of
-                Home ({ videoPlayer, client } as m) ->
+                Home ({ videoPlayer, client, tvShows } as m) ->
                     let
-                        vp =
-                            videoPlayerControlAction action videoPlayer
+                        ( vp, cmd ) =
+                            videoPlayerControlAction client tvShows action videoPlayer
                     in
                     ( Home { m | videoPlayer = vp }
                     , Cmd.batch
                         [ extendTimeToHideControls
+                        , cmd
                         , case action of
                             TogglePlay ->
                                 savePlaybackTime vp client

@@ -356,7 +356,11 @@ videoPlayerControlsFooter videoPlayer =
         , videoPlayerControlsImageIcon 25 (require "./assets/lock-open.png") "Lock" NoOp
         , videoPlayerControlsImageIcon 25 (require "./assets/episodes.png") "Episodes" NoOp
         , videoPlayerControlsImageIcon 25 (require "./assets/subtitle.png") "Subtitles" NoOp
-        , videoPlayerControlsImageIcon 25 (require "./assets/next-ep.png") "Next Episode" NoOp
+        , if videoPlayer.metadata.typ == "episode" then
+            videoPlayerControlsImageIcon 25 (require "./assets/next-ep.png") "Next Episode" <| VideoPlayerControl NextEpisode
+
+          else
+            null
         ]
 
 

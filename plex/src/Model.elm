@@ -140,6 +140,7 @@ type SeekStage
 type VideoPlayerControlAction
     = TogglePlay
     | SeekAction SeekStage Int
+    | NextEpisode
 
 
 type Msg
