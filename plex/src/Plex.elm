@@ -461,6 +461,9 @@ videoPlayerControlAction client tvShows action videoPlayer =
                 _ ->
                     ( videoPlayer, Cmd.none )
 
+        ChangeScreenLock lockState ->
+            ( { videoPlayer | screenLock = lockState }, Cmd.none )
+
 
 extendTimeToHideControls =
     Task.perform (\now -> UpdateTimeToHideControls <| Time.posixToMillis now + 5000) Time.now
@@ -478,7 +481,7 @@ hideVideoPlayerControlsAnimation animatedValue =
     animatedValue
         |> Animated.timing { toValue = 0, duration = 200, easing = Easing.cubic }
         |> Animated.start
-        |> Task.perform (always NoOp)
+        |> Task.perform (always HideVideoPlayerControlsAnimationFinish)
 
 
 showVideoPlayerControlsAnimation : Animated.Value -> Cmd Msg
@@ -867,7 +870,22 @@ update msg model =
         HideVideoPlayerControlsAnimationFinish ->
             case model of
                 Home ({ videoPlayer } as m) ->
-                    ( Home { m | videoPlayer = { videoPlayer | hidingControls = False } }, Cmd.none )
+                    ( Home
+                        { m
+                            | videoPlayer =
+                                { videoPlayer
+                                    | hidingControls = False
+                                    , screenLock =
+                                        case videoPlayer.screenLock of
+                                            ConfirmUnlock ->
+                                                Locked
+
+                                            lock ->
+                                                lock
+                                }
+                        }
+                    , Cmd.none
+                    )
 
                 _ ->
                     ( model, Cmd.none )

@@ -1,4 +1,4 @@
-module Model exposing (Dialogue, HomeModel, LibrarySection, Model(..), Msg(..), PlaybackState(..), RemoteData, SeekStage(..), TVSeason, TVShow, VideoPlayer, VideoPlayerControlAction(..), dialogueDecoder, findSeason, findTVShowByEpisodeRatingKey, initHomeModel, initialVideoPlayer, isVideoUrlReady, updateSelectedSeason, updateTVShow)
+module Model exposing (Dialogue, HomeModel, LibrarySection, Model(..), Msg(..), PlaybackState(..), RemoteData, ScreenLockState(..), SeekStage(..), TVSeason, TVShow, VideoPlayer, VideoPlayerControlAction(..), dialogueDecoder, findSeason, findTVShowByEpisodeRatingKey, initHomeModel, initialVideoPlayer, isVideoUrlReady, updateSelectedSeason, updateTVShow)
 
 import Api exposing (Account, Client, Library, Metadata, Section, initialMetadata)
 import Browser.Navigation as N
@@ -52,7 +52,14 @@ type alias VideoPlayer =
     , timeToHideControls : Maybe Int
     , playerControlsAnimatedValue : Animated.Value
     , hidingControls : Bool
+    , screenLock : ScreenLockState
     }
+
+
+type ScreenLockState
+    = Unlocked
+    | Locked
+    | ConfirmUnlock
 
 
 initialVideoPlayer : VideoPlayer
@@ -70,6 +77,7 @@ initialVideoPlayer =
     , timeToHideControls = Nothing
     , playerControlsAnimatedValue = Animated.create 0
     , hidingControls = False
+    , screenLock = Unlocked
     }
 
 
@@ -141,6 +149,7 @@ type VideoPlayerControlAction
     = TogglePlay
     | SeekAction SeekStage Int
     | NextEpisode
+    | ChangeScreenLock ScreenLockState
 
 
 type Msg

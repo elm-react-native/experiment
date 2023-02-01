@@ -8,7 +8,7 @@ import Html.Lazy exposing (lazy)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import Maybe
-import Model exposing (HomeModel, Msg(..), PlaybackState(..), SeekStage(..), VideoPlayer, VideoPlayerControlAction(..), dialogueDecoder, isVideoUrlReady)
+import Model exposing (HomeModel, Msg(..), PlaybackState(..), ScreenLockState(..), SeekStage(..), VideoPlayer, VideoPlayerControlAction(..), dialogueDecoder, isVideoUrlReady)
 import ReactNative exposing (activityIndicator, button, fragment, image, null, require, str, touchableOpacity, touchableWithoutFeedback, view)
 import ReactNative.Animated as Animated
 import ReactNative.Dimensions as Dimensions exposing (DisplayMetrics)
@@ -341,27 +341,105 @@ videoPlayerControlsProgress videoPlayer =
         ]
 
 
+videoPlayerControlsFooter : VideoPlayer -> Html Msg
 videoPlayerControlsFooter videoPlayer =
     view
         [ style
             { flexDirection = "row"
-            , justifyContent = "space-between"
+            , justifyContent =
+                if videoPlayer.screenLock == Unlocked then
+                    "space-between"
+
+                else
+                    "center"
             , paddingHorizontal = 80
-            , height = 50
+            , height =
+                if videoPlayer.screenLock == Unlocked then
+                    50
+
+                else
+                    80
             , alignItems = "flex-start"
             , width = "100%"
             }
         ]
-        [ videoPlayerControlsImageIcon 25 (require "./assets/speed.png") "Speed (1x)" NoOp
-        , videoPlayerControlsImageIcon 25 (require "./assets/lock-open.png") "Lock" NoOp
-        , videoPlayerControlsImageIcon 25 (require "./assets/episodes.png") "Episodes" NoOp
-        , videoPlayerControlsImageIcon 25 (require "./assets/subtitle.png") "Subtitles" NoOp
-        , if videoPlayer.metadata.typ == "episode" then
-            videoPlayerControlsImageIcon 25 (require "./assets/next-ep.png") "Next Episode" <| VideoPlayerControl NextEpisode
+        (if videoPlayer.screenLock == Unlocked then
+            [ videoPlayerControlsImageIcon 20 (require "./assets/speed.png") "Speed (1x)" NoOp
+            , videoPlayerControlsImageIcon 20 (require "./assets/lock-open.png") "Lock" <| VideoPlayerControl <| ChangeScreenLock Locked
+            , videoPlayerControlsImageIcon 20 (require "./assets/episodes.png") "Episodes" NoOp
+            , videoPlayerControlsImageIcon 20 (require "./assets/subtitle.png") "Subtitles" NoOp
+            , if videoPlayer.metadata.typ == "episode" then
+                videoPlayerControlsImageIcon 20 (require "./assets/next-ep.png") "Next Episode" <| VideoPlayerControl NextEpisode
 
-          else
-            null
-        ]
+              else
+                null
+            ]
+
+         else
+            [ touchableOpacity
+                [ style
+                    { alignItems = "center"
+                    , justifyContent = "center"
+                    }
+                , onPress <|
+                    Decode.succeed <|
+                        VideoPlayerControl <|
+                            ChangeScreenLock <|
+                                if videoPlayer.screenLock == Locked then
+                                    ConfirmUnlock
+
+                                else
+                                    Unlocked
+                ]
+                [ case videoPlayer.screenLock of
+                    Locked ->
+                        view
+                            [ style
+                                { backgroundColor = "white"
+                                , borderRadius = 14
+                                , overflow = "hidden"
+                                , justifyContent = "center"
+                                , alignItems = "center"
+                                , width = 28
+                                , height = 28
+                                }
+                            ]
+                            [ image
+                                [ source (require "./assets/lock-close.png")
+                                , style { width = 20, height = 20 }
+                                ]
+                                []
+                            ]
+
+                    ConfirmUnlock ->
+                        view
+                            [ style
+                                { backgroundColor = "white"
+                                , borderRadius = 14
+                                , overflow = "hidden"
+                                , justifyContent = "center"
+                                , alignItems = "center"
+                                , height = 28
+                                , flexDirection = "row"
+                                , gap = 3
+                                , paddingHorizontal = 10
+                                }
+                            ]
+                            [ image
+                                [ source (require "./assets/lock-open-black.png")
+                                , style { width = 20, height = 20 }
+                                ]
+                                []
+                            , text [ style { color = "black", fontWeight = "bold" } ] [ str "Unlock Screen?" ]
+                            ]
+
+                    _ ->
+                        null
+                , text [ style { fontSize = 14, fontWeight = "bold", marginTop = 5 } ] [ str "Screen Locked" ]
+                , text [ style { fontSize = 11 } ] [ str "Tab to unlock" ]
+                ]
+            ]
+        )
 
 
 videoPlayerControls : VideoPlayer -> Html Msg
@@ -378,8 +456,16 @@ videoPlayerControls videoPlayer =
             , backgroundColor = "#00000060"
             }
         ]
-        [ videoPlayerControlsHeader videoPlayer
-        , videoPlayerControlsBody videoPlayer
+        [ if videoPlayer.screenLock == Unlocked then
+            videoPlayerControlsHeader videoPlayer
+
+          else
+            null
+        , if videoPlayer.screenLock == Unlocked then
+            videoPlayerControlsBody videoPlayer
+
+          else
+            null
         , Animated.view
             [ style
                 { position = "absolute"
@@ -389,7 +475,11 @@ videoPlayerControls videoPlayer =
                         (Animated.subtract (Animated.create 1) videoPlayer.playerControlsAnimatedValue)
                 }
             ]
-            [ videoPlayerControlsProgress videoPlayer
+            [ if videoPlayer.screenLock == Unlocked then
+                videoPlayerControlsProgress videoPlayer
+
+              else
+                null
             , videoPlayerControlsFooter videoPlayer
             ]
         ]
