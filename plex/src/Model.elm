@@ -162,6 +162,7 @@ type Msg
     | GotLibraryRecentlyAdded String (Result Http.Error (List Metadata))
     | GotContinueWatching (Result Http.Error (List Metadata))
     | GotTVShow String (Result Http.Error TVShow)
+    | GotNextEpisode String (Result Http.Error ( TVShow, Maybe Metadata ))
     | GotStreams String (Result Http.Error Metadata)
     | GotEpisodes String String (Result Http.Error (List Metadata))
     | GotoAccount

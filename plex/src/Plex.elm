@@ -30,7 +30,7 @@ import ReactNative.Properties exposing (color, component, componentModel, getId,
 import ReactNative.Settings as Settings
 import SignInModel exposing (SignInModel, SignInMsg)
 import SignInScreen exposing (signInScreen, signInUpdate)
-import Task
+import Task exposing (Task)
 import Theme
 import Time
 import Url
@@ -87,14 +87,40 @@ getLibraryRecentlyAdded client lib =
         client
 
 
-getTVShow : String -> String -> Client -> Cmd Msg
-getTVShow id seasonId client =
+getTVShowTask id seasonId client =
     Api.getMetadata id client
         |> Task.andThen
             (\show ->
                 Api.getMetadataChildren id client
                     |> Task.map (\seasons -> { info = show, seasons = List.map (\s -> { info = s, episodes = Nothing }) seasons, selectedSeason = seasonId })
             )
+
+
+getTVShowAndEpisodes : String -> String -> Client -> Task Http.Error TVShow
+getTVShowAndEpisodes parentRatingKey grandparentRatingKey client =
+    getTVShowTask grandparentRatingKey parentRatingKey client
+        |> Task.andThen
+            (\tvShow ->
+                Api.getMetadataChildren parentRatingKey client
+                    |> Task.map
+                        (\episodes ->
+                            { tvShow
+                                | seasons =
+                                    updateEpisodes parentRatingKey (Ok episodes) tvShow.seasons
+                            }
+                        )
+            )
+
+
+getTVShowAndNextEpisode ratingKey parentRatingKey grandparentRatingKey client =
+    getTVShowAndEpisodes parentRatingKey grandparentRatingKey client
+        |> Task.map (\tvShow -> ( tvShow, getNextEpisodeOfTVShow ratingKey parentRatingKey tvShow ))
+        |> Task.attempt (hijackUnauthorizedError <| GotNextEpisode grandparentRatingKey)
+
+
+getTVShow : String -> String -> Client -> Cmd Msg
+getTVShow id seasonId client =
+    getTVShowTask id seasonId client
         |> Task.attempt (hijackUnauthorizedError <| GotTVShow id)
 
 
@@ -374,7 +400,8 @@ playVideo ({ ratingKey, viewOffset, typ } as metadata) ({ navKey, videoPlayer, c
     )
 
 
-getNextEpisode ratingKey tvShows =
+getNextEpisodeOfTVShow : String -> String -> TVShow -> Maybe Metadata
+getNextEpisodeOfTVShow ratingKey parentRatingKey tvShow =
     let
         findNext pred items =
             case items of
@@ -388,8 +415,8 @@ getNextEpisode ratingKey tvShows =
                 _ ->
                     Nothing
     in
-    case findTVShowByEpisodeRatingKey ratingKey tvShows of
-        Just ( show, season, _ ) ->
+    case findSeason parentRatingKey tvShow of
+        Just season ->
             case season.episodes of
                 Just (Ok episodes) ->
                     case findNext (\ep -> ep.ratingKey == ratingKey) episodes of
@@ -404,6 +431,37 @@ getNextEpisode ratingKey tvShows =
 
         _ ->
             Nothing
+
+
+{-| return Err True means not giving up, gonna try to fetch TVShow and then try again
+return Err False means TVShow already downloaded and there is no more episode
+-}
+getNextEpisode : Metadata -> Dict String (Result Http.Error TVShow) -> Result Bool Metadata
+getNextEpisode { ratingKey, parentRatingKey, grandparentRatingKey } tvShows =
+    let
+        findNext pred items =
+            case items of
+                x :: y :: rest ->
+                    if pred x then
+                        Just y
+
+                    else
+                        findNext pred (y :: rest)
+
+                _ ->
+                    Nothing
+    in
+    case Dict.get grandparentRatingKey tvShows of
+        Just (Ok tvShow) ->
+            case getNextEpisodeOfTVShow ratingKey parentRatingKey tvShow of
+                Just next ->
+                    Ok next
+
+                _ ->
+                    Err False
+
+        _ ->
+            Err True
 
 
 videoPlayerControlAction : Client -> Dict String (Result Http.Error TVShow) -> VideoPlayerControlAction -> VideoPlayer -> ( VideoPlayer, Cmd Msg )
@@ -442,8 +500,8 @@ videoPlayerControlAction client tvShows action videoPlayer =
             )
 
         NextEpisode ->
-            case getNextEpisode videoPlayer.metadata.ratingKey tvShows of
-                Just metadata ->
+            case getNextEpisode videoPlayer.metadata tvShows of
+                Ok metadata ->
                     let
                         startTime =
                             Maybe.withDefault 0 metadata.viewOffset
@@ -458,8 +516,18 @@ videoPlayerControlAction client tvShows action videoPlayer =
                     , Cmd.none
                     )
 
-                _ ->
-                    ( videoPlayer, Cmd.none )
+                Err b ->
+                    ( videoPlayer
+                    , if b then
+                        getTVShowAndNextEpisode
+                            videoPlayer.metadata.ratingKey
+                            videoPlayer.metadata.parentRatingKey
+                            videoPlayer.metadata.grandparentRatingKey
+                            client
+
+                      else
+                        Cmd.none
+                    )
 
         ChangeScreenLock lockState ->
             ( { videoPlayer | screenLock = lockState }, Cmd.none )
@@ -482,6 +550,14 @@ hideVideoPlayerControlsAnimation animatedValue =
         |> Animated.timing { toValue = 0, duration = 200, easing = Easing.cubic }
         |> Animated.start
         |> Task.perform (always HideVideoPlayerControlsAnimationFinish)
+
+
+insertTVShowIfNotExist showId tvShow tvShows =
+    if Dict.member showId tvShows then
+        tvShows
+
+    else
+        Dict.insert showId (Ok tvShow) tvShows
 
 
 showVideoPlayerControlsAnimation : Animated.Value -> Cmd Msg
@@ -538,6 +614,45 @@ update msg model =
             case model of
                 Home m ->
                     gotTVShow showId resp m
+
+                _ ->
+                    ( model, Cmd.none )
+
+        GotNextEpisode showId resp ->
+            case model of
+                Home ({ tvShows, videoPlayer, client } as m) ->
+                    case resp of
+                        Ok ( tvShow, Just nextEpisode ) ->
+                            ( Home
+                                { m
+                                    | tvShows = insertTVShowIfNotExist showId tvShow m.tvShows
+                                    , videoPlayer =
+                                        { videoPlayer
+                                            | seekTime = Maybe.withDefault 0 nextEpisode.viewOffset
+                                            , metadata = nextEpisode
+                                            , subtitle = []
+                                        }
+                                }
+                            , Cmd.none
+                            )
+
+                        Ok ( tvShow, Nothing ) ->
+                            ( Home { m | tvShows = insertTVShowIfNotExist showId tvShow m.tvShows }
+                            , Cmd.batch
+                                [ Nav.goBack m.navKey
+                                , savePlaybackTime { videoPlayer | state = Stopped } client
+                                , getContinueWatching client
+                                ]
+                            )
+
+                        _ ->
+                            ( model
+                            , Cmd.batch
+                                [ Nav.goBack m.navKey
+                                , savePlaybackTime { videoPlayer | state = Stopped } client
+                                , getContinueWatching client
+                                ]
+                            )
 
                 _ ->
                     ( model, Cmd.none )
@@ -723,8 +838,8 @@ update msg model =
         OnVideoEnd ->
             case model of
                 Home ({ videoPlayer, client, tvShows } as m) ->
-                    case getNextEpisode videoPlayer.metadata.ratingKey tvShows of
-                        Just nextEpisode ->
+                    case getNextEpisode videoPlayer.metadata tvShows of
+                        Ok nextEpisode ->
                             ( Home
                                 { m
                                     | videoPlayer =
@@ -737,7 +852,16 @@ update msg model =
                             , savePlaybackTime { videoPlayer | state = Stopped } client
                             )
 
-                        _ ->
+                        Err True ->
+                            ( model
+                            , getTVShowAndNextEpisode
+                                videoPlayer.metadata.ratingKey
+                                videoPlayer.metadata.parentRatingKey
+                                videoPlayer.metadata.grandparentRatingKey
+                                client
+                            )
+
+                        Err False ->
                             ( model
                             , Cmd.batch
                                 [ Nav.goBack m.navKey
