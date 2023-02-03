@@ -532,6 +532,9 @@ videoPlayerControlAction client tvShows action videoPlayer =
         ChangeScreenLock lockState ->
             ( { videoPlayer | screenLock = lockState }, Cmd.none )
 
+        ChangeResizeMode resizeMode ->
+            ( { videoPlayer | resizeMode = resizeMode }, Cmd.none )
+
 
 extendTimeToHideControls =
     Task.perform (\now -> UpdateTimeToHideControls <| Time.posixToMillis now + 5000) Time.now

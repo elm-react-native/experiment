@@ -3,7 +3,7 @@ module ReactNative.Video exposing (PlayerProgress, allowsExternalPlayback, conte
 import Html exposing (Attribute, Html, node)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
-import ReactNative.Events exposing (on)
+import ReactNative.Events exposing (on, onFloat)
 import ReactNative.Properties exposing (property)
 
 

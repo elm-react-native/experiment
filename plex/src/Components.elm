@@ -1,14 +1,26 @@
-module Components exposing (bottomPadding, chip, favicon, progressBar, text, videoPlay, videoPlayContainer)
+module Components exposing (bottomPadding, chip, favicon, onPinch, onTap, pinchableView, progressBar, text, videoPlay, videoPlayContainer)
 
 import Browser
 import Html exposing (Attribute, Html)
-import Json.Decode exposing (Decoder)
+import Json.Decode as Decode exposing (Decoder)
 import ReactNative exposing (image, node, require, str, text, touchableOpacity, view)
-import ReactNative.Events exposing (onPress)
+import ReactNative.Events exposing (on, onFloat, onPress)
 import ReactNative.Icon exposing (ionicon)
 import ReactNative.Properties exposing (color, name, size, source, style)
 import Theme
 import Utils exposing (percentFloat)
+
+
+pinchableView =
+    node "PinchableView"
+
+
+onPinch =
+    onFloat "pinch"
+
+
+onTap msg =
+    on "tap" <| Decode.succeed msg
 
 
 text props children =

@@ -1,7 +1,7 @@
 module VideoScreen exposing (videoScreen)
 
 import Api
-import Components exposing (text)
+import Components exposing (onPinch, onTap, pinchableView, text)
 import EntityScreen exposing (episodeTitle)
 import Html exposing (Html)
 import Html.Lazy exposing (lazy)
@@ -15,7 +15,7 @@ import ReactNative.Dimensions as Dimensions exposing (DisplayMetrics)
 import ReactNative.Events exposing (onFloatValueChange, onPress)
 import ReactNative.Icon exposing (ionicon, materialIcon)
 import ReactNative.Platform as Platform
-import ReactNative.Properties exposing (color, component, componentModel, getId, intValue, name, options, resizeMode, size, source, stringSize, style, title)
+import ReactNative.Properties exposing (color, component, componentModel, getId, intValue, name, options, pointerEvents, resizeMode, size, source, stringSize, style, title)
 import ReactNative.Slider as Slider exposing (maximumValue, minimumTrackTintColor, minimumValue, onSlidingComplete, onSlidingStart, slider, thumbTintColor)
 import ReactNative.StyleSheet as StyleSheet
 import ReactNative.Video
@@ -364,7 +364,7 @@ videoPlayerControlsFooter videoPlayer =
             }
         ]
         (if videoPlayer.screenLock == Unlocked then
-            [ videoPlayerControlsImageIcon 20 (require "./assets/speed.png") "Speed (1x)" NoOp
+            [ videoPlayerControlsImageIcon 20 (require "./assets/speed.png") "Speed (1x)" <| NoOp
             , videoPlayerControlsImageIcon 20 (require "./assets/lock-open.png") "Lock" <| VideoPlayerControl <| ChangeScreenLock Locked
             , videoPlayerControlsImageIcon 20 (require "./assets/episodes.png") "Episodes" NoOp
             , videoPlayerControlsImageIcon 20 (require "./assets/subtitle.png") "Subtitles" NoOp
@@ -444,45 +444,48 @@ videoPlayerControlsFooter videoPlayer =
 
 videoPlayerControls : VideoPlayer -> Html Msg
 videoPlayerControls videoPlayer =
-    view
-        [ style styles.fullscreen
-        , style
-            { display =
-                if videoPlayer.showControls || videoPlayer.hidingControls then
-                    "flex"
-
-                else
-                    "none"
-            , backgroundColor = "#00000060"
-            }
-        ]
-        [ if videoPlayer.screenLock == Unlocked then
-            videoPlayerControlsHeader videoPlayer
-
-          else
-            null
-        , if videoPlayer.screenLock == Unlocked then
-            videoPlayerControlsBody videoPlayer
-
-          else
-            null
-        , Animated.view
-            [ style
-                { position = "absolute"
-                , width = "100%"
-                , bottom =
-                    Animated.multiply (Animated.create -20)
-                        (Animated.subtract (Animated.create 1) videoPlayer.playerControlsAnimatedValue)
-                }
+    if videoPlayer.showControls || videoPlayer.hidingControls then
+        touchableWithoutFeedback
+            [ onPress <| Decode.succeed <| ToggleVideoPlayerControls
             ]
-            [ if videoPlayer.screenLock == Unlocked then
-                videoPlayerControlsProgress videoPlayer
+            [ Animated.view
+                [ style styles.fullscreen
+                , style
+                    { opacity = videoPlayer.playerControlsAnimatedValue
+                    , backgroundColor = "#00000060"
+                    }
+                ]
+                [ if videoPlayer.screenLock == Unlocked then
+                    videoPlayerControlsHeader videoPlayer
 
-              else
-                null
-            , videoPlayerControlsFooter videoPlayer
+                  else
+                    null
+                , if videoPlayer.screenLock == Unlocked then
+                    videoPlayerControlsBody videoPlayer
+
+                  else
+                    null
+                , Animated.view
+                    [ style
+                        { position = "absolute"
+                        , width = "100%"
+                        , bottom =
+                            Animated.multiply (Animated.create -20)
+                                (Animated.subtract (Animated.create 1) videoPlayer.playerControlsAnimatedValue)
+                        }
+                    ]
+                    [ if videoPlayer.screenLock == Unlocked then
+                        videoPlayerControlsProgress videoPlayer
+
+                      else
+                        null
+                    , videoPlayerControlsFooter videoPlayer
+                    ]
+                ]
             ]
-        ]
+
+    else
+        null
 
 
 subtitleText : String -> Html msg
@@ -517,8 +520,19 @@ videoPlayerSubtitle { subtitle, playbackTime, seeking } =
                     , position = "absolute"
                     , alignItems = "center"
                     }
+                , pointerEvents "none"
                 ]
                 [ lazy subtitleText s ]
+
+
+handlePinch scale =
+    VideoPlayerControl <|
+        ChangeResizeMode <|
+            if scale > 1 then
+                "cover"
+
+            else
+                "contain"
 
 
 videoScreen : HomeModel -> () -> Html Msg
@@ -536,27 +550,24 @@ videoScreen ({ videoPlayer, screenMetrics, client } as m) _ =
                 , style styles.fullscreen
                 , allowsExternalPlayback False
                 , paused <| (videoPlayer.state /= Playing || videoPlayer.seeking)
-                , resizeMode "cover"
+                , resizeMode videoPlayer.resizeMode
+                , playWhenInactive True
                 ]
-                []
+                [ videoPlayerSubtitle videoPlayer
+                , pinchableView [ onTap ToggleVideoPlayerControls, onPinch handlePinch, style styles.fullscreen ] []
+                , videoPlayerControls videoPlayer
+                , if videoPlayer.isBuffering && not videoPlayer.seeking then
+                    activityIndicator [ style styles.center, stringSize "large" ] []
+
+                  else
+                    null
+                ]
             , subtitleStream
                 [ SubtitleStream.url <| getSubtitleUrl client screenMetrics videoPlayer.metadata.ratingKey videoPlayer.sessionId
                 , SubtitleStream.playbackTime videoPlayer.subtitleSeekTime
                 , SubtitleStream.onDialogues <| Decode.map GotSubtitle <| Decode.list dialogueDecoder
                 ]
                 []
-            , videoPlayerSubtitle videoPlayer
-            , touchableWithoutFeedback
-                [ onPress <| Decode.succeed ToggleVideoPlayerControls ]
-                [ Animated.view [ style styles.fullscreen, style { opacity = videoPlayer.playerControlsAnimatedValue } ]
-                    [ videoPlayerControls videoPlayer
-                    ]
-                ]
-            , if videoPlayer.isBuffering && not videoPlayer.seeking then
-                activityIndicator [ style styles.center, stringSize "large" ] []
-
-              else
-                null
             ]
 
     else

@@ -401,6 +401,8 @@ PODS:
     - React-perflogger (= 0.71.0)
   - RNCPicker (2.4.8):
     - React-Core
+  - RNGestureHandler (2.9.0):
+    - React-Core
   - RNScreens (3.19.0):
     - React-Core
     - React-RCTImage
@@ -476,6 +478,7 @@ DEPENDENCIES:
   - React-runtimeexecutor (from `../node_modules/react-native/ReactCommon/runtimeexecutor`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
+  - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNScreens (from `../node_modules/react-native-screens`)
   - RNVectorIcons (from `../node_modules/react-native-vector-icons`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
@@ -579,6 +582,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon"
   RNCPicker:
     :path: "../node_modules/@react-native-picker/picker"
+  RNGestureHandler:
+    :path: "../node_modules/react-native-gesture-handler"
   RNScreens:
     :path: "../node_modules/react-native-screens"
   RNVectorIcons:
@@ -641,6 +646,7 @@ SPEC CHECKSUMS:
   React-runtimeexecutor: ac80782d9d76ba2b0f709f4de0c427fe33c352dc
   ReactCommon: 20e38a9be5fe1341b5e422220877cc94034776ba
   RNCPicker: 0bf8ef8f7800524f32d2bb2a8bcadd53eda0ecd1
+  RNGestureHandler: 071d7a9ad81e8b83fe7663b303d132406a7d8f39
   RNScreens: ea4cd3a853063cda19a4e3c28d2e52180c80f4eb
   RNVectorIcons: fcc2f6cb32f5735b586e66d14103a74ce6ad61f8
   SocketRocket: fccef3f9c5cedea1353a9ef6ada904fde10d6608

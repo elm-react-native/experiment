@@ -53,6 +53,7 @@ type alias VideoPlayer =
     , playerControlsAnimatedValue : Animated.Value
     , hidingControls : Bool
     , screenLock : ScreenLockState
+    , resizeMode : String
     }
 
 
@@ -78,6 +79,7 @@ initialVideoPlayer =
     , playerControlsAnimatedValue = Animated.create 0
     , hidingControls = False
     , screenLock = Unlocked
+    , resizeMode = "cover"
     }
 
 
@@ -150,6 +152,7 @@ type VideoPlayerControlAction
     | SeekAction SeekStage Int
     | NextEpisode
     | ChangeScreenLock ScreenLockState
+    | ChangeResizeMode String
 
 
 type Msg
