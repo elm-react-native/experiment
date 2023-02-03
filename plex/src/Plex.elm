@@ -774,7 +774,7 @@ update msg model =
         OnLeaveVideoScreen ->
             case model of
                 Home ({ client, videoPlayer } as m) ->
-                    ( Home { m | videoPlayer = initialVideoPlayer }
+                    ( Home { m | videoPlayer = { initialVideoPlayer | resizeMode = videoPlayer.resizeMode } }
                     , Cmd.batch [ getContinueWatching m.client, savePlaybackTime { videoPlayer | state = Stopped } client ]
                     )
 
