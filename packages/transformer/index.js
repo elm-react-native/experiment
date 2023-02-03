@@ -98,7 +98,7 @@ module.exports = {
         // this means elm.js was updated by elm compiler after first compile
       }
 
-      console.log(`Pathing ${filename}...`);
+      console.log(`Patching ${filename}...`);
       const patchedData = await patch(filename);
 
       return await defaultTransformer.transform(
