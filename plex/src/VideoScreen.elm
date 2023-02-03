@@ -550,13 +550,13 @@ videoScreen ({ videoPlayer, screenMetrics, client } as m) _ =
                 [ onPress <| Decode.succeed ToggleVideoPlayerControls ]
                 [ Animated.view [ style styles.fullscreen, style { opacity = videoPlayer.playerControlsAnimatedValue } ]
                     [ videoPlayerControls videoPlayer
-                    , if videoPlayer.isBuffering && not videoPlayer.seeking then
-                        activityIndicator [ style styles.center, stringSize "large" ] []
-
-                      else
-                        null
                     ]
                 ]
+            , if videoPlayer.isBuffering && not videoPlayer.seeking then
+                activityIndicator [ style styles.center, stringSize "large" ] []
+
+              else
+                null
             ]
 
     else
