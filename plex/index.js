@@ -25,7 +25,7 @@ AppRegistry.registerComponent(appName, () => () => {
         <App
           resolveComponent={tag => {
             if (tag === 'SubtitleStream') return SubtitleStream;
-            if (tag === 'PinchableView') return pinchableView;
+            if (tag === 'PinchableView') return PinchableView;
             return (
               vectorIconsResolveComponent(tag) ||
               contextMenuResolveComponent(tag) ||
@@ -39,7 +39,7 @@ AppRegistry.registerComponent(appName, () => () => {
   );
 });
 
-const pinchableView = ({onTap, onPinch, ...props}) => {
+const PinchableView = ({onTap, onPinch, ...props}) => {
   const ph = Gesture.Pinch().onStart(e => {
     // console.log('pinch');
     onPinch && onPinch(e.scale);

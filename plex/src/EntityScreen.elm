@@ -322,7 +322,7 @@ episodeView client ep metrics =
                 , style { width = 112, height = 63, justifyContent = "flex-end" }
                 , imageStyle { borderRadius = 6, resizeMode = "contain" }
                 ]
-                [ videoPlayContainer 15 (Decode.succeed <| PlayVideo ep)
+                [ videoPlayContainer 30 (Decode.succeed <| PlayVideo ep)
                 , case ep.lastViewedAt of
                     Just _ ->
                         progressBar []

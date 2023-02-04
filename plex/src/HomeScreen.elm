@@ -21,6 +21,7 @@ import ReactNative
         , scrollView
         , str
         , touchableOpacity
+        , touchableScale
         , view
         )
 import ReactNative.Events exposing (onPress, onRefresh)
@@ -41,6 +42,7 @@ import ReactNative.Properties
         , source
         , style
         , title
+        , zoomScale
         )
 import ReactNative.StyleSheet as StyleSheet
 import ReactNative.Video exposing (video)
@@ -167,13 +169,14 @@ itemView client isContinueWatching metadata =
                     , duration = 0
                     }
     in
-    touchableOpacity
+    touchableScale
         [ if isContinueWatching then
             style homeStyles.itemContainer
 
           else
             style <| StyleSheet.compose homeStyles.itemContainer homeStyles.itemContainerBottomRadius
         , onPress <| Decode.succeed <| GotoEntity isContinueWatching metadata
+        , zoomScale 0.94
         ]
         [ view
             [ style homeStyles.itemImageAlt ]
@@ -202,7 +205,7 @@ itemView client isContinueWatching metadata =
             ]
           <|
             if isContinueWatching then
-                [ videoPlayContainer 30 (Decode.succeed <| PlayVideo metadata)
+                [ videoPlayContainer 48 (Decode.succeed <| PlayVideo metadata)
                 , itemLabel label
                 ]
 

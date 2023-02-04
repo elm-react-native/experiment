@@ -27,6 +27,7 @@ module ReactNative exposing
     , touchableHighlight
     , touchableNativeFeedback
     , touchableOpacity
+    , touchableScale
     , touchableWithoutFeedback
     , view
     , virtualizedList
@@ -145,6 +146,10 @@ touchableOpacity =
 
 touchableWithoutFeedback =
     node "TouchableWithoutFeedback"
+
+
+touchableScale =
+    node "TouchableScale"
 
 
 drawerLayoutAndroid =

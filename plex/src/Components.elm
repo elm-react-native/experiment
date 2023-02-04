@@ -3,10 +3,11 @@ module Components exposing (bottomPadding, chip, favicon, onPinch, onTap, pincha
 import Browser
 import Html exposing (Attribute, Html)
 import Json.Decode as Decode exposing (Decoder)
-import ReactNative exposing (image, node, require, str, text, touchableOpacity, view)
+import Json.Encode as Encode
+import ReactNative exposing (image, node, require, str, text, touchableOpacity, touchableScale, view)
 import ReactNative.Events exposing (on, onFloat, onPress)
 import ReactNative.Icon exposing (ionicon)
-import ReactNative.Properties exposing (color, name, size, source, style)
+import ReactNative.Properties exposing (color, name, property, size, source, style, zoomScale)
 import Theme
 import Utils exposing (percentFloat)
 
@@ -28,26 +29,25 @@ text props children =
 
 
 videoPlay : Int -> Decoder msg -> Html msg
-videoPlay iconSize handlePress =
-    view
-        [ style
-            { backgroundColor = "rgba(0,0,0,0.6)"
-            , borderRadius = iconSize
-            , borderColor = "white"
+videoPlay size handlePress =
+    touchableScale
+        [ onPress handlePress
+        , style
+            { borderRadius = size
+            , backgroundColor = "rgba(0,0,0,0.6)"
+            , overflow = "hidden"
             , borderWidth = 1
+            , borderColor = "white"
             }
         ]
-        [ touchableOpacity
-            [ onPress handlePress
+        [ image
+            [ source <| require "./assets/play.png"
             , style
-                { width = iconSize * 2 - 2
-                , height = iconSize * 2 - 2
-                , justifyContent = "center"
-                , alignItems = "center"
-                , left = toFloat iconSize / 15
+                { width = size
+                , height = size
                 }
             ]
-            [ ionicon "play" [ color "white", size iconSize ] ]
+            []
         ]
 
 

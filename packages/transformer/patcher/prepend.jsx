@@ -62,35 +62,6 @@ LogBox.ignoreLogs(["Compiled in DEV mode."]);
 
 const navigationRef = createNavigationContainerRef();
 
-const allComponents = {
-  ActivityIndicator,
-  Button,
-  FlatList,
-  Image,
-  ImageBackground,
-  KeyboardAvoidingView,
-  Modal,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  SectionList,
-  StatusBar,
-  Switch,
-  Text,
-  TextInput,
-  TouchableHighlight,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  View,
-  VirtualizedList,
-  TouchableNativeFeedback,
-  InputAccessoryView,
-  SafeAreaView,
-  "Animated.View": Animated.View,
-  Fragment: React.Fragment,
-  DrawerLayoutAndroid,
-};
-
 const EventNodeContext = React.createContext();
 const ModelContext = React.createContext();
 let scope = {};
@@ -537,4 +508,81 @@ const FlatListComponent = (props) => {
   const { data, ...rest } = actualProps;
   const data2 = React.useMemo(() => _List_toArray(data || _list_Nil), [data]);
   return <FlatList {...rest} data={data2}></FlatList>;
+};
+
+const TouchableScale = ({
+  onPress,
+  zoomScale = 0.9,
+  duration = 200,
+  style,
+  ...props
+}) => {
+  const animatedRef = React.useRef(new Animated.Value(1));
+  const handlePressIn = () => {
+    Animated.timing(animatedRef.current, {
+      toValue: zoomScale,
+      duration,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.timing(animatedRef.current, {
+      toValue: 1,
+      duration,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  return (
+    <Pressable
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      onPress={onPress}
+    >
+      {({ pressed }) => {
+        return (
+          <Animated.View
+            {...props}
+            style={StyleSheet.compose(style, {
+              transform: [
+                { scaleX: animatedRef.current },
+                { scaleY: animatedRef.current },
+              ],
+            })}
+          />
+        );
+      }}
+    </Pressable>
+  );
+};
+
+const allComponents = {
+  ActivityIndicator,
+  Button,
+  FlatList,
+  Image,
+  ImageBackground,
+  KeyboardAvoidingView,
+  Modal,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  SectionList,
+  StatusBar,
+  Switch,
+  Text,
+  TextInput,
+  TouchableHighlight,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+  VirtualizedList,
+  TouchableNativeFeedback,
+  InputAccessoryView,
+  SafeAreaView,
+  "Animated.View": Animated.View,
+  Fragment: React.Fragment,
+  DrawerLayoutAndroid,
+  TouchableScale,
 };
