@@ -1,4 +1,4 @@
-module Model exposing (Dialogue, HomeModel, LibrarySection, Model(..), Msg(..), PlaybackState(..), RemoteData, ScreenLockState(..), SeekStage(..), TVSeason, TVShow, VideoPlayer, VideoPlayerControlAction(..), dialogueDecoder, findSeason, findTVShowByEpisodeRatingKey, initHomeModel, initialVideoPlayer, isVideoUrlReady, updateSelectedSeason, updateTVShow)
+module Model exposing (Dialogue, HomeModel, LibrarySection, Model(..), Msg(..), PlaybackSpeed, PlaybackState(..), RemoteData, ScreenLockState(..), SeekStage(..), TVSeason, TVShow, VideoPlayer, VideoPlayerControlAction(..), containsSubtitle, dialogueDecoder, findSeason, findTVShowByEpisodeRatingKey, initHomeModel, initialVideoPlayer, isVideoUrlReady, playbackSpeedDecoder, playbackSpeedEncode, playbackSpeedList, playbackSpeedToRate, updateSelectedSeason, updateTVShow)
 
 import Api exposing (Account, Client, Library, Metadata, Section, initialMetadata)
 import Browser.Navigation as N
@@ -9,6 +9,7 @@ import ReactNative.Animated as Animated
 import ReactNative.Dimensions as Dimensions exposing (DisplayMetrics)
 import SignInModel exposing (SignInModel, SignInMsg)
 import Time
+import Utils exposing (containsItem)
 
 
 type alias RemoteData data =
@@ -41,6 +42,7 @@ type PlaybackState
 type alias VideoPlayer =
     { sessionId : String
     , playbackTime : Int
+    , playbackSpeed : PlaybackSpeed
     , isBuffering : Bool
     , seekTime : Int
     , subtitleSeekTime : Int
@@ -54,6 +56,8 @@ type alias VideoPlayer =
     , hidingControls : Bool
     , screenLock : ScreenLockState
     , resizeMode : String
+    , showSubtitle : Bool
+    , haveSubtitle : Bool
     }
 
 
@@ -80,6 +84,9 @@ initialVideoPlayer =
     , hidingControls = False
     , screenLock = Unlocked
     , resizeMode = "cover"
+    , playbackSpeed = Normal
+    , showSubtitle = True
+    , haveSubtitle = False
     }
 
 
@@ -147,12 +154,87 @@ type SeekStage
     | SeekEnd
 
 
+type PlaybackSpeed
+    = VerySlow
+    | Slow
+    | Normal
+    | Fast
+    | VeryFast
+
+
+playbackSpeedList =
+    [ VerySlow, Slow, Normal, Fast, VeryFast ]
+
+
+playbackSpeedToRate : PlaybackSpeed -> Float
+playbackSpeedToRate speed =
+    case speed of
+        VerySlow ->
+            0.5
+
+        Slow ->
+            0.75
+
+        Normal ->
+            1.0
+
+        Fast ->
+            1.25
+
+        VeryFast ->
+            1.5
+
+
+playbackSpeedEncode : PlaybackSpeed -> String
+playbackSpeedEncode speed =
+    case speed of
+        VerySlow ->
+            "0.5x"
+
+        Slow ->
+            "0.75x"
+
+        Normal ->
+            "1x"
+
+        Fast ->
+            "1.25x"
+
+        VeryFast ->
+            "1.5x"
+
+
+playbackSpeedDecoder : String -> PlaybackSpeed
+playbackSpeedDecoder s =
+    case s of
+        "0.5x" ->
+            VerySlow
+
+        "0.75x" ->
+            Slow
+
+        "1x" ->
+            Normal
+
+        "1.25x" ->
+            Fast
+
+        "1.5x" ->
+            VeryFast
+
+        _ ->
+            Normal
+
+
 type VideoPlayerControlAction
     = TogglePlay
     | SeekAction SeekStage Int
     | NextEpisode
     | ChangeScreenLock ScreenLockState
     | ChangeResizeMode String
+    | ChangeSpeed PlaybackSpeed
+    | ChangeSubtitle Bool
+    | ExtendTimeout
 
 
 type Msg
@@ -257,3 +339,14 @@ findTVShowByEpisodeRatingKey ratingKey tvShows =
                         Nothing
             )
         |> List.head
+
+
+containsSubtitle metadata =
+    let
+        hasStream part =
+            containsItem (\{ streamType, codec } -> streamType == 3 && codec /= "vobsub") part.streams
+
+        hasMedia media =
+            containsItem hasStream media.parts
+    in
+    containsItem hasMedia metadata.medias

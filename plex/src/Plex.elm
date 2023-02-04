@@ -535,6 +535,15 @@ videoPlayerControlAction client tvShows action videoPlayer =
         ChangeResizeMode resizeMode ->
             ( { videoPlayer | resizeMode = resizeMode }, Cmd.none )
 
+        ChangeSpeed speed ->
+            ( { videoPlayer | playbackSpeed = speed }, Cmd.none )
+
+        ChangeSubtitle b ->
+            ( { videoPlayer | showSubtitle = b }, Cmd.none )
+
+        ExtendTimeout ->
+            ( videoPlayer, Cmd.none )
+
 
 extendTimeToHideControls =
     Task.perform (\now -> UpdateTimeToHideControls <| Time.posixToMillis now + 5000) Time.now
@@ -883,7 +892,14 @@ update msg model =
                         metadata =
                             Result.withDefault videoPlayer.metadata data
                     in
-                    ( Home { m | videoPlayer = { videoPlayer | metadata = metadata } }
+                    ( Home
+                        { m
+                            | videoPlayer =
+                                { videoPlayer
+                                    | metadata = metadata
+                                    , haveSubtitle = containsSubtitle metadata
+                                }
+                        }
                     , Cmd.none
                     )
 

@@ -8,14 +8,15 @@ import Html.Lazy exposing (lazy)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import Maybe
-import Model exposing (HomeModel, Msg(..), PlaybackState(..), ScreenLockState(..), SeekStage(..), VideoPlayer, VideoPlayerControlAction(..), dialogueDecoder, isVideoUrlReady)
+import Model exposing (HomeModel, Msg(..), PlaybackSpeed, PlaybackState(..), ScreenLockState(..), SeekStage(..), VideoPlayer, VideoPlayerControlAction(..), containsSubtitle, dialogueDecoder, isVideoUrlReady, playbackSpeedDecoder, playbackSpeedEncode, playbackSpeedList, playbackSpeedToRate)
 import ReactNative exposing (activityIndicator, button, fragment, image, null, require, str, touchableOpacity, touchableWithoutFeedback, view)
 import ReactNative.Animated as Animated
+import ReactNative.ContextMenuIOS exposing (MenuItem, contextMenuButton, isMenuPrimaryAction, menuConfig, onPressMenuItem, pressEventMenuItemDecoder)
 import ReactNative.Dimensions as Dimensions exposing (DisplayMetrics)
 import ReactNative.Events exposing (onFloatValueChange, onPress)
 import ReactNative.Icon exposing (ionicon, materialIcon)
 import ReactNative.Platform as Platform
-import ReactNative.Properties exposing (color, component, componentModel, getId, intValue, name, options, pointerEvents, resizeMode, size, source, stringSize, style, title)
+import ReactNative.Properties exposing (color, component, componentModel, disabled, getId, intValue, name, options, pointerEvents, resizeMode, size, source, stringSize, style, title)
 import ReactNative.Slider as Slider exposing (maximumValue, minimumTrackTintColor, minimumValue, onSlidingComplete, onSlidingStart, slider, thumbTintColor)
 import ReactNative.StyleSheet as StyleSheet
 import ReactNative.Video
@@ -39,6 +40,7 @@ import ReactNative.Video
         , pictureInPicture
         , playWhenInactive
         , progressUpdateInterval
+        , rate
         , seekTime
         , video
         )
@@ -256,9 +258,9 @@ videoPlayerControlsIcon sz name pressMsg =
     ionicon name [ size sz, color "white", onPress <| Decode.succeed <| pressMsg ]
 
 
-videoPlayerControlsImageIcon sz src label pressMsg =
+videoPlayerControlsImageIcon sz src label props =
     touchableOpacity
-        [ onPress <| Decode.succeed <| pressMsg, style { flexDirection = "row", gap = 4, alignItems = "center" } ]
+        (style { flexDirection = "row", gap = 4, alignItems = "center" } :: props)
         [ image
             [ source src
             , style { width = sz, height = sz }
@@ -270,6 +272,10 @@ videoPlayerControlsImageIcon sz src label pressMsg =
           else
             text [ style { fontSize = 15, fontWeight = "bold" } ] [ str label ]
         ]
+
+
+videoPlayerControlsPressableImageIcon sz src label msg =
+    videoPlayerControlsImageIcon sz src label <| [ onPress <| Decode.succeed msg ]
 
 
 videoPlayerControlsBody : VideoPlayer -> Html Msg
@@ -294,13 +300,13 @@ videoPlayerControlsBody videoPlayer =
                 , flexGrow = 1
                 }
             ]
-            [ videoPlayerControlsImageIcon 35 (require "./assets/backward.png") "" <| VideoPlayerControl <| SeekAction SeekRelease (max 0 <| videoPlayer.playbackTime - 10 * 1000)
+            [ videoPlayerControlsPressableImageIcon 35 (require "./assets/backward.png") "" <| VideoPlayerControl <| SeekAction SeekRelease (max 0 <| videoPlayer.playbackTime - 10 * 1000)
             , if videoPlayer.state == Playing then
                 videoPlayerControlsIcon 55 "pause" <| VideoPlayerControl TogglePlay
 
               else
                 videoPlayerControlsIcon 55 "play" <| VideoPlayerControl TogglePlay
-            , videoPlayerControlsImageIcon 35 (require "./assets/forward.png") "" <| VideoPlayerControl <| SeekAction SeekRelease (min videoPlayer.metadata.duration <| videoPlayer.playbackTime + 10 * 1000)
+            , videoPlayerControlsPressableImageIcon 35 (require "./assets/forward.png") "" <| VideoPlayerControl <| SeekAction SeekRelease (min videoPlayer.metadata.duration <| videoPlayer.playbackTime + 10 * 1000)
             ]
         ]
 
@@ -341,6 +347,111 @@ videoPlayerControlsProgress videoPlayer =
         ]
 
 
+playbackSpeedMenu : PlaybackSpeed -> Html Msg
+playbackSpeedMenu playbackSpeed =
+    contextMenuButton
+        [ pressEventMenuItemDecoder
+            |> Decode.map
+                (\{ actionKey } ->
+                    VideoPlayerControl <| ChangeSpeed <| playbackSpeedDecoder actionKey
+                )
+            |> onPressMenuItem
+        , isMenuPrimaryAction True
+        , menuConfig
+            { menuTitle = ""
+            , menuItems =
+                playbackSpeedList
+                    |> List.map
+                        (\speed ->
+                            { speed = playbackSpeedEncode speed
+                            , selected = speed == playbackSpeed
+                            }
+                        )
+                    |> List.map
+                        (\{ speed, selected } ->
+                            { actionKey = speed
+                            , actionTitle =
+                                if selected then
+                                    "✓ " ++ speed
+
+                                else
+                                    "    " ++ speed
+                            }
+                        )
+            }
+        ]
+        [ let
+            label =
+                "Speed (" ++ playbackSpeedEncode playbackSpeed ++ ")"
+          in
+          videoPlayerControlsPressableImageIcon 20 (require "./assets/speed.png") label <| VideoPlayerControl ExtendTimeout
+        ]
+
+
+subtitleMenu : Bool -> Bool -> Html Msg
+subtitleMenu haveSubtitle isDisplay =
+    contextMenuButton
+        [ pressEventMenuItemDecoder
+            |> Decode.map
+                (\{ actionKey } ->
+                    VideoPlayerControl <| ChangeSubtitle <| actionKey == "On"
+                )
+            |> onPressMenuItem
+        , isMenuPrimaryAction True
+        , disabled (not haveSubtitle)
+        , menuConfig
+            { menuTitle =
+                if haveSubtitle then
+                    ""
+
+                else
+                    "No subtitle"
+            , menuItems =
+                if haveSubtitle then
+                    [ False, True ]
+                        |> List.map
+                            (\isOn ->
+                                { label =
+                                    if isOn then
+                                        "On"
+
+                                    else
+                                        "Off"
+                                , selected = isOn == isDisplay
+                                }
+                            )
+                        |> List.map
+                            (\{ label, selected } ->
+                                { actionKey = label
+                                , actionTitle =
+                                    if selected then
+                                        "✓ " ++ label
+
+                                    else
+                                        "    " ++ label
+                                }
+                            )
+
+                else
+                    []
+            }
+        ]
+        [ videoPlayerControlsImageIcon 20
+            (require "./assets/subtitle.png")
+            "Subtitles"
+            ((onPress <| Decode.succeed <| VideoPlayerControl ExtendTimeout)
+                :: (if haveSubtitle then
+                        []
+
+                    else
+                        [ style { opacity = 0.5 }
+                        , disabled (not haveSubtitle)
+                        ]
+                   )
+            )
+        ]
+
+
 videoPlayerControlsFooter : VideoPlayer -> Html Msg
 videoPlayerControlsFooter videoPlayer =
     view
@@ -364,12 +475,12 @@ videoPlayerControlsFooter videoPlayer =
             }
         ]
         (if videoPlayer.screenLock == Unlocked then
-            [ videoPlayerControlsImageIcon 20 (require "./assets/speed.png") "Speed (1x)" <| NoOp
-            , videoPlayerControlsImageIcon 20 (require "./assets/lock-open.png") "Lock" <| VideoPlayerControl <| ChangeScreenLock Locked
-            , videoPlayerControlsImageIcon 20 (require "./assets/episodes.png") "Episodes" NoOp
-            , videoPlayerControlsImageIcon 20 (require "./assets/subtitle.png") "Subtitles" NoOp
+            [ playbackSpeedMenu videoPlayer.playbackSpeed
+            , videoPlayerControlsPressableImageIcon 20 (require "./assets/lock-open.png") "Lock" <| VideoPlayerControl <| ChangeScreenLock Locked
+            , videoPlayerControlsPressableImageIcon 20 (require "./assets/episodes.png") "Episodes" <| VideoPlayerControl ExtendTimeout
+            , subtitleMenu videoPlayer.haveSubtitle videoPlayer.showSubtitle
             , if videoPlayer.metadata.typ == "episode" then
-                videoPlayerControlsImageIcon 20 (require "./assets/next-ep.png") "Next Episode" <| VideoPlayerControl NextEpisode
+                videoPlayerControlsPressableImageIcon 20 (require "./assets/next-ep.png") "Next Episode" <| VideoPlayerControl NextEpisode
 
               else
                 null
@@ -494,8 +605,8 @@ subtitleText s =
         [ text [ style styles.subtitle ] [ str s ] ]
 
 
-videoPlayerSubtitle { subtitle, playbackTime, seeking } =
-    if seeking then
+videoPlayerSubtitle { subtitle, playbackTime, seeking, showSubtitle } =
+    if seeking || not showSubtitle then
         null
 
     else
@@ -552,6 +663,7 @@ videoScreen ({ videoPlayer, screenMetrics, client } as m) _ =
                 , paused <| (videoPlayer.state /= Playing || videoPlayer.seeking)
                 , resizeMode videoPlayer.resizeMode
                 , playWhenInactive True
+                , rate <| playbackSpeedToRate videoPlayer.playbackSpeed
                 ]
                 [ videoPlayerSubtitle videoPlayer
                 , pinchableView [ onTap ToggleVideoPlayerControls, onPinch handlePinch, style styles.fullscreen ] []

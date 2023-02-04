@@ -1,8 +1,27 @@
-module Utils exposing (charAt, elementAt, formatDuration, generateIdentifier, maybeEmptyList, maybeEmptyString, maybeFalse, maybeFloatZero, maybeWithDefault, maybeZero, percentFloat, quotRem)
+module Utils exposing (charAt, containsItem, elementAt, findItem, formatDuration, generateIdentifier, maybeEmptyList, maybeEmptyString, maybeFalse, maybeFloatZero, maybeWithDefault, maybeZero, percentFloat, quotRem)
 
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import Random
+
+
+findItem : (a -> Bool) -> List a -> Maybe a
+findItem pred xs =
+    case xs of
+        x :: rest ->
+            if pred x then
+                Just x
+
+            else
+                findItem pred rest
+
+        [] ->
+            Nothing
+
+
+containsItem : (a -> Bool) -> List a -> Bool
+containsItem pred xs =
+    Nothing /= findItem pred xs
 
 
 elementAt : Int -> List a -> Maybe a
