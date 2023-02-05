@@ -515,6 +515,7 @@ const TouchableScale = ({
   zoomScale = 0.9,
   duration = 200,
   style,
+  disabled,
   ...props
 }) => {
   const animatedRef = React.useRef(new Animated.Value(1));
@@ -539,6 +540,7 @@ const TouchableScale = ({
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
       onPress={onPress}
+      disabled={disabled}
     >
       {({ pressed }) => {
         return (
