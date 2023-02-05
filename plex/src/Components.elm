@@ -1,4 +1,4 @@
-module Components exposing (bottomPadding, chip, favicon, onPinch, onTap, pinchableView, progressBar, text, videoPlay, videoPlayContainer)
+module Components exposing (bottomPadding, chip, favicon, modalFadeView, onPinch, onTap, pinchableView, progressBar, text, videoPlay, videoPlayContainer)
 
 import Browser
 import Html exposing (Attribute, Html)
@@ -49,6 +49,10 @@ videoPlay size handlePress =
             ]
             []
         ]
+
+
+modalFadeView =
+    node "ModalFadeView"
 
 
 videoPlayContainer : Int -> Decoder msg -> Html msg

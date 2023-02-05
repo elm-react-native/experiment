@@ -2,45 +2,62 @@ module Video.Episodes exposing (episodesView)
 
 import Api exposing (Client, Metadata)
 import Browser
-import Components exposing (progressBar, text, videoPlayContainer)
+import Components exposing (modalFadeView, progressBar, text, videoPlayContainer)
 import Dict
 import EntityScreen exposing (seasonMenu)
 import Html exposing (Attribute, Html)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import Model exposing (HomeModel, Msg(..), VideoPlayerControlAction(..))
-import ReactNative exposing (activityIndicator, flatList, fragment, imageBackground, null, str, touchableOpacity, view)
+import ReactNative exposing (activityIndicator, flatList, fragment, imageBackground, null, str, touchableOpacity, touchableScale, view)
+import ReactNative.BlurView exposing (blurAmount, blurType, blurView)
 import ReactNative.Events exposing (onPress)
 import ReactNative.Icon exposing (ionicon)
 import ReactNative.PixelRatio as PixelRatio
-import ReactNative.Properties exposing (color, contentContainerStyle, horizontal, imageStyle, initialScrollIndex, numberOfLines, showsHorizontalScrollIndicator, size, source, stringSize, style)
+import ReactNative.Properties exposing (color, contentContainerStyle, horizontal, imageStyle, initialScrollIndex, numberOfLines, showsHorizontalScrollIndicator, size, source, stringSize, style, visible)
 import ReactNative.StyleSheet as StyleSheet
 import Theme
 import Utils
 
 
+styles =
+    StyleSheet.create
+        { fullScreen =
+            { position = "absolute"
+            , left = 0
+            , top = 0
+            , right = 0
+            , bottom = 0
+            }
+        }
+
+
 episodeView : Client -> Metadata -> Html Msg
 episodeView client ep =
-    view [ style { width = 210, paddingHorizontal = 5, gap = 5 } ]
+    view [ style { width = 200, paddingHorizontal = 10, gap = 5 } ]
         [ view
             [ style
                 { alignItems = "center"
-                , overflow = "hidden"
+                , width = 180
+                , height = 101
                 }
             ]
             [ imageBackground
                 [ source
                     { uri =
                         Api.transcodedImageUrl ep.thumb
-                            (PixelRatio.getPixelSizeForLayoutSize 210)
-                            (PixelRatio.getPixelSizeForLayoutSize 117.83)
+                            (PixelRatio.getPixelSizeForLayoutSize 180)
+                            (PixelRatio.getPixelSizeForLayoutSize 101)
                             client
-                    , width = 210
-                    , height = 117.83
-                    , cache = "force-cache"
+                    , width = 180
+                    , height = 101
                     }
-                , style { width = 210, height = 117.83, justifyContent = "flex-end" }
-                , imageStyle { borderRadius = 6, resizeMode = "contain" }
+                , style
+                    { justifyContent = "flex-end"
+                    , width = 180
+                    , height = 101
+                    }
+                , imageStyle { borderRadius = 6 }
                 ]
                 [ videoPlayContainer 40 (Decode.succeed <| PlayVideo ep)
                 , case ep.lastViewedAt of
@@ -80,26 +97,24 @@ loading =
     activityIndicator [ stringSize "large" ] []
 
 
-styles =
-    StyleSheet.create
-        { container =
-            { width = "100%"
-            , height = "100%"
-            , backgroundColor = "black"
-            , gap = 15
-            , alignItems = "center"
-            , justifyContent = "center"
-            }
-        }
-
-
 episodesView : HomeModel -> Html Msg
 episodesView { client, tvShows, videoPlayer } =
     let
         metadata =
             videoPlayer.metadata
     in
-    view [ style styles.container ]
+    modalFadeView
+        [ style
+            { gap = 15
+            , alignItems = "center"
+            , justifyContent = "center"
+            , flex = 1
+            }
+        , contentContainerStyle styles.fullScreen
+        , blurType "dark"
+        , blurAmount 60
+        , visible videoPlayer.episodesOpen
+        ]
         [ case Dict.get metadata.grandparentRatingKey tvShows of
             Just (Ok tvShow) ->
                 case
@@ -125,7 +140,8 @@ episodesView { client, tvShows, videoPlayer } =
                                             { flexDirection = "row"
                                             , justifyContent = "space-between"
                                             , width = "100%"
-                                            , paddingHorizontal = 40
+                                            , height = 60
+                                            , paddingHorizontal = 50
                                             , alignItems = "flex-end"
                                             }
                                         ]
@@ -151,17 +167,18 @@ episodesView { client, tvShows, videoPlayer } =
                                                 , ionicon "caret-down" [ size 13, color "white" ]
                                                 ]
                                             ]
-                                        , ionicon "ios-close"
-                                            [ color "white"
-                                            , size 25
-                                            , onPress <| Decode.succeed <| VideoPlayerControl <| SetEpisodesOpen False
+                                        , touchableScale [ onPress <| Decode.succeed <| VideoPlayerControl <| SetEpisodesOpen False ]
+                                            [ ionicon "ios-close"
+                                                [ color "white"
+                                                , size 25
+                                                ]
                                             ]
                                         ]
                                     , flatList
                                         { data = episodes
                                         , keyExtractor = \ep _ -> ep.guid
                                         , renderItem = \{ item } -> episodeView client item
-                                        , getItemLayout = Utils.fixedSizeLayout 210
+                                        , getItemLayout = Utils.fixedSizeLayout 200
                                         }
                                         [ contentContainerStyle { flexGrow = 1, paddingHorizontal = 50 }
                                         , horizontal True

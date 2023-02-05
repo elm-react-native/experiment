@@ -8,7 +8,7 @@ import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import Maybe
 import Model exposing (HomeModel, Msg(..), PlaybackSpeed, PlaybackState(..), ScreenLockState(..), SeekStage(..), VideoPlayer, VideoPlayerControlAction(..), dialogueDecoder, episodeTitle, filterMediaStream, getFirstPartId, getSelectedSubtitleStream, isVideoUrlReady, playbackSpeedDecoder, playbackSpeedEncode, playbackSpeedList, playbackSpeedToRate)
-import ReactNative exposing (activityIndicator, button, fragment, image, modal, null, require, str, touchableOpacity, touchableScale, touchableWithoutFeedback, view)
+import ReactNative exposing (activityIndicator, button, fragment, image, null, require, str, touchableOpacity, touchableScale, touchableWithoutFeedback, view)
 import ReactNative.Animated as Animated
 import ReactNative.ContextMenuIOS exposing (MenuItem, contextMenuButton, isMenuPrimaryAction, menuConfig, onPressMenuItem, pressEventMenuItemDecoder)
 import ReactNative.Dimensions as Dimensions exposing (DisplayMetrics)
@@ -513,17 +513,7 @@ videoScreen ({ videoPlayer, client } as m) _ =
                 , videoPlayerControls videoPlayer
                 , bufferingIndicator videoPlayer
                 ]
-            , if videoPlayer.episodesOpen then
-                modal
-                    [ animationType "fade"
-                    , visible videoPlayer.episodesOpen
-                    , presentationStyle "fullScreen"
-                    , supportedOrientations [ "landscape" ]
-                    ]
-                    [ episodesView m ]
-
-              else
-                null
+            , episodesView m
             ]
 
     else

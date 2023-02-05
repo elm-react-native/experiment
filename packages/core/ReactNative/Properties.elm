@@ -224,7 +224,7 @@ sections =
 
 
 blurRadius =
-    property "blurRadius" << Encode.int
+    property "blurRadius" << Encode.float
 
 
 capInsets : Rect -> Attribute msg

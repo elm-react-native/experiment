@@ -1,8 +1,16 @@
 // @refresh reset
 
 import React from 'react';
-import {useCallback, useState, useRef} from 'react';
-import {View, AppRegistry, Platform, LogBox, NativeModules} from 'react-native';
+import {useCallback, useEffect, useState, useRef} from 'react';
+import {
+  View,
+  AppRegistry,
+  Platform,
+  LogBox,
+  NativeModules,
+  Animated,
+  StyleSheet,
+} from 'react-native';
 import {
   GestureHandlerRootView,
   GestureDetector,
@@ -15,6 +23,8 @@ import contextMenuResolveComponent from '@elm-react-native/react-native-ios-cont
 import videoResolveComponent from '@elm-react-native/react-native-video';
 import sliderResolveComponent from '@elm-react-native/react-native-slider';
 import SubtitleStream from './subtitle';
+import blurResolveComponent from '@elm-react-native/react-native-blur';
+import {BlurView} from '@react-native-community/blur';
 
 LogBox.ignoreLogs(['Could not find Fiber with id']);
 
@@ -26,11 +36,13 @@ AppRegistry.registerComponent(appName, () => () => {
           resolveComponent={tag => {
             if (tag === 'SubtitleStream') return SubtitleStream;
             if (tag === 'PinchableView') return PinchableView;
+            if (tag === 'ModalFadeView') return ModalFadeView;
             return (
               vectorIconsResolveComponent(tag) ||
               contextMenuResolveComponent(tag) ||
               videoResolveComponent(tag) ||
-              sliderResolveComponent(tag)
+              sliderResolveComponent(tag) ||
+              blurResolveComponent(tag)
             );
           }}
         />
@@ -59,5 +71,45 @@ const PinchableView = ({onTap, onPinch, ...props}) => {
         {...props}
       />
     </GestureDetector>
+  );
+};
+
+const ModalFadeView = ({visible, contentContainerStyle, ...props}) => {
+  const animatedRef = React.useRef(new Animated.Value(0));
+  const [actualVisible, setActualVisible] = React.useState(visible);
+
+  useEffect(() => {
+    console.log('ModalFadeView', visible);
+
+    animatedRef.current.setValue(visible ? 0 : 1);
+    setActualVisible(true);
+
+    Animated.timing(animatedRef.current, {
+      toValue: visible ? 1 : 0,
+      duration: 200,
+      useNativeDriver: true,
+    }).start(({finished}) => {
+      setActualVisible(visible);
+    });
+  }, [visible]);
+
+  return (
+    actualVisible && (
+      <Animated.View
+        style={StyleSheet.compose(contentContainerStyle, {
+          opacity: animatedRef.current,
+          flex: 1,
+          transform: [
+            {
+              translateY: Animated.multiply(
+                Animated.subtract(1, animatedRef.current),
+                30,
+              ),
+            },
+          ],
+        })}>
+        <BlurView {...props} />
+      </Animated.View>
+    )
   );
 };
