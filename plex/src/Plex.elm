@@ -426,7 +426,16 @@ gotoEntity isContinueWatching metadata m =
 
 
 changeSeason showId seasonId m =
-    ( Home { m | tvShows = updateSelectedSeason seasonId showId m.tvShows }
+    ( Home <|
+        if m.videoPlayer.episodesOpen then
+            let
+                videoPlayer =
+                    m.videoPlayer
+            in
+            { m | videoPlayer = { videoPlayer | selectedSeasonKey = seasonId } }
+
+        else
+            { m | tvShows = updateSelectedSeason seasonId showId m.tvShows }
     , getEpisodes showId seasonId m.client
     )
 
@@ -441,29 +450,64 @@ signOut client navKey =
     )
 
 
+playVideo : Metadata -> HomeModel -> ( Model, Cmd Msg )
 playVideo ({ ratingKey, viewOffset, typ } as metadata) ({ navKey, videoPlayer, client } as m) =
-    ( Home
-        { m
-            | videoPlayer =
-                { videoPlayer
-                    | seekTime = Maybe.withDefault 0 viewOffset
-                    , playbackTime = Maybe.withDefault 0 viewOffset
-                    , metadata = metadata
-                    , state = Playing
-                    , subtitle = []
-                }
-        }
-    , Cmd.batch
-        [ Nav.push navKey "video" ()
-        , getStreams ratingKey client
-        , Random.generate GotPlaySession Utils.generateIdentifier
-        , if String.isEmpty videoPlayer.sessionId then
-            Random.generate GotPlaySessionId Utils.generateIdentifier
+    if m.videoPlayer.state /= Stopped then
+        let
+            initialTime : Int
+            initialTime =
+                if ratingKey /= videoPlayer.metadata.ratingKey then
+                    Maybe.withDefault 0 viewOffset
 
-          else
-            Cmd.none
-        ]
-    )
+                else
+                    videoPlayer.playbackTime
+        in
+        ( Home
+            { m
+                | videoPlayer =
+                    { videoPlayer
+                        | seekTime = initialTime
+                        , playbackTime = initialTime
+                        , metadata = metadata
+                        , state = Playing
+                        , subtitle = []
+                        , session = ""
+                        , episodesOpen = False
+                    }
+            }
+        , Cmd.batch
+            [ Random.generate GotPlaySession Utils.generateIdentifier
+            , if ratingKey /= videoPlayer.metadata.ratingKey then
+                getStreams ratingKey client
+
+              else
+                Cmd.none
+            ]
+        )
+
+    else
+        ( Home
+            { m
+                | videoPlayer =
+                    { videoPlayer
+                        | seekTime = Maybe.withDefault 0 viewOffset
+                        , playbackTime = Maybe.withDefault 0 viewOffset
+                        , metadata = metadata
+                        , state = Playing
+                        , subtitle = []
+                    }
+            }
+        , Cmd.batch
+            [ Nav.push navKey "video" ()
+            , getStreams ratingKey client
+            , Random.generate GotPlaySession Utils.generateIdentifier
+            , if String.isEmpty videoPlayer.sessionId then
+                Random.generate GotPlaySessionId Utils.generateIdentifier
+
+              else
+                Cmd.none
+            ]
+        )
 
 
 getNextEpisodeOfTVShow : String -> String -> TVShow -> Maybe Metadata
@@ -614,6 +658,19 @@ videoPlayerControlAction client tvShows action videoPlayer =
 
         ExtendTimeout ->
             ( videoPlayer, Cmd.none )
+
+        SetEpisodesOpen open ->
+            ( { videoPlayer
+                | episodesOpen = open
+                , selectedSeasonKey = videoPlayer.metadata.parentRatingKey
+              }
+            , if open then
+                getTVShowAndEpisodes videoPlayer.metadata.parentRatingKey videoPlayer.metadata.grandparentRatingKey client
+                    |> Task.attempt (GotTVShow videoPlayer.metadata.grandparentRatingKey)
+
+              else
+                Cmd.none
+            )
 
 
 extendTimeToHideControls =

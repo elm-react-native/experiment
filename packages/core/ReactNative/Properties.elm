@@ -861,7 +861,7 @@ statusBarTranslucent =
 
 
 supportedOrientations =
-    property "supportedOrientations" << Encode.string
+    property "supportedOrientations" << Encode.list Encode.string
 
 
 backgroundColor =

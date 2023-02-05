@@ -11,7 +11,9 @@ const VideoPlayer = ({ seekTime, ...props }) => {
       // when uri changes, it seems that we need wait some time otherwise the seeking operation is not work
       // FIXME: check if there is event callback when uri changes
       setTimeout(() => {
-        ref.current.seek(seekTime / 1000);
+        if (ref.current) {
+          ref.current.seek(seekTime / 1000);
+        }
       }, 50);
     }
   }, [props.source.uri, seekTime]);

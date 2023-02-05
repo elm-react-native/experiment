@@ -1,8 +1,31 @@
-module Utils exposing (charAt, containsItem, elementAt, findItem, formatDuration, formatPlaybackTime, generateIdentifier, maybeEmptyList, maybeEmptyString, maybeFalse, maybeFloatZero, maybeWithDefault, maybeZero, padZero, percentFloat, quotRem)
+module Utils exposing (charAt, containsItem, elementAt, findItem, fixedSizeLayout, formatDuration, formatPlaybackTime, generateIdentifier, indexOf, maybeEmptyList, maybeEmptyString, maybeFalse, maybeFloatZero, maybeWithDefault, maybeZero, padZero, percentFloat, quotRem)
 
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import Random
+
+
+fixedSizeLayout : Float -> Maybe (a -> Int -> { length : Float, offset : Float, index : Int })
+fixedSizeLayout w =
+    Just <| \_ i -> { length = w, offset = w * toFloat i, index = i }
+
+
+indexOf : (a -> Bool) -> List a -> Maybe Int
+indexOf pred xs =
+    let
+        indexOfHelper ys i =
+            case ys of
+                y :: rest ->
+                    if pred y then
+                        Just i
+
+                    else
+                        indexOfHelper rest (i + 1)
+
+                [] ->
+                    Nothing
+    in
+    indexOfHelper xs 0
 
 
 findItem : (a -> Bool) -> List a -> Maybe a

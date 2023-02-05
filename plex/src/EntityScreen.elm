@@ -1,4 +1,4 @@
-module EntityScreen exposing (entityScreen)
+module EntityScreen exposing (entityScreen, seasonMenu)
 
 import Api exposing (Client, Metadata)
 import Components exposing (bottomPadding, chip, progressBar, text, videoPlayContainer)
@@ -350,20 +350,16 @@ episodeView client ep =
         ]
 
 
-seasonView : Int -> TVShow -> Html Msg
-seasonView selectedSeasonIndex show =
-    let
-        selectedSeasonLabel =
-            "Season " ++ String.fromInt selectedSeasonIndex
-    in
+seasonMenu : TVShow -> List (Html Msg) -> Html Msg
+seasonMenu tvShow children =
     contextMenuButton
         [ pressEventMenuItemDecoder
-            |> Decode.map (\{ actionKey } -> ChangeSeason show.info.ratingKey actionKey)
+            |> Decode.map (\{ actionKey } -> ChangeSeason tvShow.info.ratingKey actionKey)
             |> onPressMenuItem
         , isMenuPrimaryAction True
         , style { marginTop = 20 }
         , menuConfig
-            { menuTitle = show.info.title
+            { menuTitle = tvShow.info.title
             , menuItems =
                 List.map
                     (\sz ->
@@ -371,9 +367,19 @@ seasonView selectedSeasonIndex show =
                         , actionTitle = "Season " ++ String.fromInt sz.info.index
                         }
                     )
-                    show.seasons
+                    tvShow.seasons
             }
         ]
+        children
+
+
+seasonView : Int -> TVShow -> Html Msg
+seasonView selectedSeasonIndex tvShow =
+    let
+        selectedSeasonLabel =
+            "Season " ++ String.fromInt selectedSeasonIndex
+    in
+    seasonMenu tvShow
         [ touchableOpacity
             [ style
                 { flexDirection = "row"

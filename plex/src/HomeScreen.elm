@@ -227,17 +227,12 @@ sectionContainer title child =
         ]
 
 
-fixedSize : Float -> (a -> Int -> { length : Float, offset : Float, index : Int })
-fixedSize w =
-    \_ i -> { length = w, offset = w * toFloat i, index = i }
-
-
 sectionViewData client title isContinueWatching data =
     sectionContainer title <|
         flatList
             { renderItem = \{ item } -> itemView client isContinueWatching item
             , keyExtractor = \item _ -> item.guid
-            , getItemLayout = Just <| fixedSize 110
+            , getItemLayout = Utils.fixedSizeLayout 110
             , data = data
             }
             [ contentContainerStyle homeStyles.sectionContent

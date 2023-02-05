@@ -8,14 +8,14 @@ import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import Maybe
 import Model exposing (HomeModel, Msg(..), PlaybackSpeed, PlaybackState(..), ScreenLockState(..), SeekStage(..), VideoPlayer, VideoPlayerControlAction(..), dialogueDecoder, episodeTitle, filterMediaStream, getFirstPartId, getSelectedSubtitleStream, isVideoUrlReady, playbackSpeedDecoder, playbackSpeedEncode, playbackSpeedList, playbackSpeedToRate)
-import ReactNative exposing (activityIndicator, button, fragment, image, null, require, str, touchableOpacity, touchableScale, touchableWithoutFeedback, view)
+import ReactNative exposing (activityIndicator, button, fragment, image, modal, null, require, str, touchableOpacity, touchableScale, touchableWithoutFeedback, view)
 import ReactNative.Animated as Animated
 import ReactNative.ContextMenuIOS exposing (MenuItem, contextMenuButton, isMenuPrimaryAction, menuConfig, onPressMenuItem, pressEventMenuItemDecoder)
 import ReactNative.Dimensions as Dimensions exposing (DisplayMetrics)
 import ReactNative.Events exposing (onFloatValueChange, onPress)
 import ReactNative.Icon exposing (ionicon, materialIcon)
 import ReactNative.Platform as Platform
-import ReactNative.Properties exposing (color, disabled, intValue, resizeMode, size, source, stringSize, style, title)
+import ReactNative.Properties exposing (animationType, color, disabled, intValue, presentationStyle, resizeMode, size, source, stringSize, style, supportedOrientations, title, transparent, visible)
 import ReactNative.StyleSheet as StyleSheet
 import ReactNative.Video
     exposing
@@ -45,6 +45,7 @@ import ReactNative.Video
 import Theme
 import Time
 import Utils exposing (containsItem, formatPlaybackTime)
+import Video.Episodes exposing (episodesView)
 import Video.ProgressBar exposing (videoPlayerControlsProgress)
 import Video.Subtitle exposing (videoPlayerSubtitle)
 import Video.SubtitleStream as SubtitleStream exposing (subtitleStream)
@@ -408,7 +409,7 @@ videoPlayerControlsToolbar videoPlayer =
         (if videoPlayer.screenLock == Unlocked then
             [ playbackSpeedMenu videoPlayer.playbackSpeed
             , videoPlayerControlsFooterButton (require "./assets/lock-open.png") "Lock" <| VideoPlayerControl <| ChangeScreenLock Locked
-            , videoPlayerControlsFooterButton (require "./assets/episodes.png") "Episodes" <| VideoPlayerControl ExtendTimeout
+            , videoPlayerControlsFooterButton (require "./assets/episodes.png") "Episodes" <| VideoPlayerControl <| SetEpisodesOpen True
             , subtitleMenu videoPlayer
             , if videoPlayer.metadata.typ == "episode" then
                 videoPlayerControlsFooterButton (require "./assets/next-ep.png") "Next Episode" <| VideoPlayerControl NextEpisode
@@ -498,7 +499,7 @@ videoScreen ({ videoPlayer, client } as m) _ =
                 , onSeek <| Decode.succeed <| VideoPlayerControl <| SeekAction SeekEnd videoPlayer.playbackTime
                 , style styles.fullscreen
                 , allowsExternalPlayback False
-                , paused <| (videoPlayer.state /= Playing || videoPlayer.seeking)
+                , paused <| (videoPlayer.state /= Playing || videoPlayer.seeking || videoPlayer.episodesOpen)
                 , resizeMode videoPlayer.resizeMode
                 , playWhenInactive True
                 , rate <| playbackSpeedToRate videoPlayer.playbackSpeed
@@ -512,6 +513,17 @@ videoScreen ({ videoPlayer, client } as m) _ =
                 , videoPlayerControls videoPlayer
                 , bufferingIndicator videoPlayer
                 ]
+            , if videoPlayer.episodesOpen then
+                modal
+                    [ animationType "fade"
+                    , visible videoPlayer.episodesOpen
+                    , presentationStyle "fullScreen"
+                    , supportedOrientations [ "landscape" ]
+                    ]
+                    [ episodesView m ]
+
+              else
+                null
             ]
 
     else

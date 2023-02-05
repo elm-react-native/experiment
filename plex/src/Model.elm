@@ -59,6 +59,8 @@ type alias VideoPlayer =
     , resizeMode : String
     , showSubtitle : Bool
     , selectedSubtitle : Int
+    , selectedSeasonKey : String
+    , episodesOpen : Bool
     }
 
 
@@ -89,6 +91,8 @@ initialVideoPlayer =
     , playbackSpeed = Normal
     , showSubtitle = True
     , selectedSubtitle = 0
+    , selectedSeasonKey = ""
+    , episodesOpen = False
     }
 
 
@@ -123,7 +127,7 @@ initHomeModel client navKey =
 
 isVideoUrlReady : VideoPlayer -> Bool
 isVideoUrlReady videoPlayer =
-    not <| String.isEmpty videoPlayer.sessionId
+    not (String.isEmpty videoPlayer.sessionId || String.isEmpty videoPlayer.session)
 
 
 type Model
@@ -234,6 +238,7 @@ type VideoPlayerControlAction
     | ChangeResizeMode String
     | ChangeSpeed PlaybackSpeed
     | ChangeSubtitle Int Int
+    | SetEpisodesOpen Bool
     | ExtendTimeout
 
 
