@@ -409,7 +409,11 @@ videoPlayerControlsToolbar videoPlayer =
         (if videoPlayer.screenLock == Unlocked then
             [ playbackSpeedMenu videoPlayer.playbackSpeed
             , videoPlayerControlsFooterButton (require "./assets/lock-open.png") "Lock" <| VideoPlayerControl <| ChangeScreenLock Locked
-            , videoPlayerControlsFooterButton (require "./assets/episodes.png") "Episodes" <| VideoPlayerControl <| SetEpisodesOpen True
+            , if videoPlayer.metadata.typ == "movie" then
+                null
+
+              else
+                videoPlayerControlsFooterButton (require "./assets/episodes.png") "Episodes" <| VideoPlayerControl <| SetEpisodesOpen True
             , subtitleMenu videoPlayer
             , if videoPlayer.metadata.typ == "episode" then
                 videoPlayerControlsFooterButton (require "./assets/next-ep.png") "Next Episode" <| VideoPlayerControl NextEpisode
