@@ -784,7 +784,11 @@ update msg model =
             case model of
                 Home ({ client, videoPlayer } as m) ->
                     ( Home { m | videoPlayer = { initialVideoPlayer | resizeMode = videoPlayer.resizeMode } }
-                    , Cmd.batch [ getContinueWatching m.client, savePlaybackTime { videoPlayer | state = Stopped } client ]
+                    , Cmd.batch
+                        [ getContinueWatching m.client
+                        , getStreams videoPlayer.metadata.ratingKey m.client
+                        , savePlaybackTime { videoPlayer | state = Stopped } client
+                        ]
                     )
 
                 _ ->
@@ -888,18 +892,20 @@ update msg model =
         GotStreams _ data ->
             case model of
                 Home ({ videoPlayer } as m) ->
-                    let
-                        metadata =
-                            Result.withDefault videoPlayer.metadata data
-                    in
-                    ( Home
-                        { m
-                            | videoPlayer =
-                                { videoPlayer
-                                    | metadata = metadata
-                                    , haveSubtitle = containsSubtitle metadata
+                    ( Home <|
+                        case data of
+                            Ok metadata ->
+                                { m
+                                    | videoPlayer =
+                                        { videoPlayer
+                                            | metadata = metadata
+                                            , haveSubtitle = containsSubtitle metadata
+                                        }
+                                    , tvShows = updateEpisode metadata m.tvShows
                                 }
-                        }
+
+                            _ ->
+                                m
                     , Cmd.none
                     )
 

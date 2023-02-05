@@ -1,4 +1,4 @@
-module Model exposing (Dialogue, HomeModel, LibrarySection, Model(..), Msg(..), PlaybackSpeed, PlaybackState(..), RemoteData, ScreenLockState(..), SeekStage(..), TVSeason, TVShow, VideoPlayer, VideoPlayerControlAction(..), containsSubtitle, dialogueDecoder, episodeTitle, findSeason, findTVShowByEpisodeRatingKey, initHomeModel, initialVideoPlayer, isVideoUrlReady, playbackSpeedDecoder, playbackSpeedEncode, playbackSpeedList, playbackSpeedToRate, updateSelectedSeason, updateTVShow)
+module Model exposing (Dialogue, HomeModel, LibrarySection, Model(..), Msg(..), PlaybackSpeed, PlaybackState(..), RemoteData, ScreenLockState(..), SeekStage(..), TVSeason, TVShow, VideoPlayer, VideoPlayerControlAction(..), containsSubtitle, dialogueDecoder, episodeTitle, findSeason, findTVShowByEpisodeRatingKey, initHomeModel, initialVideoPlayer, isVideoUrlReady, playbackSpeedDecoder, playbackSpeedEncode, playbackSpeedList, playbackSpeedToRate, updateEpisode, updateSelectedSeason, updateTVShow)
 
 import Api exposing (Account, Client, Library, Metadata, Section, initialMetadata)
 import Browser.Navigation as N
@@ -336,6 +336,52 @@ findTVShowByEpisodeRatingKey ratingKey tvShows =
                         Nothing
             )
         |> List.head
+
+
+updateSeason : (TVSeason -> TVSeason) -> String -> TVShow -> TVShow
+updateSeason f seasonId tvShow =
+    { tvShow
+        | seasons =
+            List.map
+                (\s ->
+                    if seasonId == s.info.ratingKey then
+                        f s
+
+                    else
+                        s
+                )
+                tvShow.seasons
+    }
+
+
+updateEpisode : Metadata -> Dict String (Result Http.Error TVShow) -> Dict String (Result Http.Error TVShow)
+updateEpisode metadata =
+    updateTVShow
+        (updateSeason
+            (\season ->
+                { season
+                    | episodes =
+                        case season.episodes of
+                            Just (Ok episodes) ->
+                                Just <|
+                                    Ok <|
+                                        List.map
+                                            (\ep ->
+                                                if ep.ratingKey == metadata.ratingKey then
+                                                    metadata
+
+                                                else
+                                                    ep
+                                            )
+                                            episodes
+
+                            otherwise ->
+                                otherwise
+                }
+            )
+            metadata.parentRatingKey
+        )
+        metadata.grandparentRatingKey
 
 
 containsSubtitle metadata =
