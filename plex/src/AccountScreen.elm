@@ -137,6 +137,6 @@ accountScreen model _ =
                     []
                 ]
             , view []
-                [ text [] [ str "Version 0.7" ] ]
+                [ text [] [ str "Version 0.9" ] ]
             ]
         ]
