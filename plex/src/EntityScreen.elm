@@ -296,8 +296,8 @@ entitySummary tvShow metadata =
             [ str summary ]
 
 
-episodeView : Client -> Metadata -> DisplayMetrics -> Html Msg
-episodeView client ep metrics =
+episodeView : Client -> Metadata -> Html Msg
+episodeView client ep =
     fragment []
         [ view
             [ style
@@ -338,7 +338,7 @@ episodeView client ep metrics =
                         null
                 ]
             , view
-                [ style { width = metrics.width - 20 - 5 - 112 }
+                [ style { width = client.screenMetrics.width - 20 - 5 - 112 }
                 ]
                 [ text
                     [ numberOfLines 2 ]
@@ -688,7 +688,7 @@ entityScreen model { isContinueWatching, metadata } =
         , flatList
             { data = episodes
             , keyExtractor = \ep _ -> ep.guid
-            , renderItem = \{ item } -> episodeView client item model.screenMetrics
+            , renderItem = \{ item } -> episodeView client item
             , getItemLayout = Nothing
             }
             [ listHeaderNode <| entityInfo isContinueWatching tvShow metadata

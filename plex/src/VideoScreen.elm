@@ -50,8 +50,8 @@ import Video.Subtitle exposing (videoPlayerSubtitle)
 import Video.SubtitleStream as SubtitleStream exposing (subtitleStream)
 
 
-videoUri : DisplayMetrics -> VideoPlayer -> Api.Client -> String
-videoUri screenMetrics { sessionId, metadata } client =
+videoUri : VideoPlayer -> Api.Client -> String
+videoUri { sessionId, metadata } client =
     Api.clientRequestUrl "/video/:/transcode/universal/start.m3u8" client
         ++ ("&path=%2Flibrary%2Fmetadata%2F" ++ metadata.ratingKey)
         ++ "&hasMDE=1"
@@ -89,7 +89,7 @@ videoUri screenMetrics { sessionId, metadata } client =
            )
         ++ "&X-Plex-Device-Name=Safari"
         --++ "&X-Plex-Device-Screen-Resolution=980x1646%2C393x852"
-        ++ ("&X-Plex-Device-Screen-Resolution=" ++ String.fromFloat screenMetrics.width ++ "x" ++ String.fromFloat screenMetrics.height)
+        ++ ("&X-Plex-Device-Screen-Resolution=" ++ String.fromFloat client.screenMetrics.width ++ "x" ++ String.fromFloat client.screenMetrics.height)
         ++ "&X-Plex-Language=en"
         ++ ("&X-Pler-Session-Identifier=" ++ sessionId)
         ++ ("&session=" ++ sessionId)
@@ -475,11 +475,11 @@ pinchResizer videoPlayer =
 
 
 videoScreen : HomeModel -> () -> Html Msg
-videoScreen ({ videoPlayer, screenMetrics, client } as m) _ =
+videoScreen ({ videoPlayer, client } as m) _ =
     if isVideoUrlReady videoPlayer then
         view [ style styles.container ]
             [ video
-                [ source { uri = videoUri screenMetrics videoPlayer client }
+                [ source { uri = videoUri videoPlayer client }
                 , seekTime videoPlayer.seekTime
                 , onErrorMessage PlayVideoError
                 , onEnd <| Decode.succeed OnVideoEnd
@@ -494,7 +494,7 @@ videoScreen ({ videoPlayer, screenMetrics, client } as m) _ =
                 , rate <| playbackSpeedToRate videoPlayer.playbackSpeed
                 ]
                 [ if videoPlayer.haveSubtitle then
-                    videoPlayerSubtitle client screenMetrics videoPlayer
+                    videoPlayerSubtitle client videoPlayer
 
                   else
                     null

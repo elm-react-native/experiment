@@ -4,6 +4,7 @@ import Http
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode exposing (Value)
 import Media exposing (mediaDecoder, streamDecoder)
+import ReactNative.Dimensions exposing (DisplayMetrics, initialDisplayMetrics)
 import Task exposing (Task)
 import Url
 import Utils exposing (maybeEmptyList, maybeEmptyString, maybeFalse, maybeFloatZero, maybeZero)
@@ -419,6 +420,7 @@ type alias Client =
     , id : String
     , email : String
     , password : String
+    , screenMetrics : DisplayMetrics
     }
 
 
@@ -709,6 +711,7 @@ initialClient =
     , token = ""
     , email = ""
     , password = ""
+    , screenMetrics = initialDisplayMetrics
     }
 
 

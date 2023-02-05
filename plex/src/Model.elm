@@ -101,7 +101,6 @@ type alias HomeModel =
     , navKey : N.Key
     , videoPlayer : VideoPlayer
     , refreshing : Bool
-    , screenMetrics : DisplayMetrics
     }
 
 
@@ -117,7 +116,6 @@ initHomeModel client navKey =
     , navKey = navKey
     , videoPlayer = initialVideoPlayer
     , refreshing = False
-    , screenMetrics = Dimensions.initialDisplayMetrics
     }
 
 
@@ -256,7 +254,6 @@ type Msg
     | PlayVideo Metadata
     | PlayVideoError String
     | GotPlaySessionId String
-    | GotScreenMetrics Dimensions.DisplayMetrics
     | StopPlayVideo
     | OnVideoEnd
     | OnVideoBuffer Bool

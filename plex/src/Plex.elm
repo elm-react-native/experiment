@@ -167,6 +167,11 @@ savePlaybackTime videoPlayer client =
         client
 
 
+toDecodeError : Task Never x -> Task Decode.Error x
+toDecodeError =
+    Task.mapError (always <| Decode.Failure "" Encode.null)
+
+
 loadClient : Cmd Msg
 loadClient =
     Task.map5
@@ -177,6 +182,7 @@ loadClient =
             , id = id
             , email = email
             , password = ""
+            , screenMetrics = Dimensions.initialDisplayMetrics
             }
         )
         (Settings.get "clientId" <| Utils.maybeEmptyString Decode.string)
@@ -184,6 +190,9 @@ loadClient =
         (Settings.get "serverAddress" Decode.string)
         (Settings.get "serverName" Decode.string)
         (Settings.get "email" <| Utils.maybeEmptyString Decode.string)
+        |> Task.map2
+            (\screenMetrics data -> { data | screenMetrics = screenMetrics })
+            (toDecodeError Dimensions.getScreen)
         |> Task.attempt (Result.toMaybe >> GotSavedClient)
 
 
@@ -229,7 +238,6 @@ gotSavedClient savedClient navKey =
                 [ getLibraries client
                 , getAccount client
                 , getContinueWatching client
-                , Task.perform GotScreenMetrics Dimensions.getScreen
                 ]
             )
 
@@ -705,14 +713,6 @@ update msg model =
             case model of
                 Home { client, navKey } ->
                     signOut client navKey
-
-                _ ->
-                    ( model, Cmd.none )
-
-        GotScreenMetrics screenMetrics ->
-            case model of
-                Home m ->
-                    ( Home { m | screenMetrics = screenMetrics }, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
