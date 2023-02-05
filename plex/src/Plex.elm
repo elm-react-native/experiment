@@ -450,40 +450,45 @@ signOut client navKey =
     )
 
 
+replaceVideo : Client -> Metadata -> VideoPlayer -> ( VideoPlayer, Cmd Msg )
+replaceVideo client ({ ratingKey, viewOffset, typ } as metadata) videoPlayer =
+    let
+        startTime : Int
+        startTime =
+            if ratingKey /= videoPlayer.metadata.ratingKey then
+                Maybe.withDefault 0 viewOffset
+
+            else
+                videoPlayer.playbackTime
+    in
+    ( { videoPlayer
+        | seekTime = startTime
+        , playbackTime = startTime
+        , metadata = metadata
+        , state = Playing
+        , subtitle = []
+        , session = ""
+        , episodesOpen = False
+      }
+    , Cmd.batch
+        [ Random.generate GotPlaySession Utils.generateIdentifier
+        , if ratingKey /= videoPlayer.metadata.ratingKey then
+            getStreams ratingKey client
+
+          else
+            Cmd.none
+        ]
+    )
+
+
 playVideo : Metadata -> HomeModel -> ( Model, Cmd Msg )
 playVideo ({ ratingKey, viewOffset, typ } as metadata) ({ navKey, videoPlayer, client } as m) =
     if m.videoPlayer.state /= Stopped then
         let
-            initialTime : Int
-            initialTime =
-                if ratingKey /= videoPlayer.metadata.ratingKey then
-                    Maybe.withDefault 0 viewOffset
-
-                else
-                    videoPlayer.playbackTime
+            ( newVideoPlayer, cmd ) =
+                replaceVideo client metadata videoPlayer
         in
-        ( Home
-            { m
-                | videoPlayer =
-                    { videoPlayer
-                        | seekTime = initialTime
-                        , playbackTime = initialTime
-                        , metadata = metadata
-                        , state = Playing
-                        , subtitle = []
-                        , session = ""
-                        , episodesOpen = False
-                    }
-            }
-        , Cmd.batch
-            [ Random.generate GotPlaySession Utils.generateIdentifier
-            , if ratingKey /= videoPlayer.metadata.ratingKey then
-                getStreams ratingKey client
-
-              else
-                Cmd.none
-            ]
-        )
+        ( Home { m | videoPlayer = newVideoPlayer }, cmd )
 
     else
         ( Home
@@ -612,19 +617,7 @@ videoPlayerControlAction client tvShows action videoPlayer =
         NextEpisode ->
             case getNextEpisode videoPlayer.metadata tvShows of
                 Ok metadata ->
-                    let
-                        startTime =
-                            Maybe.withDefault 0 metadata.viewOffset
-                    in
-                    ( { videoPlayer
-                        | state = Playing
-                        , seekTime = startTime
-                        , playbackTime = startTime
-                        , metadata = metadata
-                        , subtitle = []
-                      }
-                    , Cmd.none
-                    )
+                    replaceVideo client metadata videoPlayer
 
                 Err b ->
                     ( videoPlayer
