@@ -2,22 +2,20 @@ module VideoScreen exposing (videoScreen)
 
 import Api
 import Components exposing (onPinch, onTap, pinchableView, text)
-import EntityScreen exposing (episodeTitle)
 import Html exposing (Html)
 import Html.Lazy exposing (lazy)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import Maybe
-import Model exposing (HomeModel, Msg(..), PlaybackSpeed, PlaybackState(..), ScreenLockState(..), SeekStage(..), VideoPlayer, VideoPlayerControlAction(..), containsSubtitle, dialogueDecoder, isVideoUrlReady, playbackSpeedDecoder, playbackSpeedEncode, playbackSpeedList, playbackSpeedToRate)
-import ReactNative exposing (activityIndicator, button, fragment, image, null, require, str, touchableOpacity, touchableWithoutFeedback, view)
+import Model exposing (HomeModel, Msg(..), PlaybackSpeed, PlaybackState(..), ScreenLockState(..), SeekStage(..), VideoPlayer, VideoPlayerControlAction(..), containsSubtitle, dialogueDecoder, episodeTitle, isVideoUrlReady, playbackSpeedDecoder, playbackSpeedEncode, playbackSpeedList, playbackSpeedToRate)
+import ReactNative exposing (activityIndicator, button, fragment, image, null, require, str, touchableOpacity, touchableScale, touchableWithoutFeedback, view)
 import ReactNative.Animated as Animated
 import ReactNative.ContextMenuIOS exposing (MenuItem, contextMenuButton, isMenuPrimaryAction, menuConfig, onPressMenuItem, pressEventMenuItemDecoder)
 import ReactNative.Dimensions as Dimensions exposing (DisplayMetrics)
 import ReactNative.Events exposing (onFloatValueChange, onPress)
 import ReactNative.Icon exposing (ionicon, materialIcon)
 import ReactNative.Platform as Platform
-import ReactNative.Properties exposing (color, component, componentModel, disabled, getId, intValue, name, options, pointerEvents, resizeMode, size, source, stringSize, style, title)
-import ReactNative.Slider as Slider exposing (maximumValue, minimumTrackTintColor, minimumValue, onSlidingComplete, onSlidingStart, slider, thumbTintColor)
+import ReactNative.Properties exposing (color, disabled, intValue, resizeMode, size, source, stringSize, style, title)
 import ReactNative.StyleSheet as StyleSheet
 import ReactNative.Video
     exposing
@@ -44,56 +42,12 @@ import ReactNative.Video
         , seekTime
         , video
         )
-import SubtitleStream exposing (subtitleStream)
 import Theme
 import Time
-
-
-padZero n =
-    if n < 10 then
-        "0" ++ String.fromInt n
-
-    else
-        String.fromInt n
-
-
-formatDuration : Int -> Int -> String
-formatDuration d maximum =
-    let
-        total =
-            d // 1000
-
-        totalMins =
-            total // 60
-
-        totalHours =
-            total // 3600
-
-        seconds =
-            total - totalMins * 60
-
-        mins =
-            totalMins - totalHours * 60
-
-        hideHour =
-            maximum < 3600000
-
-        hideMin =
-            maximum < 60000
-    in
-    (if hideHour then
-        ""
-
-     else
-        padZero totalHours ++ ":"
-    )
-        ++ (if hideMin then
-                ""
-
-            else
-                padZero mins ++ ":"
-           )
-        ++ padZero seconds
+import Utils exposing (formatPlaybackTime)
+import Video.ProgressBar exposing (videoPlayerControlsProgress)
+import Video.Subtitle exposing (videoPlayerSubtitle)
+import Video.SubtitleStream as SubtitleStream exposing (subtitleStream)
 
 
 videoUri : DisplayMetrics -> VideoPlayer -> Api.Client -> String
@@ -141,41 +95,6 @@ videoUri screenMetrics { sessionId, metadata } client =
         ++ ("&session=" ++ sessionId)
 
 
-getSubtitleUrl client screenMetrics ratingKey sessionId =
-    Api.clientRequestUrl "/video/:/transcode/universal/subtitles" client
-        ++ ("&hasMDE=1&path=%2Flibrary%2Fmetadata%2F" ++ ratingKey)
-        ++ "&mediaIndex=0"
-        ++ "&partIndex=0"
-        ++ "&protocol=hls"
-        ++ "&fastSeek=1"
-        ++ "&directPlay=0"
-        ++ "&directStream=1"
-        ++ "&subtitleSize=100"
-        ++ "&audioBoost=100"
-        ++ "&location=lan"
-        ++ "&addDebugOverlay=0"
-        ++ "&autoAdjustQuality=0"
-        ++ "&directStreamAudio=1"
-        ++ "&mediaBufferSize=102400"
-        ++ "&subtitles=auto"
-        ++ "&Accept-Language=en"
-        ++ "&X-Plex-Client-Profile-Extra=append-transcode-target-codec%28type%3DvideoProfile%26context%3Dstreaming%26audioCodec%3Daac%252Cac3%252Ceac3%26protocol%3Dhls%29"
-        ++ "&X-Plex-Incomplete-Segments=1"
-        ++ "&X-Plex-Product=Plex%20Web"
-        ++ "&X-Plex-Version=4.87.2"
-        ++ "&X-Plex-Platform=Safari"
-        ++ "&X-Plex-Platform-Version=605.1"
-        ++ "&X-Plex-Features=external-media%2Cindirect-media%2Chub-style-list"
-        ++ "&X-Plex-Model=bundled"
-        ++ "&X-Plex-Device=iOS"
-        ++ "&X-Plex-Device-Name=Safari"
-        --++ "&X-Plex-Device-Screen-Resolution=980x1646%2C393x852"
-        ++ ("&X-Plex-Device-Screen-Resolution=" ++ String.fromFloat screenMetrics.width ++ "x" ++ String.fromFloat screenMetrics.height)
-        ++ "&X-Plex-Language=en"
-        ++ ("&X-Pler-Session-Identifier=" ++ sessionId)
-        ++ ("&session=" ++ sessionId)
-
-
 styles =
     StyleSheet.create
         { container =
@@ -209,16 +128,6 @@ styles =
             , left = 4
             , right = 4
             }
-        , subtitleContainer =
-            { backgroundColor = "#00000060"
-            , alignItems = "center"
-            , justifyContent = "center"
-            , paddingHorizontal = 5
-            , paddingVertical = 3
-            , width = "auto"
-            , borderRadius = 3
-            }
-        , subtitle = { fontSize = 18 }
         }
 
 
@@ -254,96 +163,29 @@ videoPlayerControlsHeader videoPlayer =
         ]
 
 
-videoPlayerControlsIcon sz name pressMsg =
-    ionicon name [ size sz, color "white", onPress <| Decode.succeed <| pressMsg ]
-
-
-videoPlayerControlsImageIcon sz src label props =
-    touchableOpacity
-        (style { flexDirection = "row", gap = 4, alignItems = "center" } :: props)
-        [ image
-            [ source src
-            , style { width = sz, height = sz }
-            ]
-            []
-        , if String.isEmpty label then
-            null
-
-          else
-            text [ style { fontSize = 15, fontWeight = "bold" } ] [ str label ]
-        ]
-
-
-videoPlayerControlsPressableImageIcon sz src label msg =
-    videoPlayerControlsImageIcon sz src label <| [ onPress <| Decode.succeed msg ]
-
-
 videoPlayerControlsBody : VideoPlayer -> Html Msg
 videoPlayerControlsBody videoPlayer =
     view
         [ style
             { position = "absolute"
             , top = "50%"
+            , left = "30%"
             , height = 60
             , marginTop = -30
-            , left = 0
-            , width = "100%"
-            }
-        ]
-        [ view
-            [ style
-                { display = "flex"
-                , flexDirection = "row"
-                , gap = 110
-                , justifyContent = "center"
-                , alignItems = "center"
-                , flexGrow = 1
-                }
-            ]
-            [ videoPlayerControlsPressableImageIcon 35 (require "./assets/backward.png") "" <| VideoPlayerControl <| SeekAction SeekRelease (max 0 <| videoPlayer.playbackTime - 10 * 1000)
-            , if videoPlayer.state == Playing then
-                videoPlayerControlsIcon 55 "pause" <| VideoPlayerControl TogglePlay
-
-              else
-                videoPlayerControlsIcon 55 "play" <| VideoPlayerControl TogglePlay
-            , videoPlayerControlsPressableImageIcon 35 (require "./assets/forward.png") "" <| VideoPlayerControl <| SeekAction SeekRelease (min videoPlayer.metadata.duration <| videoPlayer.playbackTime + 10 * 1000)
-            ]
-        ]
-
-
-videoPlayerControlsProgress videoPlayer =
-    view
-        [ style
-            { flexDirection = "row"
+            , width = "40%"
+            , marginHorizontal = "auto"
+            , flexDirection = "row"
+            , justifyContent = "space-between"
             , alignItems = "center"
-            , justifyContent = "space-around"
-            , gap = 20
-            , paddingHorizontal = 20
-            , width = "100%"
             }
         ]
-        [ text
-            [ style { fontSize = 14 } ]
-            [ str <|
-                formatDuration (min videoPlayer.playbackTime videoPlayer.metadata.duration) videoPlayer.metadata.duration
-            ]
-        , slider
-            [ minimumValue 0
-            , maximumValue videoPlayer.metadata.duration
-            , thumbTintColor Theme.themeColor
-            , minimumTrackTintColor Theme.themeColor
-            , intValue <| videoPlayer.playbackTime
-            , style { flexGrow = 1, marginBottom = 2, alignSelf = "center" }
-            , onSlidingStart <| round >> SeekAction SeekStart >> VideoPlayerControl
-            , onFloatValueChange <| round >> SeekAction Seeking >> VideoPlayerControl
-            , onSlidingComplete <| round >> SeekAction SeekRelease >> VideoPlayerControl
-            ]
-            []
-        , text
-            [ style { fontSize = 14 } ]
-            [ str <|
-                formatDuration (max 0 <| videoPlayer.metadata.duration - videoPlayer.playbackTime) videoPlayer.metadata.duration
-            ]
+        [ videoPlayerControlsPressableImageIcon 35 (require "./assets/backward.png") "" <| VideoPlayerControl <| SeekAction SeekRelease (max 0 <| videoPlayer.playbackTime - 10 * 1000)
+        , if videoPlayer.state == Playing then
+            videoPlayerControlsIcon 55 "pause" <| VideoPlayerControl TogglePlay
+
+          else
+            videoPlayerControlsIcon 55 "play" <| VideoPlayerControl TogglePlay
+        , videoPlayerControlsPressableImageIcon 35 (require "./assets/forward.png") "" <| VideoPlayerControl <| SeekAction SeekRelease (min videoPlayer.metadata.duration <| videoPlayer.playbackTime + 10 * 1000)
         ]
 
 
@@ -384,7 +226,7 @@ playbackSpeedMenu playbackSpeed =
             label =
                 "Speed (" ++ playbackSpeedEncode playbackSpeed ++ ")"
           in
-          videoPlayerControlsPressableImageIcon 20 (require "./assets/speed.png") label <| VideoPlayerControl ExtendTimeout
+          videoPlayerControlsFooterButton (require "./assets/speed.png") label <| VideoPlayerControl ExtendTimeout
         ]
 
 
@@ -398,14 +240,8 @@ subtitleMenu haveSubtitle isDisplay =
                 )
             |> onPressMenuItem
         , isMenuPrimaryAction True
-        , disabled (not haveSubtitle)
         , menuConfig
-            { menuTitle =
-                if haveSubtitle then
-                    ""
-
-                else
-                    "No subtitle"
+            { menuTitle = ""
             , menuItems =
                 if haveSubtitle then
                     [ False, True ]
@@ -452,8 +288,93 @@ subtitleMenu haveSubtitle isDisplay =
         ]
 
 
+screenLocked videoPlayer =
+    touchableOpacity
+        [ style
+            { alignItems = "center"
+            , justifyContent = "center"
+            }
+        , onPress <|
+            Decode.succeed <|
+                VideoPlayerControl <|
+                    ChangeScreenLock <|
+                        if videoPlayer.screenLock == Locked then
+                            ConfirmUnlock
+
+                        else
+                            Unlocked
+        ]
+        [ case videoPlayer.screenLock of
+            Locked ->
+                view
+                    [ style
+                        { backgroundColor = "white"
+                        , borderRadius = 14
+                        , overflow = "hidden"
+                        , justifyContent = "center"
+                        , alignItems = "center"
+                        , width = 28
+                        , height = 28
+                        }
+                    ]
+                    [ image
+                        [ source (require "./assets/lock-close.png")
+                        , style { width = 20, height = 20 }
+                        ]
+                        []
+                    ]
+
+            ConfirmUnlock ->
+                view
+                    [ style
+                        { backgroundColor = "white"
+                        , borderRadius = 14
+                        , overflow = "hidden"
+                        , justifyContent = "center"
+                        , alignItems = "center"
+                        , height = 28
+                        , flexDirection = "row"
+                        , gap = 3
+                        , paddingHorizontal = 10
+                        }
+                    ]
+                    [ image
+                        [ source (require "./assets/lock-open-black.png")
+                        , style { width = 20, height = 20 }
+                        ]
+                        []
+                    , text [ style { color = "black", fontWeight = "bold" } ] [ str "Unlock Screen?" ]
+                    ]
+
+            _ ->
+                null
+        , text [ style { fontSize = 14, fontWeight = "bold", marginTop = 5 } ] [ str "Screen Locked" ]
+        , text [ style { fontSize = 11 } ] [ str "Tab to unlock" ]
+        ]
+
+
 videoPlayerControlsFooter : VideoPlayer -> Html Msg
 videoPlayerControlsFooter videoPlayer =
+    Animated.view
+        [ style
+            { position = "absolute"
+            , width = "100%"
+            , bottom =
+                Animated.multiply (Animated.create -20)
+                    (Animated.subtract (Animated.create 1) videoPlayer.playerControlsAnimatedValue)
+            }
+        ]
+        [ if videoPlayer.screenLock == Unlocked then
+            videoPlayerControlsProgress videoPlayer
+
+          else
+            null
+        , videoPlayerControlsToolbar videoPlayer
+        ]
+
+
+videoPlayerControlsToolbar : VideoPlayer -> Html Msg
+videoPlayerControlsToolbar videoPlayer =
     view
         [ style
             { flexDirection = "row"
@@ -476,80 +397,18 @@ videoPlayerControlsFooter videoPlayer =
         ]
         (if videoPlayer.screenLock == Unlocked then
             [ playbackSpeedMenu videoPlayer.playbackSpeed
-            , videoPlayerControlsPressableImageIcon 20 (require "./assets/lock-open.png") "Lock" <| VideoPlayerControl <| ChangeScreenLock Locked
-            , videoPlayerControlsPressableImageIcon 20 (require "./assets/episodes.png") "Episodes" <| VideoPlayerControl ExtendTimeout
+            , videoPlayerControlsFooterButton (require "./assets/lock-open.png") "Lock" <| VideoPlayerControl <| ChangeScreenLock Locked
+            , videoPlayerControlsFooterButton (require "./assets/episodes.png") "Episodes" <| VideoPlayerControl ExtendTimeout
             , subtitleMenu videoPlayer.haveSubtitle videoPlayer.showSubtitle
             , if videoPlayer.metadata.typ == "episode" then
-                videoPlayerControlsPressableImageIcon 20 (require "./assets/next-ep.png") "Next Episode" <| VideoPlayerControl NextEpisode
+                videoPlayerControlsFooterButton (require "./assets/next-ep.png") "Next Episode" <| VideoPlayerControl NextEpisode
 
               else
                 null
             ]
 
          else
-            [ touchableOpacity
-                [ style
-                    { alignItems = "center"
-                    , justifyContent = "center"
-                    }
-                , onPress <|
-                    Decode.succeed <|
-                        VideoPlayerControl <|
-                            ChangeScreenLock <|
-                                if videoPlayer.screenLock == Locked then
-                                    ConfirmUnlock
-
-                                else
-                                    Unlocked
-                ]
-                [ case videoPlayer.screenLock of
-                    Locked ->
-                        view
-                            [ style
-                                { backgroundColor = "white"
-                                , borderRadius = 14
-                                , overflow = "hidden"
-                                , justifyContent = "center"
-                                , alignItems = "center"
-                                , width = 28
-                                , height = 28
-                                }
-                            ]
-                            [ image
-                                [ source (require "./assets/lock-close.png")
-                                , style { width = 20, height = 20 }
-                                ]
-                                []
-                            ]
-
-                    ConfirmUnlock ->
-                        view
-                            [ style
-                                { backgroundColor = "white"
-                                , borderRadius = 14
-                                , overflow = "hidden"
-                                , justifyContent = "center"
-                                , alignItems = "center"
-                                , height = 28
-                                , flexDirection = "row"
-                                , gap = 3
-                                , paddingHorizontal = 10
-                                }
-                            ]
-                            [ image
-                                [ source (require "./assets/lock-open-black.png")
-                                , style { width = 20, height = 20 }
-                                ]
-                                []
-                            , text [ style { color = "black", fontWeight = "bold" } ] [ str "Unlock Screen?" ]
-                            ]
-
-                    _ ->
-                        null
-                , text [ style { fontSize = 14, fontWeight = "bold", marginTop = 5 } ] [ str "Screen Locked" ]
-                , text [ style { fontSize = 11 } ] [ str "Tab to unlock" ]
-                ]
-            ]
+            [ screenLocked videoPlayer ]
         )
 
 
@@ -576,22 +435,7 @@ videoPlayerControls videoPlayer =
 
                   else
                     null
-                , Animated.view
-                    [ style
-                        { position = "absolute"
-                        , width = "100%"
-                        , bottom =
-                            Animated.multiply (Animated.create -20)
-                                (Animated.subtract (Animated.create 1) videoPlayer.playerControlsAnimatedValue)
-                        }
-                    ]
-                    [ if videoPlayer.screenLock == Unlocked then
-                        videoPlayerControlsProgress videoPlayer
-
-                      else
-                        null
-                    , videoPlayerControlsFooter videoPlayer
-                    ]
+                , videoPlayerControlsFooter videoPlayer
                 ]
             ]
 
@@ -599,51 +443,35 @@ videoPlayerControls videoPlayer =
         null
 
 
-subtitleText : String -> Html msg
-subtitleText s =
-    view [ style styles.subtitleContainer ]
-        [ text [ style styles.subtitle ] [ str s ] ]
+handlePinch isUnlocked scale =
+    if isUnlocked then
+        VideoPlayerControl <|
+            ChangeResizeMode <|
+                if scale > 1 then
+                    "cover"
 
-
-videoPlayerSubtitle { subtitle, playbackTime, seeking, showSubtitle } =
-    if seeking || not showSubtitle then
-        null
+                else
+                    "contain"
 
     else
-        let
-            s =
-                subtitle
-                    |> List.filter (\dialogue -> dialogue.start <= playbackTime && playbackTime <= dialogue.end)
-                    |> List.map .text
-                    |> String.join "\n"
-                    |> String.trim
-        in
-        if String.isEmpty s then
-            null
-
-        else
-            view
-                [ style
-                    { width = "100%"
-                    , minHeight = 70
-                    , bottom = 0
-                    , left = 0
-                    , position = "absolute"
-                    , alignItems = "center"
-                    }
-                , pointerEvents "none"
-                ]
-                [ lazy subtitleText s ]
+        NoOp
 
 
-handlePinch scale =
-    VideoPlayerControl <|
-        ChangeResizeMode <|
-            if scale > 1 then
-                "cover"
+bufferingIndicator videoPlayer =
+    if videoPlayer.isBuffering && not videoPlayer.seeking then
+        activityIndicator [ style styles.center, stringSize "large" ] []
 
-            else
-                "contain"
+    else
+        null
+
+
+pinchResizer videoPlayer =
+    pinchableView
+        [ onTap ToggleVideoPlayerControls
+        , onPinch <| handlePinch <| videoPlayer.screenLock == Unlocked
+        , style styles.fullscreen
+        ]
+        []
 
 
 videoScreen : HomeModel -> () -> Html Msg
@@ -665,22 +493,50 @@ videoScreen ({ videoPlayer, screenMetrics, client } as m) _ =
                 , playWhenInactive True
                 , rate <| playbackSpeedToRate videoPlayer.playbackSpeed
                 ]
-                [ videoPlayerSubtitle videoPlayer
-                , pinchableView [ onTap ToggleVideoPlayerControls, onPinch handlePinch, style styles.fullscreen ] []
-                , videoPlayerControls videoPlayer
-                , if videoPlayer.isBuffering && not videoPlayer.seeking then
-                    activityIndicator [ style styles.center, stringSize "large" ] []
+                [ if videoPlayer.haveSubtitle then
+                    videoPlayerSubtitle client screenMetrics videoPlayer
 
                   else
                     null
+                , pinchResizer videoPlayer
+                , videoPlayerControls videoPlayer
+                , bufferingIndicator videoPlayer
                 ]
-            , subtitleStream
-                [ SubtitleStream.url <| getSubtitleUrl client screenMetrics videoPlayer.metadata.ratingKey videoPlayer.sessionId
-                , SubtitleStream.playbackTime videoPlayer.subtitleSeekTime
-                , SubtitleStream.onDialogues <| Decode.map GotSubtitle <| Decode.list dialogueDecoder
-                ]
-                []
             ]
 
     else
         null
+
+
+
+-- Utils
+
+
+videoPlayerControlsIcon sz name pressMsg =
+    touchableScale [ onPress <| Decode.succeed <| pressMsg ]
+        [ ionicon name [ size sz, color "white" ]
+        ]
+
+
+videoPlayerControlsImageIcon sz src label props =
+    touchableScale
+        (style { flexDirection = "row", gap = 4, alignItems = "center" } :: props)
+        [ image
+            [ source src
+            , style { width = sz, height = sz }
+            ]
+            []
+        , if String.isEmpty label then
+            null
+
+          else
+            text [ style { fontSize = 15, fontWeight = "bold" } ] [ str label ]
+        ]
+
+
+videoPlayerControlsPressableImageIcon sz src label msg =
+    videoPlayerControlsImageIcon sz src label <| [ onPress <| Decode.succeed msg ]
+
+
+videoPlayerControlsFooterButton =
+    videoPlayerControlsPressableImageIcon 20

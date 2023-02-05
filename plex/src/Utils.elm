@@ -1,4 +1,4 @@
-module Utils exposing (charAt, containsItem, elementAt, findItem, formatDuration, generateIdentifier, maybeEmptyList, maybeEmptyString, maybeFalse, maybeFloatZero, maybeWithDefault, maybeZero, percentFloat, quotRem)
+module Utils exposing (charAt, containsItem, elementAt, findItem, formatDuration, formatPlaybackTime, generateIdentifier, maybeEmptyList, maybeEmptyString, maybeFalse, maybeFloatZero, maybeWithDefault, maybeZero, padZero, percentFloat, quotRem)
 
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
@@ -128,3 +128,50 @@ formatDuration duration =
 
     else
         String.fromInt h ++ "h " ++ String.fromInt m ++ "m"
+
+
+padZero n =
+    if n < 10 then
+        "0" ++ String.fromInt n
+
+    else
+        String.fromInt n
+
+
+formatPlaybackTime : Int -> Int -> String
+formatPlaybackTime d maximum =
+    let
+        total =
+            d // 1000
+
+        totalMins =
+            total // 60
+
+        totalHours =
+            total // 3600
+
+        seconds =
+            total - totalMins * 60
+
+        mins =
+            totalMins - totalHours * 60
+
+        hideHour =
+            maximum < 3600000
+
+        hideMin =
+            maximum < 60000
+    in
+    (if hideHour then
+        ""
+
+     else
+        padZero totalHours ++ ":"
+    )
+        ++ (if hideMin then
+                ""
+
+            else
+                padZero mins ++ ":"
+           )
+        ++ padZero seconds

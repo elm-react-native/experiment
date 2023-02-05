@@ -1,4 +1,4 @@
-module EntityScreen exposing (entityScreen, episodeTitle)
+module EntityScreen exposing (entityScreen)
 
 import Api exposing (Client, Metadata)
 import Components exposing (bottomPadding, chip, progressBar, text, videoPlayContainer)
@@ -520,10 +520,6 @@ entityCasts tvShow metadata =
                         ++ String.join ", " (List.map .tag casts)
                 ]
             ]
-
-
-episodeTitle ep =
-    "S" ++ String.fromInt ep.parentIndex ++ ":E" ++ String.fromInt ep.index ++ " " ++ ep.title
 
 
 entityInfo : Bool -> RemoteData TVShow -> Metadata -> Html Msg

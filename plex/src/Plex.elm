@@ -6,7 +6,7 @@ import Browser
 import Browser.Navigation as N
 import Components exposing (favicon)
 import Dict exposing (Dict)
-import EntityScreen exposing (entityScreen, episodeTitle)
+import EntityScreen exposing (entityScreen)
 import HomeScreen exposing (homeScreen)
 import Html exposing (Html)
 import Html.Lazy exposing (lazy)

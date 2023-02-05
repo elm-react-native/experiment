@@ -1,4 +1,4 @@
-module SubtitleStream exposing (onDialogues, playbackTime, subtitleStream, url)
+module Video.SubtitleStream exposing (onDialogues, playbackTime, subtitleStream, url)
 
 import Json.Encode as Encode
 import Model exposing (Dialogue)
