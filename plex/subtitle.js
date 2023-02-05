@@ -30,7 +30,7 @@ export default props => {
     console.log('sendStartStreamSubtitle', props, loaded);
 
     if (!webViewRef.current || !assStreamerRef.current || !loaded) return;
-    if (!props.url) {
+    if (!props.url || props.subtitleStreamId === 0) {
       assStreamerRef.current.cancel();
       webViewRef.current.postMessage(JSON.stringify({type: 'stop'}));
       return;
@@ -56,7 +56,7 @@ export default props => {
     return () => {
       assStreamerRef.current.cancel();
     };
-  }, [props.url, props.playbackTime, loaded]); // restart when playbackTime changes
+  }, [props.url, props.playbackTime, props.subtitleStreamId, loaded]); // restart when playbackTime or subtitleStreamId changes
 
   const onLoad = useCallback(() => {
     console.log('loaded');

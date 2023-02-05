@@ -35,7 +35,7 @@ subtitleText s =
         [ text [ style styles.subtitle ] [ str s ] ]
 
 
-getSubtitleUrl client ratingKey sessionId =
+getSubtitleUrl client ratingKey session sessionId =
     Api.clientRequestUrl "/video/:/transcode/universal/subtitles" client
         ++ ("&hasMDE=1&path=%2Flibrary%2Fmetadata%2F" ++ ratingKey)
         ++ "&mediaIndex=0"
@@ -66,11 +66,11 @@ getSubtitleUrl client ratingKey sessionId =
         --++ "&X-Plex-Device-Screen-Resolution=980x1646%2C393x852"
         ++ ("&X-Plex-Device-Screen-Resolution=" ++ String.fromFloat client.screenMetrics.width ++ "x" ++ String.fromFloat client.screenMetrics.height)
         ++ "&X-Plex-Language=en"
-        ++ ("&X-Pler-Session-Identifier=" ++ sessionId)
-        ++ ("&session=" ++ sessionId)
+        ++ ("&X-Plex-Session-Identifier=" ++ sessionId)
+        ++ ("&session=" ++ session)
 
 
-videoPlayerSubtitle client { subtitle, subtitleSeekTime, playbackTime, seeking, showSubtitle, metadata, sessionId } =
+videoPlayerSubtitle client { subtitle, subtitleSeekTime, playbackTime, seeking, showSubtitle, metadata, session, sessionId, selectedSubtitle } =
     fragment []
         [ if seeking || not showSubtitle then
             null
@@ -101,8 +101,9 @@ videoPlayerSubtitle client { subtitle, subtitleSeekTime, playbackTime, seeking, 
                     ]
                     [ lazy subtitleText s ]
         , subtitleStream
-            [ SubtitleStream.url <| getSubtitleUrl client metadata.ratingKey sessionId
+            [ SubtitleStream.url <| getSubtitleUrl client metadata.ratingKey session sessionId
             , SubtitleStream.playbackTime subtitleSeekTime
+            , SubtitleStream.subtitleStreamId <| selectedSubtitle
             , SubtitleStream.onDialogues <| Decode.map GotSubtitle <| Decode.list dialogueDecoder
             ]
             []

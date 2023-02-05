@@ -1,4 +1,4 @@
-module Api exposing (Account, Client, Connection, Country, Director, Genre, Guid, Library, Location, Media, MediaPart, Metadata, Rating, Resource, Role, Section, Setting, SignInResponse, TimelineRequest, TimelineResponse, Writer, accountDecoder, clientGetJson, clientGetJsonTask, clientRequestUrl, firstAccountWithName, getAccount, getContinueWatching, getLibraries, getLibrary, getLibraryRecentlyAdded, getMetadata, getMetadataChildren, getResources, getSections, getSettings, httpJsonBodyResolver, initialClient, initialLibrary, initialMetadata, librariesDecoder, libraryDecoder, metadataDecoder, metadataListDecoder, playerTimeline, sectionsDecoder, settingsDecoder, signIn, timelineResponseDecoder, transcodedImageUrl)
+module Api exposing (Account, Client, Connection, Country, Director, Genre, Guid, Library, Location, Media, MediaPart, MediaStream, Metadata, Rating, Resource, Role, Section, Setting, SignInResponse, TimelineRequest, TimelineResponse, Writer, accountDecoder, clientGetJson, clientGetJsonTask, clientRequestUrl, firstAccountWithName, getAccount, getContinueWatching, getLibraries, getLibrary, getLibraryRecentlyAdded, getMetadata, getMetadataChildren, getResources, getSections, getSettings, httpJsonBodyResolver, initialClient, initialLibrary, initialMetadata, librariesDecoder, libraryDecoder, metadataDecoder, metadataListDecoder, playerTimeline, sectionsDecoder, selectSubtitle, settingsDecoder, signIn, timelineResponseDecoder, transcodedImageUrl)
 
 import Http
 import Json.Decode as Decode exposing (Decoder)
@@ -73,8 +73,8 @@ type alias MediaPart =
     Media.MediaPart
 
 
-type alias Stream =
-    Media.Stream
+type alias MediaStream =
+    Media.MediaStream
 
 
 type alias Metadata =
@@ -494,6 +494,18 @@ clientPostJsonTask body decoder path client =
         }
 
 
+clientPutTask : Maybe Value -> Decoder a -> String -> Client -> Task Http.Error a
+clientPutTask body decoder path client =
+    Http.task
+        { url = clientRequestUrl path client
+        , method = "PUT"
+        , headers = [ Http.header "Accept" "application/json" ]
+        , body = Maybe.withDefault Http.emptyBody <| Maybe.map Http.jsonBody body
+        , resolver = Http.stringResolver <| httpJsonBodyResolver decoder
+        , timeout = Just 15000
+        }
+
+
 clientGetJson : Decoder a -> String -> (Result Http.Error a -> msg) -> Client -> Cmd msg
 clientGetJson decoder path tagger client =
     Http.request
@@ -773,3 +785,30 @@ connectionDecoder =
 getResources : Client -> Task Http.Error (List Resource)
 getResources =
     clientGetJsonTask (Decode.list resourceDecoder) "/resources"
+
+
+selectSubtitle : Int -> Int -> Client -> Task Http.Error ()
+selectSubtitle partId subtitleStreamId client =
+    clientPutTask Nothing
+        (Decode.succeed ())
+        ("/library/parts/"
+            ++ String.fromInt partId
+            ++ "?allParts=1"
+            ++ ("&X-Plex-Token=" ++ client.token)
+            ++ ("&subtitleStreamID=" ++ String.fromInt subtitleStreamId)
+        )
+        client
+
+
+searchSubtitle : String -> String -> String -> Client -> Task Http.Error (List MediaStream)
+searchSubtitle key language title =
+    clientGetJsonTask (Decode.list <| streamDecoder) <|
+        "/library/metadata/"
+            ++ key
+            ++ "/subtitles?"
+            ++ ("language=" ++ Url.percentEncode language)
+            ++ ("&title=" ++ Url.percentEncode title)
+
+
+
+-- curl -H "Accept: application/json" http://192.168.199.103:32400/library/metadata/592/subtitles\?language\=zh\&title\=Bullet%20Train\&X-Plex-Client-Identifier\=m5h290oc8id9sl4356od4k9y\&X-Plex-Token\=hoSG7jeEsYDMQnstqnzP

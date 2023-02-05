@@ -1,13 +1,13 @@
 module VideoScreen exposing (videoScreen)
 
-import Api
+import Api exposing (MediaStream, Metadata)
 import Components exposing (onPinch, onTap, pinchableView, text)
 import Html exposing (Html)
 import Html.Lazy exposing (lazy)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import Maybe
-import Model exposing (HomeModel, Msg(..), PlaybackSpeed, PlaybackState(..), ScreenLockState(..), SeekStage(..), VideoPlayer, VideoPlayerControlAction(..), containsSubtitle, dialogueDecoder, episodeTitle, isVideoUrlReady, playbackSpeedDecoder, playbackSpeedEncode, playbackSpeedList, playbackSpeedToRate)
+import Model exposing (HomeModel, Msg(..), PlaybackSpeed, PlaybackState(..), ScreenLockState(..), SeekStage(..), VideoPlayer, VideoPlayerControlAction(..), dialogueDecoder, episodeTitle, filterMediaStream, getFirstPartId, getSelectedSubtitleStream, isVideoUrlReady, playbackSpeedDecoder, playbackSpeedEncode, playbackSpeedList, playbackSpeedToRate)
 import ReactNative exposing (activityIndicator, button, fragment, image, null, require, str, touchableOpacity, touchableScale, touchableWithoutFeedback, view)
 import ReactNative.Animated as Animated
 import ReactNative.ContextMenuIOS exposing (MenuItem, contextMenuButton, isMenuPrimaryAction, menuConfig, onPressMenuItem, pressEventMenuItemDecoder)
@@ -44,14 +44,14 @@ import ReactNative.Video
         )
 import Theme
 import Time
-import Utils exposing (formatPlaybackTime)
+import Utils exposing (containsItem, formatPlaybackTime)
 import Video.ProgressBar exposing (videoPlayerControlsProgress)
 import Video.Subtitle exposing (videoPlayerSubtitle)
 import Video.SubtitleStream as SubtitleStream exposing (subtitleStream)
 
 
 videoUri : VideoPlayer -> Api.Client -> String
-videoUri { sessionId, metadata } client =
+videoUri { session, sessionId, metadata } client =
     Api.clientRequestUrl "/video/:/transcode/universal/start.m3u8" client
         ++ ("&path=%2Flibrary%2Fmetadata%2F" ++ metadata.ratingKey)
         ++ "&hasMDE=1"
@@ -91,8 +91,8 @@ videoUri { sessionId, metadata } client =
         --++ "&X-Plex-Device-Screen-Resolution=980x1646%2C393x852"
         ++ ("&X-Plex-Device-Screen-Resolution=" ++ String.fromFloat client.screenMetrics.width ++ "x" ++ String.fromFloat client.screenMetrics.height)
         ++ "&X-Plex-Language=en"
-        ++ ("&X-Pler-Session-Identifier=" ++ sessionId)
-        ++ ("&session=" ++ sessionId)
+        ++ ("&X-Plex-Session-Identifier=" ++ sessionId)
+        ++ ("&session=" ++ session)
 
 
 styles =
@@ -230,13 +230,34 @@ playbackSpeedMenu playbackSpeed =
         ]
 
 
-subtitleMenu : Bool -> Bool -> Html Msg
-subtitleMenu haveSubtitle isDisplay =
+subtitleMenu : VideoPlayer -> Html Msg
+subtitleMenu { metadata, showSubtitle, selectedSubtitle } =
+    let
+        partId =
+            Maybe.withDefault 0 <| getFirstPartId metadata
+
+        subs =
+            metadata
+                |> filterMediaStream (\{ streamType, codec } -> streamType == 3)
+                |> List.map
+                    (\{ id, displayTitle, selected } ->
+                        { id = id
+                        , label = displayTitle
+                        }
+                    )
+                |> appendOffItem
+
+        appendOffItem menus =
+            menus ++ [ { id = 0, label = "Off" } ]
+
+        haveSubtitle =
+            List.length subs > 1
+    in
     contextMenuButton
         [ pressEventMenuItemDecoder
             |> Decode.map
                 (\{ actionKey } ->
-                    VideoPlayerControl <| ChangeSubtitle <| actionKey == "On"
+                    VideoPlayerControl <| ChangeSubtitle partId <| Maybe.withDefault 0 <| String.toInt actionKey
                 )
             |> onPressMenuItem
         , isMenuPrimaryAction True
@@ -244,29 +265,18 @@ subtitleMenu haveSubtitle isDisplay =
             { menuTitle = ""
             , menuItems =
                 if haveSubtitle then
-                    [ False, True ]
-                        |> List.map
-                            (\isOn ->
-                                { label =
-                                    if isOn then
-                                        "On"
+                    List.map
+                        (\{ id, label } ->
+                            { actionKey = String.fromInt id
+                            , actionTitle =
+                                if id == selectedSubtitle then
+                                    "✓ " ++ label
 
-                                    else
-                                        "Off"
-                                , selected = isOn == isDisplay
-                                }
-                            )
-                        |> List.map
-                            (\{ label, selected } ->
-                                { actionKey = label
-                                , actionTitle =
-                                    if selected then
-                                        "✓ " ++ label
-
-                                    else
-                                        "    " ++ label
-                                }
-                            )
+                                else
+                                    "    " ++ label
+                            }
+                        )
+                        subs
 
                 else
                     []
@@ -281,7 +291,7 @@ subtitleMenu haveSubtitle isDisplay =
 
                     else
                         [ style { opacity = 0.5 }
-                        , disabled (not haveSubtitle)
+                        , disabled True
                         ]
                    )
             )
@@ -399,7 +409,7 @@ videoPlayerControlsToolbar videoPlayer =
             [ playbackSpeedMenu videoPlayer.playbackSpeed
             , videoPlayerControlsFooterButton (require "./assets/lock-open.png") "Lock" <| VideoPlayerControl <| ChangeScreenLock Locked
             , videoPlayerControlsFooterButton (require "./assets/episodes.png") "Episodes" <| VideoPlayerControl ExtendTimeout
-            , subtitleMenu videoPlayer.haveSubtitle videoPlayer.showSubtitle
+            , subtitleMenu videoPlayer
             , if videoPlayer.metadata.typ == "episode" then
                 videoPlayerControlsFooterButton (require "./assets/next-ep.png") "Next Episode" <| VideoPlayerControl NextEpisode
 
@@ -493,11 +503,11 @@ videoScreen ({ videoPlayer, client } as m) _ =
                 , playWhenInactive True
                 , rate <| playbackSpeedToRate videoPlayer.playbackSpeed
                 ]
-                [ if videoPlayer.haveSubtitle then
-                    videoPlayerSubtitle client videoPlayer
+                [ if videoPlayer.selectedSubtitle == 0 then
+                    null
 
                   else
-                    null
+                    videoPlayerSubtitle client videoPlayer
                 , pinchResizer videoPlayer
                 , videoPlayerControls videoPlayer
                 , bufferingIndicator videoPlayer

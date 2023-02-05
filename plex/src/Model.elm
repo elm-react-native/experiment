@@ -1,6 +1,6 @@
-module Model exposing (Dialogue, HomeModel, LibrarySection, Model(..), Msg(..), PlaybackSpeed, PlaybackState(..), RemoteData, ScreenLockState(..), SeekStage(..), TVSeason, TVShow, VideoPlayer, VideoPlayerControlAction(..), containsSubtitle, dialogueDecoder, episodeTitle, findSeason, findTVShowByEpisodeRatingKey, initHomeModel, initialVideoPlayer, isVideoUrlReady, playbackSpeedDecoder, playbackSpeedEncode, playbackSpeedList, playbackSpeedToRate, updateEpisode, updateSelectedSeason, updateTVShow)
+module Model exposing (Dialogue, HomeModel, LibrarySection, Model(..), Msg(..), PlaybackSpeed, PlaybackState(..), RemoteData, ScreenLockState(..), SeekStage(..), TVSeason, TVShow, VideoPlayer, VideoPlayerControlAction(..), dialogueDecoder, episodeTitle, filterMediaStream, findSeason, findTVShowByEpisodeRatingKey, getFirstPartId, getSelectedSubtitleStream, initHomeModel, initialVideoPlayer, isVideoUrlReady, playbackSpeedDecoder, playbackSpeedEncode, playbackSpeedList, playbackSpeedToRate, updateEpisode, updateSelectedSeason, updateTVShow)
 
-import Api exposing (Account, Client, Library, Metadata, Section, initialMetadata)
+import Api exposing (Account, Client, Library, MediaStream, Metadata, Section, initialMetadata)
 import Browser.Navigation as N
 import Dict exposing (Dict)
 import Http
@@ -9,7 +9,7 @@ import ReactNative.Animated as Animated
 import ReactNative.Dimensions as Dimensions exposing (DisplayMetrics)
 import SignInModel exposing (SignInModel, SignInMsg)
 import Time
-import Utils exposing (containsItem)
+import Utils exposing (findItem)
 
 
 type alias RemoteData data =
@@ -41,6 +41,7 @@ type PlaybackState
 
 type alias VideoPlayer =
     { sessionId : String
+    , session : String
     , playbackTime : Int
     , playbackSpeed : PlaybackSpeed
     , isBuffering : Bool
@@ -57,7 +58,7 @@ type alias VideoPlayer =
     , screenLock : ScreenLockState
     , resizeMode : String
     , showSubtitle : Bool
-    , haveSubtitle : Bool
+    , selectedSubtitle : Int
     }
 
 
@@ -70,6 +71,7 @@ type ScreenLockState
 initialVideoPlayer : VideoPlayer
 initialVideoPlayer =
     { sessionId = ""
+    , session = ""
     , playbackTime = 0
     , isBuffering = False
     , seekTime = 0
@@ -86,7 +88,7 @@ initialVideoPlayer =
     , resizeMode = "cover"
     , playbackSpeed = Normal
     , showSubtitle = True
-    , haveSubtitle = False
+    , selectedSubtitle = 0
     }
 
 
@@ -231,7 +233,7 @@ type VideoPlayerControlAction
     | ChangeScreenLock ScreenLockState
     | ChangeResizeMode String
     | ChangeSpeed PlaybackSpeed
-    | ChangeSubtitle Bool
+    | ChangeSubtitle Int Int
     | ExtendTimeout
 
 
@@ -254,6 +256,7 @@ type Msg
     | PlayVideo Metadata
     | PlayVideoError String
     | GotPlaySessionId String
+    | GotPlaySession String
     | StopPlayVideo
     | OnVideoEnd
     | OnVideoBuffer Bool
@@ -268,6 +271,8 @@ type Msg
     | UpdateTimeToHideControls Int
     | VideoPlayerControl VideoPlayerControlAction
     | HideVideoPlayerControlsAnimationFinish
+    | SubtitleChanged
+    | RestartPlaySession Bool String
 
 
 {-| fallback to first season when not find, return `Nothing` when seasons is empty
@@ -384,16 +389,37 @@ updateEpisode metadata =
         metadata.grandparentRatingKey
 
 
-containsSubtitle metadata =
-    let
-        hasStream part =
-            containsItem (\{ streamType, codec } -> streamType == 3 && codec /= "vobsub") part.streams
-
-        hasMedia media =
-            containsItem hasStream media.parts
-    in
-    containsItem hasMedia metadata.medias
+getSelectedSubtitleStream : Metadata -> Maybe MediaStream
+getSelectedSubtitleStream metadata =
+    List.head <| filterMediaStream (\s -> s.streamType == 3 && s.selected) metadata
 
 
 episodeTitle ep =
     "S" ++ String.fromInt ep.parentIndex ++ ":E" ++ String.fromInt ep.index ++ " " ++ ep.title
+
+
+filterMediaStream : (MediaStream -> Bool) -> Metadata -> List MediaStream
+filterMediaStream pred metadata =
+    let
+        findStreams part =
+            List.filter pred part.streams
+
+        findParts media =
+            List.concatMap findStreams media.parts
+    in
+    List.concatMap findParts metadata.medias
+
+
+getFirstPartId : Metadata -> Maybe Int
+getFirstPartId metadata =
+    case metadata.medias of
+        media :: _ ->
+            case media.parts of
+                part :: _ ->
+                    Just part.id
+
+                _ ->
+                    Nothing
+
+        _ ->
+            Nothing

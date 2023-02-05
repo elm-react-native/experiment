@@ -26,6 +26,7 @@ import ReactNative.Events exposing (onPress)
 import ReactNative.Keyboard as Keyboard
 import ReactNative.Navigation as Nav exposing (screen, stackNavigator)
 import ReactNative.Navigation.Listeners as Listeners
+import ReactNative.Platform as Platform
 import ReactNative.Properties exposing (color, component, componentModel, getId, name, options, size, source, style)
 import ReactNative.Settings as Settings
 import SignInModel exposing (SignInModel, SignInMsg)
@@ -141,6 +142,62 @@ getEpisodes : String -> String -> Client -> Cmd Msg
 getEpisodes showId seasonId client =
     Api.getMetadataChildren seasonId client
         |> Task.attempt (hijackUnauthorizedError <| GotEpisodes showId seasonId)
+
+
+selectSubtitle : String -> Int -> Int -> Client -> Cmd Msg
+selectSubtitle ratingKey partId subtitleStreamId client =
+    Api.selectSubtitle partId subtitleStreamId client
+        |> Task.attempt (hijackUnauthorizedError <| always SubtitleChanged)
+
+
+sendDecision newSession { metadata, sessionId } client =
+    let
+        path =
+            -- I don't actaully understand why it is called `/decision`
+            -- The parameters seems similiar to video uri
+            "/video/:/transcode/universal/decision"
+                ++ ("?path=%2Flibrary%2Fmetadata%2F" ++ metadata.ratingKey)
+                ++ "&hasMDE=1"
+                ++ "&mediaIndex=0"
+                ++ "&partIndex=0"
+                ++ "&protocol=hls"
+                ++ "&fastSeek=1"
+                ++ "&directPlay=0"
+                ++ "&directStream=1"
+                ++ "&subtitleSize=100"
+                ++ "&audioBoost=100"
+                ++ "&location=lan"
+                ++ "&addDebugOverlay=0"
+                ++ "&autoAdjustQuality=0"
+                ++ "&directStreamAudio=1"
+                ++ "&mediaBufferSize=102400"
+                ++ "&subtitles=auto"
+                ++ "&Accept-Language=en"
+                ++ "&X-Plex-Client-Profile-Extra=append-transcode-target-codec%28type%3DvideoProfile%26context%3Dstreaming%26audioCodec%3Daac%252Cac3%252Ceac3%26protocol%3Dhls%29"
+                ++ "&X-Plex-Incomplete-Segments=1"
+                ++ "&X-Plex-Product=Plex%20Web"
+                ++ "&X-Plex-Version=4.87.2"
+                ++ "&X-Plex-Platform=Safari"
+                ++ "&X-Plex-Platform-Version=109.0"
+                ++ "&X-Plex-Features=external-media%2Cindirect-media%2Chub-style-list"
+                ++ "&X-Plex-Model=bundled"
+                ++ (if Platform.os == "ios" then
+                        "&X-Plex-Device=iOS"
+
+                    else if Platform.os == "android" then
+                        "&X-Plex-Device=android"
+
+                    else
+                        ""
+                   )
+                ++ "&X-Plex-Device-Name=Safari"
+                --++ "&X-Plex-Device-Screen-Resolution=980x1646%2C393x852"
+                ++ ("&X-Plex-Device-Screen-Resolution=" ++ String.fromFloat client.screenMetrics.width ++ "x" ++ String.fromFloat client.screenMetrics.height)
+                ++ "&X-Plex-Language=en"
+                ++ ("&X-Plex-Session-Identifier=" ++ sessionId)
+                ++ ("&session=" ++ newSession)
+    in
+    Api.clientGetJson (Decode.succeed ()) path (always <| RestartPlaySession True newSession) client
 
 
 savePlaybackTime : VideoPlayer -> Client -> Cmd Msg
@@ -399,6 +456,7 @@ playVideo ({ ratingKey, viewOffset, typ } as metadata) ({ navKey, videoPlayer, c
     , Cmd.batch
         [ Nav.push navKey "video" ()
         , getStreams ratingKey client
+        , Random.generate GotPlaySession Utils.generateIdentifier
         , if String.isEmpty videoPlayer.sessionId then
             Random.generate GotPlaySessionId Utils.generateIdentifier
 
@@ -546,8 +604,13 @@ videoPlayerControlAction client tvShows action videoPlayer =
         ChangeSpeed speed ->
             ( { videoPlayer | playbackSpeed = speed }, Cmd.none )
 
-        ChangeSubtitle b ->
-            ( { videoPlayer | showSubtitle = b }, Cmd.none )
+        ChangeSubtitle partId subtitleStreamId ->
+            ( { videoPlayer
+                | selectedSubtitle = subtitleStreamId
+                , subtitle = []
+              }
+            , selectSubtitle videoPlayer.metadata.ratingKey partId subtitleStreamId client
+            )
 
         ExtendTimeout ->
             ( videoPlayer, Cmd.none )
@@ -717,6 +780,14 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
+        GotPlaySession session ->
+            case model of
+                Home ({ videoPlayer } as m) ->
+                    ( Home { m | videoPlayer = { videoPlayer | session = session } }, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
         GotPlaySessionId sessionId ->
             case model of
                 Home ({ videoPlayer } as m) ->
@@ -783,7 +854,14 @@ update msg model =
         OnLeaveVideoScreen ->
             case model of
                 Home ({ client, videoPlayer } as m) ->
-                    ( Home { m | videoPlayer = { initialVideoPlayer | resizeMode = videoPlayer.resizeMode } }
+                    ( Home
+                        { m
+                            | videoPlayer =
+                                { initialVideoPlayer
+                                    | resizeMode = videoPlayer.resizeMode
+                                    , sessionId = videoPlayer.sessionId
+                                }
+                        }
                     , Cmd.batch
                         [ getContinueWatching m.client
                         , getStreams videoPlayer.metadata.ratingKey m.client
@@ -899,7 +977,13 @@ update msg model =
                                     | videoPlayer =
                                         { videoPlayer
                                             | metadata = metadata
-                                            , haveSubtitle = containsSubtitle metadata
+                                            , selectedSubtitle =
+                                                case getSelectedSubtitleStream metadata of
+                                                    Just stream ->
+                                                        stream.id
+
+                                                    _ ->
+                                                        0
                                         }
                                     , tvShows = updateEpisode metadata m.tvShows
                                 }
@@ -1035,6 +1119,30 @@ update msg model =
                         }
                     , Cmd.none
                     )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        SubtitleChanged ->
+            ( model, Random.generate (RestartPlaySession False) Utils.generateIdentifier )
+
+        RestartPlaySession madeDecision session ->
+            case model of
+                Home ({ videoPlayer, client } as m) ->
+                    if madeDecision then
+                        ( Home
+                            { m
+                                | videoPlayer =
+                                    { videoPlayer
+                                        | session = session
+                                        , seekTime = videoPlayer.playbackTime
+                                    }
+                            }
+                        , Cmd.none
+                        )
+
+                    else
+                        ( model, sendDecision session videoPlayer client )
 
                 _ ->
                     ( model, Cmd.none )

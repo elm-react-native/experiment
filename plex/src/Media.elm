@@ -1,4 +1,4 @@
-module Media exposing (Media, MediaPart, Stream, mediaDecoder, streamDecoder)
+module Media exposing (Media, MediaPart, MediaStream, mediaDecoder, streamDecoder)
 
 import Json.Decode
 import Json.Encode
@@ -14,11 +14,11 @@ type alias Media =
 
 type alias MediaPart =
     { id : Int --  Unique ID associated with the part.
-    , streams : List Stream
+    , streams : List MediaStream
     }
 
 
-type alias Stream =
+type alias MediaStream =
     { id : Int -- 4230,
     , streamType : Int -- 1 video, 2 audio, 3 subtitle,
     , default : Bool -- true,
@@ -58,7 +58,7 @@ decodeMediaPart =
         |> decodeAndMap (Util.maybeEmptyList <| Json.Decode.field "Stream" (Json.Decode.list streamDecoder))
 
 
-streamDecoder : Json.Decode.Decoder Stream
+streamDecoder : Json.Decode.Decoder MediaStream
 streamDecoder =
     Json.Decode.succeed
         (\id streamType default codec index displayTitle extendedDisplayTitle sourceKey selected language ->
