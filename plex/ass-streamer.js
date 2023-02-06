@@ -17,6 +17,7 @@ export default class AssStreamer {
       const stream = new libjass.parser.XhrStream(xhrProxy);
       const streamParser = new libjass.parser.StreamParser(stream);
 
+      streamParser.ass.catch(() => {}); // ignore error
       this.ass = await streamParser.minimalASS;
 
       this._cancelPollDialogue();
