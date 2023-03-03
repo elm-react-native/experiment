@@ -40,7 +40,7 @@ getSubtitleUrl client ratingKey session sessionId =
         ++ ("&hasMDE=1&path=%2Flibrary%2Fmetadata%2F" ++ ratingKey)
         ++ "&mediaIndex=0"
         ++ "&partIndex=0"
-        ++ "&protocol=hls"
+        ++ "&protocol=dash"
         ++ "&fastSeek=1"
         ++ "&directPlay=0"
         ++ "&directStream=1"
@@ -61,7 +61,7 @@ getSubtitleUrl client ratingKey session sessionId =
         ++ "&X-Plex-Platform-Version=605.1"
         ++ "&X-Plex-Features=external-media%2Cindirect-media%2Chub-style-list"
         ++ "&X-Plex-Model=bundled"
-        ++ "&X-Plex-Device=iOS"
+        ++ "&X-Plex-Device=OSX"
         ++ "&X-Plex-Device-Name=Safari"
         --++ "&X-Plex-Device-Screen-Resolution=980x1646%2C393x852"
         ++ ("&X-Plex-Device-Screen-Resolution=" ++ String.fromFloat client.screenMetrics.width ++ "x" ++ String.fromFloat client.screenMetrics.height)

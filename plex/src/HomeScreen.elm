@@ -45,7 +45,6 @@ import ReactNative.Properties
         , zoomScale
         )
 import ReactNative.StyleSheet as StyleSheet
-import ReactNative.Video exposing (video)
 import Theme
 import Utils exposing (formatDuration, percentFloat)
 

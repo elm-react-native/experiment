@@ -1,4 +1,4 @@
-module Api exposing (Account, Client, Connection, Country, Director, Genre, Guid, Library, Location, Media, MediaPart, MediaStream, Metadata, Rating, Resource, Role, Section, Setting, SignInResponse, TimelineRequest, TimelineResponse, Writer, accountDecoder, clientGetJson, clientGetJsonTask, clientRequestUrl, firstAccountWithName, getAccount, getContinueWatching, getLibraries, getLibrary, getLibraryRecentlyAdded, getMetadata, getMetadataChildren, getResources, getSections, getSettings, httpJsonBodyResolver, initialClient, initialLibrary, initialMetadata, librariesDecoder, libraryDecoder, metadataDecoder, metadataListDecoder, playerTimeline, sectionsDecoder, selectSubtitle, settingsDecoder, signIn, timelineResponseDecoder, transcodedImageUrl)
+module Api exposing (Account, Client, Connection, Country, Director, Genre, Guid, Library, Location, Media, MediaPart, MediaStream, Metadata, Rating, Resource, Role, Section, Setting, SignInResponse, TimelineRequest, TimelineResponse, Writer, accountDecoder, clientGetJson, clientGetJsonTask, clientPostJson, clientRequestUrl, firstAccountWithName, getAccount, getContinueWatching, getLibraries, getLibrary, getLibraryRecentlyAdded, getMetadata, getMetadataChildren, getResources, getSections, getSettings, httpJsonBodyResolver, initialClient, initialLibrary, initialMetadata, librariesDecoder, libraryDecoder, metadataDecoder, metadataListDecoder, playerTimeline, sectionsDecoder, selectSubtitle, settingsDecoder, signIn, timelineResponseDecoder, transcodedImageUrl)
 
 import Http
 import Json.Decode as Decode exposing (Decoder)
@@ -511,6 +511,19 @@ clientGetJson decoder path tagger client =
     Http.request
         { url = clientRequestUrl path client
         , method = "GET"
+        , headers = [ Http.header "Accept" "application/json" ]
+        , body = Http.emptyBody
+        , expect = Http.expectJson tagger decoder
+        , timeout = Just 15000
+        , tracker = Nothing
+        }
+
+
+clientPostJson : Decoder a -> String -> (Result Http.Error a -> msg) -> Client -> Cmd msg
+clientPostJson decoder path tagger client =
+    Http.request
+        { url = clientRequestUrl path client
+        , method = "POST"
         , headers = [ Http.header "Accept" "application/json" ]
         , body = Http.emptyBody
         , expect = Http.expectJson tagger decoder

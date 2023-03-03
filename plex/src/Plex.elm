@@ -150,6 +150,36 @@ selectSubtitle ratingKey partId subtitleStreamId client =
         |> Task.attempt (hijackUnauthorizedError <| always SubtitleChanged)
 
 
+
+--sendPlayQueues client metadata =
+--    let
+--        path =
+--            "/playQueues?type=video"
+--                ++ "&continuous=1"
+--                ++ ("&uri=server%3A%2F%2Fefdfde8153949a9b7ae2f271a6e32db10925b669%2Fcom.plexapp.plugins.library%2Flibrary%2Fmetadata%2F" ++ metadata.ratingKey)
+--                ++ "&repeat=0"
+--                ++ "&own=1"
+--                ++ "&includeChapters=1"
+--                ++ "&includeMarkers=1"
+--                ++ "&includeGeolocation=1"
+--                ++ "&includeExternalMedia=1"
+--                ++ "&X-Plex-Product=Plex%20Web"
+--                ++ "&X-Plex-Version=4.100.1"
+--                ++ "&X-Plex-Platform=Chrome"
+--                ++ "&X-Plex-Platform-Version=110.0"
+--                ++ "&X-Plex-Features=external-media%2Cindirect-media%2Chub-style-list"
+--                ++ "&X-Plex-Model=bundled"
+--                ++ "&X-Plex-Device=OSX"
+--                ++ "&X-Plex-Device-Name=Chrome"
+--                ++ "&X-Plex-Device-Screen-Resolution=1492x407%2C1728x1117"
+--                ++ "&X-Plex-Language=en"
+--                ++ "&X-Plex-Drm=none"
+--                ++ "&X-Plex-Text-Format=plain"
+--                ++ "&X-Plex-Provider-Version=5.1"
+--    in
+--    Api.clientPostJson (Decode.succeed ()) path (always <| GotPlayQueues metadata) client
+
+
 sendDecision newSession { metadata, sessionId } client =
     let
         path =
@@ -160,7 +190,7 @@ sendDecision newSession { metadata, sessionId } client =
                 ++ "&hasMDE=1"
                 ++ "&mediaIndex=0"
                 ++ "&partIndex=0"
-                ++ "&protocol=hls"
+                ++ "&protocol=dash"
                 ++ "&fastSeek=1"
                 ++ "&directPlay=0"
                 ++ "&directStream=1"
@@ -173,7 +203,8 @@ sendDecision newSession { metadata, sessionId } client =
                 ++ "&mediaBufferSize=102400"
                 ++ "&subtitles=auto"
                 ++ "&Accept-Language=en"
-                ++ "&X-Plex-Client-Profile-Extra=append-transcode-target-codec%28type%3DvideoProfile%26context%3Dstreaming%26audioCodec%3Daac%252Cac3%252Ceac3%26protocol%3Dhls%29"
+                ++ "&X-Plex-Client-Profile-Extra=add-limitation%28scope%3DvideoCodec%26scopeName%3Dhevc%26type%3DupperBound%26name%3Dvideo.bitDepth%26value%3D10%26replace%3Dtrue%29%2Bappend-transcode-target-codec%28type%3DvideoProfile%26context%3Dstreaming%26protocol%3Ddash%26videoCodec%3Dhevc%29%2Badd-limitation%28scope%3DvideoTranscodeTarget%26scopeName%3Dhevc%26scopeType%3DvideoCodec%26context%3Dstreaming%26protocol%3Ddash%26type%3Dmatch%26name%3Dvideo.colorTrc%26list%3Dbt709%7Cbt470m%7Cbt470bg%7Csmpte170m%7Csmpte240m%7Cbt2020-10%7Csmpte2084%26isRequired%3Dfalse%29%2Bappend-transcode-target-codec%28type%3DvideoProfile%26context%3Dstreaming%26audioCodec%3Daac%26protocol%3Ddash%29"
+                --++ "&X-Plex-Client-Profile-Extra=append-transcode-target-codec%28type%3DvideoProfile%26context%3Dstreaming%26audioCodec%3Daac%252Cac3%252Ceac3%26protocol%3Ddash%29"
                 ++ "&X-Plex-Incomplete-Segments=1"
                 ++ "&X-Plex-Product=Plex%20Web"
                 ++ "&X-Plex-Version=4.87.2"
@@ -182,7 +213,7 @@ sendDecision newSession { metadata, sessionId } client =
                 ++ "&X-Plex-Features=external-media%2Cindirect-media%2Chub-style-list"
                 ++ "&X-Plex-Model=bundled"
                 ++ (if Platform.os == "ios" then
-                        "&X-Plex-Device=iOS"
+                        "&X-Plex-Device=OSX"
 
                     else if Platform.os == "android" then
                         "&X-Plex-Device=android"
@@ -594,7 +625,8 @@ videoPlayerControlAction client tvShows action videoPlayer =
                     { videoPlayer
                         | seekTime = time
                         , playbackTime = time
-                        , seeking = True
+                        , seeking = False
+                        , subtitleSeekTime = time
                     }
 
                 SeekEnd ->
@@ -610,6 +642,7 @@ videoPlayerControlAction client tvShows action videoPlayer =
 
                     else
                         Playing
+                , seeking = False
               }
             , Cmd.none
             )
@@ -756,6 +789,10 @@ update msg model =
                 Home ({ tvShows, videoPlayer, client } as m) ->
                     case resp of
                         Ok ( tvShow, Just nextEpisode ) ->
+                            let
+                                _ =
+                                    Debug.log "GotNextEpisode" nextEpisode.viewOffset
+                            in
                             ( Home
                                 { m
                                     | tvShows = insertTVShowIfNotExist showId tvShow m.tvShows
@@ -892,10 +929,10 @@ update msg model =
                         ( model, Cmd.none )
 
                     else
-                        --let
-                        --    _ =
-                        --        Debug.log "playbackTime" time
-                        --in
+                        let
+                            _ =
+                                Debug.log "playbackTime" time
+                        in
                         ( Home { m | videoPlayer = { videoPlayer | playbackTime = time, isBuffering = False } }, Cmd.none )
 
                 _ ->
@@ -980,6 +1017,10 @@ update msg model =
                     ( model, Cmd.none )
 
         OnVideoEnd ->
+            let
+                _ =
+                    Debug.log "OnVideoEnd" OnVideoEnd
+            in
             case model of
                 Home ({ videoPlayer, client, tvShows } as m) ->
                     case getNextEpisode videoPlayer.metadata tvShows of
@@ -993,10 +1034,15 @@ update msg model =
                                             , subtitle = []
                                         }
                                 }
-                            , savePlaybackTime { videoPlayer | state = Stopped } client
+                            , Cmd.none
+                              --, savePlaybackTime { videoPlayer | state = Stopped } client
                             )
 
                         Err True ->
+                            let
+                                _ =
+                                    Debug.log "getTVShowAndNextEpisode" videoPlayer.metadata.ratingKey
+                            in
                             ( model
                             , getTVShowAndNextEpisode
                                 videoPlayer.metadata.ratingKey

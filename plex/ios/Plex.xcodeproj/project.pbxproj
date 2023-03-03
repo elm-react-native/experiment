@@ -19,6 +19,8 @@
 		807CF6F894584F32A7CA46AE /* NetflixSans-Bold.woff2 in Resources */ = {isa = PBXBuildFile; fileRef = BA3B723D477341E7A2A0ADDC /* NetflixSans-Bold.woff2 */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		8C6FFD67FFAE4CAC976A82B0 /* NetflixSans-Regular.woff2 in Resources */ = {isa = PBXBuildFile; fileRef = 8BD67A573DFE4B9D81391B5F /* NetflixSans-Regular.woff2 */; };
+		B01403DD29B0D04000561CC8 /* VideoViewManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B01403DC29B0D04000561CC8 /* VideoViewManager.swift */; };
+		B01403DF29B0D14D00561CC8 /* VideoViewManager.m in Sources */ = {isa = PBXBuildFile; fileRef = B01403DE29B0D14D00561CC8 /* VideoViewManager.m */; };
 		D06C7C1CB5504091BCDA4AFF /* NetflixSans-Light.otf in Resources */ = {isa = PBXBuildFile; fileRef = EFF601EE7AEF4FD6A019C89D /* NetflixSans-Light.otf */; };
 		D3F5969F32BE4F8688F538EF /* NetflixSans-Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = EC39F055F77E46F3BCF6E2FE /* NetflixSans-Bold.otf */; };
 		EB27B70A07F34F8290498E82 /* NetflixSans-Light.woff2 in Resources */ = {isa = PBXBuildFile; fileRef = FC283B7123A6473FB3D1E5D2 /* NetflixSans-Light.woff2 */; };
@@ -53,6 +55,9 @@
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = Plex/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		89C6BE57DB24E9ADA2F236DE /* Pods-Plex-PlexTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Plex-PlexTests.release.xcconfig"; path = "Target Support Files/Pods-Plex-PlexTests/Pods-Plex-PlexTests.release.xcconfig"; sourceTree = "<group>"; };
 		8BD67A573DFE4B9D81391B5F /* NetflixSans-Regular.woff2 */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "NetflixSans-Regular.woff2"; path = "../assets/fonts/NetflixSans-Regular.woff2"; sourceTree = "<group>"; };
+		B01403DB29B0D03F00561CC8 /* Plex-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Plex-Bridging-Header.h"; sourceTree = "<group>"; };
+		B01403DC29B0D04000561CC8 /* VideoViewManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoViewManager.swift; sourceTree = "<group>"; };
+		B01403DE29B0D14D00561CC8 /* VideoViewManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VideoViewManager.m; sourceTree = "<group>"; };
 		BA3B723D477341E7A2A0ADDC /* NetflixSans-Bold.woff2 */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "NetflixSans-Bold.woff2"; path = "../assets/fonts/NetflixSans-Bold.woff2"; sourceTree = "<group>"; };
 		CC49697A17784496884CA016 /* NetflixSans-Medium.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "NetflixSans-Medium.otf"; path = "../assets/fonts/NetflixSans-Medium.otf"; sourceTree = "<group>"; };
 		D9F85D9BCCA04529BDBB97C7 /* NetflixSans-Regular.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "NetflixSans-Regular.otf"; path = "../assets/fonts/NetflixSans-Regular.otf"; sourceTree = "<group>"; };
@@ -108,6 +113,9 @@
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */,
 				13B07FB71A68108700A75B9A /* main.m */,
+				B01403DE29B0D14D00561CC8 /* VideoViewManager.m */,
+				B01403DC29B0D04000561CC8 /* VideoViewManager.swift */,
+				B01403DB29B0D03F00561CC8 /* Plex-Bridging-Header.h */,
 			);
 			name = Plex;
 			sourceTree = "<group>";
@@ -453,6 +461,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */,
+				B01403DD29B0D04000561CC8 /* VideoViewManager.swift in Sources */,
+				B01403DF29B0D14D00561CC8 /* VideoViewManager.m in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -472,6 +482,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 5B7EB9410499542E8C5724F5 /* Pods-Plex-PlexTests.debug.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
@@ -499,6 +510,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 89C6BE57DB24E9ADA2F236DE /* Pods-Plex-PlexTests.release.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				COPY_PHASE_STRIP = NO;
 				INFOPLIST_FILE = PlexTests/Info.plist;

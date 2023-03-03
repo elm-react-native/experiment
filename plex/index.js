@@ -10,6 +10,7 @@ import {
   NativeModules,
   Animated,
   StyleSheet,
+  requireNativeComponent,
 } from 'react-native';
 import {
   GestureHandlerRootView,
@@ -20,11 +21,26 @@ import {name as appName} from './app.json';
 import App from '@elm-module/Plex';
 import vectorIconsResolveComponent from '@elm-react-native/react-native-vector-icons';
 import contextMenuResolveComponent from '@elm-react-native/react-native-ios-context-menu';
-import videoResolveComponent from '@elm-react-native/react-native-video';
 import sliderResolveComponent from '@elm-react-native/react-native-slider';
 import SubtitleStream from './subtitle';
 import blurResolveComponent from '@elm-react-native/react-native-blur';
 import {BlurView} from '@react-native-community/blur';
+
+const NativeVideoView = requireNativeComponent('VideoView');
+const VideoView = props => {
+  const handleProgress = useCallback(
+    event => {
+      props.onProgress && props.onProgress(event.nativeEvent);
+    },
+    [props.onProgress],
+  );
+  return (
+    <NativeVideoView
+      {...props}
+      onProgress={props.onProgress && handleProgress}
+    />
+  );
+};
 
 LogBox.ignoreLogs(['Could not find Fiber with id']);
 
@@ -37,10 +53,10 @@ AppRegistry.registerComponent(appName, () => () => {
             if (tag === 'SubtitleStream') return SubtitleStream;
             if (tag === 'PinchableView') return PinchableView;
             if (tag === 'ModalFadeView') return ModalFadeView;
+            if (tag === 'VideoView') return VideoView;
             return (
               vectorIconsResolveComponent(tag) ||
               contextMenuResolveComponent(tag) ||
-              videoResolveComponent(tag) ||
               sliderResolveComponent(tag) ||
               blurResolveComponent(tag)
             );

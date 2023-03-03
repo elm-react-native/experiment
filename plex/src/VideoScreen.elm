@@ -17,31 +17,6 @@ import ReactNative.Icon exposing (ionicon, materialIcon)
 import ReactNative.Platform as Platform
 import ReactNative.Properties exposing (animationType, color, disabled, intValue, presentationStyle, resizeMode, size, source, stringSize, style, supportedOrientations, title, transparent, visible)
 import ReactNative.StyleSheet as StyleSheet
-import ReactNative.Video
-    exposing
-        ( allowsExternalPlayback
-        , contentStartTime
-        , controls
-        , fullscreen
-        , fullscreenAutorotate
-        , fullscreenOrientation
-        , onBuffer
-        , onEnd
-        , onErrorMessage
-        , onFullscreenPlayerDidDismiss
-        , onFullscreenPlayerWillDismiss
-        , onPlaybackStateChanged
-        , onProgress
-        , onReadyForDisplay
-        , onSeek
-        , paused
-        , pictureInPicture
-        , playWhenInactive
-        , progressUpdateInterval
-        , rate
-        , seekTime
-        , video
-        )
 import Theme
 import Time
 import Utils exposing (containsItem, formatPlaybackTime)
@@ -49,16 +24,17 @@ import Video.Episodes exposing (episodesView)
 import Video.ProgressBar exposing (videoPlayerControlsProgress)
 import Video.Subtitle exposing (videoPlayerSubtitle)
 import Video.SubtitleStream as SubtitleStream exposing (subtitleStream)
+import Video.VideoView exposing (onBuffering, onEnded, onError, onPlaying, onProgress, paused, rate, seek, src, video)
 
 
 videoUri : VideoPlayer -> Api.Client -> String
 videoUri { session, sessionId, metadata } client =
-    Api.clientRequestUrl "/video/:/transcode/universal/start.m3u8" client
+    Api.clientRequestUrl "/video/:/transcode/universal/start.mpd" client
         ++ ("&path=%2Flibrary%2Fmetadata%2F" ++ metadata.ratingKey)
         ++ "&hasMDE=1"
         ++ "&mediaIndex=0"
         ++ "&partIndex=0"
-        ++ "&protocol=hls"
+        ++ "&protocol=dash"
         ++ "&fastSeek=1"
         ++ "&directPlay=0"
         ++ "&directStream=1"
@@ -71,7 +47,8 @@ videoUri { session, sessionId, metadata } client =
         ++ "&mediaBufferSize=102400"
         ++ "&subtitles=auto"
         ++ "&Accept-Language=en"
-        ++ "&X-Plex-Client-Profile-Extra=append-transcode-target-codec%28type%3DvideoProfile%26context%3Dstreaming%26audioCodec%3Daac%252Cac3%252Ceac3%26protocol%3Dhls%29"
+        --++ "&X-Plex-Client-Profile-Extra=append-transcode-target-codec%28type%3DvideoProfile%26context%3Dstreaming%26audioCodec%3Daac%252Cac3%252Ceac3%26protocol%3Ddash%29"
+        ++ "&X-Plex-Client-Profile-Extra=add-limitation%28scope%3DvideoCodec%26scopeName%3Dhevc%26type%3DupperBound%26name%3Dvideo.bitDepth%26value%3D10%26replace%3Dtrue%29%2Bappend-transcode-target-codec%28type%3DvideoProfile%26context%3Dstreaming%26protocol%3Ddash%26videoCodec%3Dhevc%29%2Badd-limitation%28scope%3DvideoTranscodeTarget%26scopeName%3Dhevc%26scopeType%3DvideoCodec%26context%3Dstreaming%26protocol%3Ddash%26type%3Dmatch%26name%3Dvideo.colorTrc%26list%3Dbt709%7Cbt470m%7Cbt470bg%7Csmpte170m%7Csmpte240m%7Cbt2020-10%7Csmpte2084%26isRequired%3Dfalse%29%2Bappend-transcode-target-codec%28type%3DvideoProfile%26context%3Dstreaming%26audioCodec%3Daac%26protocol%3Ddash%29"
         ++ "&X-Plex-Incomplete-Segments=1"
         ++ "&X-Plex-Product=Plex%20Web"
         ++ "&X-Plex-Version=4.87.2"
@@ -80,7 +57,7 @@ videoUri { session, sessionId, metadata } client =
         ++ "&X-Plex-Features=external-media%2Cindirect-media%2Chub-style-list"
         ++ "&X-Plex-Model=bundled"
         ++ (if Platform.os == "ios" then
-                "&X-Plex-Device=iOS"
+                "&X-Plex-Device=OSX"
 
             else if Platform.os == "android" then
                 "&X-Plex-Device=android"
@@ -89,6 +66,7 @@ videoUri { session, sessionId, metadata } client =
                 ""
            )
         ++ "&X-Plex-Device-Name=Safari"
+        --++ "&X-Plex-Device-Screen-Resolution=1479x549%2C1728x1117"
         --++ "&X-Plex-Device-Screen-Resolution=980x1646%2C393x852"
         ++ ("&X-Plex-Device-Screen-Resolution=" ++ String.fromFloat client.screenMetrics.width ++ "x" ++ String.fromFloat client.screenMetrics.height)
         ++ "&X-Plex-Language=en"
@@ -494,29 +472,30 @@ videoScreen ({ videoPlayer, client } as m) _ =
     if isVideoUrlReady videoPlayer then
         view [ style styles.container ]
             [ video
-                [ source { uri = videoUri videoPlayer client }
-                , seekTime videoPlayer.seekTime
-                , onErrorMessage PlayVideoError
-                , onEnd <| Decode.succeed OnVideoEnd
-                , onBuffer OnVideoBuffer
+                [ src <| videoUri videoPlayer client
+                , seek (toFloat videoPlayer.seekTime / toFloat videoPlayer.metadata.duration)
+                , onError <| Decode.succeed <| PlayVideoError "Unexpected error occurred"
+                , onEnded <| Decode.succeed OnVideoEnd
+                , onBuffering <| Decode.succeed <| OnVideoBuffer True
+                , onPlaying <| Decode.succeed <| OnVideoBuffer False
                 , onProgress (\p -> OnVideoProgress p.currentTime)
-                , onSeek <| Decode.succeed <| VideoPlayerControl <| SeekAction SeekEnd videoPlayer.playbackTime
+
+                --, onSeek <| Decode.succeed <| VideoPlayerControl <| SeekAction SeekEnd videoPlayer.playbackTime
                 , style styles.fullscreen
-                , allowsExternalPlayback False
+
+                --, allowsExternalPlayback False
                 , paused <| (videoPlayer.state /= Playing || videoPlayer.seeking || videoPlayer.episodesOpen)
-                , resizeMode videoPlayer.resizeMode
-                , playWhenInactive True
                 , rate <| playbackSpeedToRate videoPlayer.playbackSpeed
                 ]
-                [ if videoPlayer.selectedSubtitle == 0 then
-                    null
+                []
+            , if videoPlayer.selectedSubtitle == 0 then
+                null
 
-                  else
-                    videoPlayerSubtitle client videoPlayer
-                , pinchResizer videoPlayer
-                , videoPlayerControls videoPlayer
-                , bufferingIndicator videoPlayer
-                ]
+              else
+                videoPlayerSubtitle client videoPlayer
+            , pinchResizer videoPlayer
+            , videoPlayerControls videoPlayer
+            , bufferingIndicator videoPlayer
             , episodesView m
             ]
 
