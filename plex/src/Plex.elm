@@ -495,6 +495,7 @@ replaceVideo client ({ ratingKey, viewOffset, typ } as metadata) videoPlayer =
     ( { videoPlayer
         | seekTime = startTime
         , playbackTime = startTime
+        , subtitleSeekTime = startTime
         , metadata = metadata
         , state = Playing
         , subtitle = []
@@ -628,9 +629,6 @@ videoPlayerControlAction client tvShows action videoPlayer =
                         , seeking = False
                         , subtitleSeekTime = time
                     }
-
-                SeekEnd ->
-                    { videoPlayer | seeking = False, subtitleSeekTime = time }
             , Cmd.none
             )
 
@@ -929,11 +927,22 @@ update msg model =
                         ( model, Cmd.none )
 
                     else
-                        let
-                            _ =
-                                Debug.log "playbackTime" time
-                        in
-                        ( Home { m | videoPlayer = { videoPlayer | playbackTime = time, isBuffering = False } }, Cmd.none )
+                        ( Home
+                            { m
+                                | videoPlayer =
+                                    { videoPlayer
+                                        | playbackTime = time
+                                        , subtitleSeekTime =
+                                            if videoPlayer.isBuffering then
+                                                time
+
+                                            else
+                                                videoPlayer.subtitleSeekTime
+                                        , isBuffering = False
+                                    }
+                            }
+                        , Cmd.none
+                        )
 
                 _ ->
                     ( model, Cmd.none )
@@ -1073,6 +1082,7 @@ update msg model =
                                     | videoPlayer =
                                         { videoPlayer
                                             | metadata = metadata
+                                            , subtitleSeekTime = videoPlayer.playbackTime
                                             , selectedSubtitle =
                                                 case getSelectedSubtitleStream metadata of
                                                     Just stream ->
@@ -1185,10 +1195,10 @@ update msg model =
                     ( model, Cmd.none )
 
         GotSubtitle dialogues ->
-            --let
-            --    _ =
-            --        Debug.log "dialogues" dialogues
-            --in
+            let
+                _ =
+                    Debug.log "dialogues" dialogues
+            in
             case model of
                 Home ({ videoPlayer } as m) ->
                     ( Home { m | videoPlayer = { videoPlayer | subtitle = videoPlayer.subtitle ++ dialogues } }, Cmd.none )

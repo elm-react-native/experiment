@@ -155,7 +155,6 @@ type SeekStage
     = SeekStart
     | Seeking
     | SeekRelease
-    | SeekEnd
 
 
 type PlaybackSpeed

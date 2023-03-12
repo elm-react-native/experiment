@@ -479,13 +479,9 @@ videoScreen ({ videoPlayer, client } as m) _ =
                 , onBuffering <| Decode.succeed <| OnVideoBuffer True
                 , onPlaying <| Decode.succeed <| OnVideoBuffer False
                 , onProgress (\p -> OnVideoProgress p.currentTime)
-
-                --, onSeek <| Decode.succeed <| VideoPlayerControl <| SeekAction SeekEnd videoPlayer.playbackTime
-                , style styles.fullscreen
-
-                --, allowsExternalPlayback False
                 , paused <| (videoPlayer.state /= Playing || videoPlayer.seeking || videoPlayer.episodesOpen)
                 , rate <| playbackSpeedToRate videoPlayer.playbackSpeed
+                , style styles.fullscreen
                 ]
                 []
             , if videoPlayer.selectedSubtitle == 0 then
