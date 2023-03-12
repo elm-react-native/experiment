@@ -34,6 +34,9 @@ class VideoView : UIView, VLCMediaPlayerDelegate {
   
   var _src: String = "";
   
+  var _resizeMode: String = "contain";
+  var _resizeModeDirty: Bool = false;
+  
   private var _eventDispatcher:RCTEventDispatcher?
   @objc var onProgress: RCTDirectEventBlock?
   @objc var onOpening: RCTDirectEventBlock?
@@ -121,6 +124,23 @@ class VideoView : UIView, VLCMediaPlayerDelegate {
       _rateDirty = false
       _player.rate = _rate
     }
+    
+    if (_resizeModeDirty) {
+      _resizeModeDirty = false
+      
+      if (_resizeMode == "contain") {
+        UIView.animate(withDuration: 0.3, animations: {
+          [weak self] in
+          self?.transform = CGAffineTransform(scaleX: 1.0, y: 1.0)
+        })
+      } else if (_resizeMode == "cover") {
+        UIView.animate(withDuration: 0.3, animations: {
+          [weak self] in
+          self?.transform = CGAffineTransform(scaleX: 1.23, y: 1.23)
+        })
+      }
+    }
+    
   }
   
   @objc
@@ -173,6 +193,17 @@ class VideoView : UIView, VLCMediaPlayerDelegate {
     if _rate == rate { return }
     _rate = rate
     _rateDirty = true;
+    
+    DispatchQueue.main.async {[weak self] in
+      self?.applyProps()
+    }
+  }
+  
+  @objc
+  func setResizeMode(_ resizeMode: String) {
+    if _resizeMode == resizeMode { return }
+    _resizeMode = resizeMode
+    _resizeModeDirty = true;
     
     DispatchQueue.main.async {[weak self] in
       self?.applyProps()

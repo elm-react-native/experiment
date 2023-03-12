@@ -482,6 +482,7 @@ videoScreen ({ videoPlayer, client } as m) _ =
                 , paused <| (videoPlayer.state /= Playing || videoPlayer.seeking || videoPlayer.episodesOpen)
                 , rate <| playbackSpeedToRate videoPlayer.playbackSpeed
                 , style styles.fullscreen
+                , resizeMode videoPlayer.resizeMode
                 ]
                 []
             , if videoPlayer.selectedSubtitle == 0 then
