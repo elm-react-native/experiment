@@ -1266,7 +1266,7 @@ accountAvatar account =
                 avatar acc 24
 
             _ ->
-                null
+                avatar { name = "", thumb = "" } 24
         ]
 
 

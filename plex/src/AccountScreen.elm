@@ -83,7 +83,7 @@ avatarStyles size =
         }
 
 
-avatar : Account -> b -> Html msg
+avatar : { a | name : String, thumb : String } -> b -> Html msg
 avatar account size =
     let
         styles =
