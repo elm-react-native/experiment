@@ -68,7 +68,7 @@ const simplifyDialogue = dialogue => {
   const text = dialogue.parts
     .filter(p => p instanceof libjass.parts.Text)
     .map(p => p.value)
-    .join('');
+    .join(' ');
   const start = Math.round(dialogue.start * 1000);
   const end = Math.round(dialogue.end * 1000);
   return {
