@@ -1292,7 +1292,6 @@ root model =
                             { fontFamily = Theme.fontFamily
                             , backgroundColor = Theme.backgroundColor
                             }
-                        , orientation = "portrait"
                         }
                     , component homeScreen
                     ]
@@ -1304,7 +1303,6 @@ root model =
                         , headerBackTitle = Maybe.withDefault "" <| Maybe.map .name m.account
                         , headerTintColor = "white"
                         , headerStyle = { backgroundColor = Theme.backgroundColor }
-                        , orientation = "portrait"
                         }
                     , component accountScreen
                     ]
@@ -1314,7 +1312,6 @@ root model =
                     , options
                         { presentation = "modal"
                         , headerShown = False
-                        , orientation = "portrait"
                         }
                     , getId
                         (\{ params } ->
