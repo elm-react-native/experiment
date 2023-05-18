@@ -30,16 +30,23 @@ videoPlayerControlsProgress videoPlayer =
                 formatPlaybackTime (min videoPlayer.playbackTime videoPlayer.metadata.duration) videoPlayer.metadata.duration
             ]
         , slider
-            [ minimumValue 0
-            , maximumValue videoPlayer.metadata.duration
-            , thumbTintColor Theme.themeColor
-            , minimumTrackTintColor Theme.themeColor
-            , intValue <| videoPlayer.playbackTime
-            , style { flexGrow = 1, marginBottom = 2, alignSelf = "center" }
-            , onSlidingStart <| round >> SeekAction SeekStart >> VideoPlayerControl
-            , onFloatValueChange <| round >> SeekAction Seeking >> VideoPlayerControl
-            , onSlidingComplete <| round >> SeekAction SeekRelease >> VideoPlayerControl
-            ]
+            ([ minimumValue 0
+             , maximumValue videoPlayer.metadata.duration
+             , thumbTintColor Theme.themeColor
+             , minimumTrackTintColor Theme.themeColor
+             , style { flexGrow = 1, marginBottom = 2, alignSelf = "center" }
+             , onSlidingStart <| round >> SeekAction SeekStart >> VideoPlayerControl
+             , onFloatValueChange <| round >> SeekAction Seeking >> VideoPlayerControl
+             , onSlidingComplete <| round >> SeekAction SeekRelease >> VideoPlayerControl
+             ]
+                ++ (if videoPlayer.seeking then
+                        []
+
+                    else
+                        [ intValue <| videoPlayer.playbackTime
+                        ]
+                   )
+            )
             []
         , text
             [ style { fontSize = 14 } ]
