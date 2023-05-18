@@ -219,7 +219,7 @@ metadataDecoder =
                 (Decode.field "summary" Decode.string)
                 (Decode.field "guid" Decode.string)
                 (Decode.field "type" Decode.string)
-                (Decode.field "thumb" Decode.string)
+                (maybeEmptyString <| Decode.field "thumb" Decode.string)
                 (maybeEmptyString <| Decode.field "title" Decode.string)
                 (maybeZero <| Decode.field "duration" Decode.int)
                 (maybeEmptyString <| Decode.field "grandparentTitle" Decode.string)
