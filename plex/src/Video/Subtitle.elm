@@ -9,6 +9,7 @@ import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import Model exposing (Msg(..), dialogueDecoder)
 import ReactNative exposing (fragment, null, str, view)
+import ReactNative.Platform as Platform
 import ReactNative.Properties exposing (pointerEvents, style)
 import ReactNative.StyleSheet as StyleSheet
 import Video.SubtitleStream as SubtitleStream exposing (subtitleStream)
@@ -25,7 +26,14 @@ styles =
             , width = "auto"
             , borderRadius = 3
             }
-        , subtitle = { fontSize = 18 }
+        , subtitle =
+            { fontSize =
+                if Platform.isPad then
+                    22
+
+                else
+                    18
+            }
         }
 
 
