@@ -79,14 +79,15 @@ homeStyles =
             , overflow = "hidden"
             , width = 100
             , height = 148
-            }
-        , itemContainerBottomRadius =
-            { height = 148
+            , justifyContent = "flex-end"
             }
         , itemImage =
-            { justifyContent = "flex-end"
-            , width = 100
-            , height = 142
+            { position = "absolute"
+            , top = 0
+            , left = 0
+            , right = 0
+            , bottom = 0
+            , justifyContent = "flex-end"
             }
         , itemImageAlt =
             { position = "absolute"
@@ -96,6 +97,8 @@ homeStyles =
             , bottom = 0
             , justifyContent = "center"
             , alignItems = "center"
+            , backgroundColor = "black"
+            , borderRadius = 4
             }
         , itemImageAltText =
             { fontSize = 12
@@ -169,13 +172,8 @@ itemView client isContinueWatching metadata =
                     }
     in
     touchableScale
-        [ if isContinueWatching then
-            style homeStyles.itemContainer
-
-          else
-            style <| StyleSheet.compose homeStyles.itemContainer homeStyles.itemContainerBottomRadius
+        [ style homeStyles.itemContainer
         , onPress <| Decode.succeed <| GotoEntity isContinueWatching metadata
-        , zoomScale 0.94
         ]
         [ view
             [ style homeStyles.itemImageAlt ]
@@ -191,27 +189,20 @@ itemView client isContinueWatching metadata =
                 , width = 480
                 , height = 719
                 }
-            , if isContinueWatching then
-                imageStyle
-                    { borderTopLeftRadius = 4
-                    , borderTopRightRadius = 4
-                    }
-
-              else
-                imageStyle
-                    { borderRadius = 4
-                    }
+            , imageStyle { borderRadius = 4 }
             ]
           <|
             if isContinueWatching then
                 [ videoPlayContainer 48 (Decode.succeed <| PlayVideo metadata)
-                , itemLabel label
                 ]
 
             else
                 []
         , if isContinueWatching then
-            progressBar [] <| toFloat (Maybe.withDefault metadata.duration metadata.viewOffset) / toFloat metadata.duration
+            view []
+                [ itemLabel label
+                , progressBar [] <| toFloat (Maybe.withDefault metadata.duration metadata.viewOffset) / toFloat metadata.duration
+                ]
 
           else
             null
