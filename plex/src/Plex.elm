@@ -355,7 +355,6 @@ gotSavedClient savedClient navKey =
             , Cmd.batch
                 [ getLibraries client
                 , getAccount client
-                , getContinueWatching client
                 ]
             )
 
@@ -371,7 +370,6 @@ signInSubmitResponse client navKey =
         [ saveClient client
         , getLibraries client
         , getAccount client
-        , getContinueWatching client
         ]
     )
 
@@ -381,17 +379,25 @@ gotLibraries resp m =
         Ok libs ->
             ( Home { m | libraries = libs }
             , Cmd.batch <|
-                List.concatMap
-                    (\lib ->
-                        [ getLibraryDetails m.client lib
-                        , getLibraryRecentlyAdded m.client lib
-                        ]
-                    )
-                    libs
+                getContinueWatching m.client
+                    :: List.concatMap
+                        (\lib ->
+                            [ getLibraryDetails m.client lib
+                            , getLibraryRecentlyAdded m.client lib
+                            ]
+                        )
+                        libs
             )
 
         Err _ ->
-            ( Home m, Alert.showAlert (always NoOp) "Load libraries failed." [] )
+            ( Home
+                { m
+                    | libraries =
+                        List.map (\lib -> { lib | scanning = False })
+                            m.libraries
+                }
+            , Alert.showAlert (always NoOp) "Load libraries failed." []
+            )
 
 
 gotTVShow showId resp m =
@@ -931,7 +937,7 @@ update msg model =
                     , Cmd.batch
                         [ Nav.goBack navKey
                         , savePlaybackTime vp client
-                        , getContinueWatching client
+                        , getLibraries client
                         ]
                     )
 
@@ -1046,7 +1052,7 @@ update msg model =
         RefreshHomeScreen ->
             case model of
                 Home m ->
-                    ( Home { m | refreshing = True }, Cmd.batch [ getLibraries m.client, getContinueWatching m.client ] )
+                    ( Home { m | refreshing = True }, getLibraries m.client )
 
                 _ ->
                     ( model, Cmd.none )

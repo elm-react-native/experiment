@@ -619,6 +619,11 @@ getContinueWatching =
     clientGetJson metadataListDecoder "/hubs/home/continueWatching"
 
 
+getContinueWatchingTask : Client -> Task Http.Error (List Metadata)
+getContinueWatchingTask =
+    clientGetJsonTask metadataListDecoder "/hubs/home/continueWatching"
+
+
 getLibraryRecentlyAdded : String -> (Result Http.Error Section -> msg) -> Client -> Cmd msg
 getLibraryRecentlyAdded key =
     clientGetJson firstSectionDecoder <| "/hubs/promoted?excludeContinueWatching=1&count=12&contentDirectoryID=" ++ key
