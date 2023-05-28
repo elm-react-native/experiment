@@ -722,6 +722,7 @@ getSettings =
 
 transcodedImageUrl : String -> Float -> Float -> Client -> String
 transcodedImageUrl thumb width height client =
+    -- http://192.168.0.104:32400/photo/:/transcode?X-Plex-Token=gCyFJ_16fpxudt8LGx72&X-Plex-Client-Identifier=vh9igc3l3t8x341wh6glmm30&width=300&height=450&url=%2Flibrary%2Fmetadata%2F78%2Fthumb%2F1684870349
     clientRequestUrl "/photo/:/transcode" client
         ++ ("&width=" ++ String.fromFloat width)
         ++ ("&height=" ++ String.fromFloat height)

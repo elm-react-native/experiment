@@ -60,12 +60,12 @@ homeStyles =
             }
         , container = { backgroundColor = Theme.backgroundColor }
         , sectionContainer =
-            { height = 180, paddingVertical = 5 }
+            { paddingVertical = 12 }
         , sectionTitle =
-            { fontSize = 15
+            { fontSize = 16
             , fontWeight = "bold"
             , marginLeft = 5
-            , marginBottom = 4
+            , marginBottom = 6
             }
         , sectionContent =
             { flexDirection = "row"
@@ -78,7 +78,7 @@ homeStyles =
             { marginHorizontal = 5
             , overflow = "hidden"
             , width = 100
-            , height = 148
+            , height = 150
             , justifyContent = "flex-end"
             }
         , itemImage =
@@ -184,10 +184,8 @@ itemView client isContinueWatching metadata =
                 { uri =
                     Api.transcodedImageUrl thumb
                         (PixelRatio.getPixelSizeForLayoutSize 100)
-                        (PixelRatio.getPixelSizeForLayoutSize 142)
+                        (PixelRatio.getPixelSizeForLayoutSize 150)
                         client
-                , width = 480
-                , height = 719
                 }
             , imageStyle { borderRadius = 4 }
             ]
