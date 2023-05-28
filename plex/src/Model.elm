@@ -277,6 +277,7 @@ type Msg
     | HideVideoPlayerControlsAnimationFinish
     | SubtitleChanged
     | RestartPlaySession Bool String
+    | ScanLibrary String
 
 
 {-| fallback to first season when not find, return `Nothing` when seasons is empty

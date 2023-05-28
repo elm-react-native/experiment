@@ -97,6 +97,36 @@ getTVShowTask id seasonId client =
             )
 
 
+waitScanningFinish : String -> Client -> Task Http.Error (List Library)
+waitScanningFinish key client =
+    Process.sleep 2000
+        |> Task.andThen
+            (\_ ->
+                Api.getLibrariesTask client
+                    |> Task.andThen
+                        (\libs ->
+                            if
+                                case Utils.findItem (\lib -> lib.key == key) libs of
+                                    Just lib ->
+                                        lib.scanning
+
+                                    _ ->
+                                        False
+                            then
+                                waitScanningFinish key client
+
+                            else
+                                Task.succeed libs
+                        )
+            )
+
+
+scanLibrary key client =
+    Api.scanLibrary key client
+        |> Task.andThen (\_ -> waitScanningFinish key client)
+        |> Task.attempt (hijackUnauthorizedError GotLibraries)
+
+
 getTVShowAndEpisodes : String -> String -> Client -> Task Http.Error TVShow
 getTVShowAndEpisodes parentRatingKey grandparentRatingKey client =
     getTVShowTask grandparentRatingKey parentRatingKey client
@@ -483,34 +513,34 @@ signOut client navKey =
 
 replaceVideo : Client -> Metadata -> VideoPlayer -> ( VideoPlayer, Cmd Msg )
 replaceVideo client ({ ratingKey, viewOffset, typ } as metadata) videoPlayer =
-    let
-        startTime : Int
-        startTime =
-            if ratingKey /= videoPlayer.metadata.ratingKey then
-                Maybe.withDefault 0 viewOffset
+    if ratingKey == videoPlayer.metadata.ratingKey then
+        ( { videoPlayer | state = Playing, seeking = False, episodesOpen = False }, Cmd.none )
 
-            else
-                videoPlayer.playbackTime
-    in
-    ( { videoPlayer
-        | seekTime = startTime
-        , playbackTime = startTime
-        , subtitleSeekTime = startTime
-        , metadata = metadata
-        , state = Playing
-        , subtitle = []
-        , session = ""
-        , episodesOpen = False
-      }
-    , Cmd.batch
-        [ Random.generate GotPlaySession Utils.generateIdentifier
-        , if ratingKey /= videoPlayer.metadata.ratingKey then
-            getStreams ratingKey client
+    else
+        let
+            startTime : Int
+            startTime =
+                if ratingKey /= videoPlayer.metadata.ratingKey then
+                    Maybe.withDefault 0 viewOffset
 
-          else
-            Cmd.none
-        ]
-    )
+                else
+                    videoPlayer.playbackTime
+        in
+        ( { videoPlayer
+            | seekTime = startTime
+            , playbackTime = startTime
+            , subtitleSeekTime = startTime
+            , metadata = metadata
+            , state = Playing
+            , subtitle = []
+            , session = ""
+            , episodesOpen = False
+          }
+        , Cmd.batch
+            [ Random.generate GotPlaySession Utils.generateIdentifier
+            , getStreams ratingKey client
+            ]
+        )
 
 
 playVideo : Metadata -> HomeModel -> ( Model, Cmd Msg )
@@ -787,10 +817,6 @@ update msg model =
                 Home ({ tvShows, videoPlayer, client } as m) ->
                     case resp of
                         Ok ( tvShow, Just nextEpisode ) ->
-                            let
-                                _ =
-                                    Debug.log "GotNextEpisode" nextEpisode.viewOffset
-                            in
                             ( Home
                                 { m
                                     | tvShows = insertTVShowIfNotExist showId tvShow m.tvShows
@@ -1026,10 +1052,6 @@ update msg model =
                     ( model, Cmd.none )
 
         OnVideoEnd ->
-            let
-                _ =
-                    Debug.log "OnVideoEnd" OnVideoEnd
-            in
             case model of
                 Home ({ videoPlayer, client, tvShows } as m) ->
                     case getNextEpisode videoPlayer.metadata tvShows of
@@ -1048,10 +1070,6 @@ update msg model =
                             )
 
                         Err True ->
-                            let
-                                _ =
-                                    Debug.log "getTVShowAndNextEpisode" videoPlayer.metadata.ratingKey
-                            in
                             ( model
                             , getTVShowAndNextEpisode
                                 videoPlayer.metadata.ratingKey
@@ -1195,10 +1213,6 @@ update msg model =
                     ( model, Cmd.none )
 
         GotSubtitle dialogues ->
-            let
-                _ =
-                    Debug.log "dialogues" dialogues
-            in
             case model of
                 Home ({ videoPlayer } as m) ->
                     ( Home { m | videoPlayer = { videoPlayer | subtitle = videoPlayer.subtitle ++ dialogues } }, Cmd.none )
@@ -1249,6 +1263,28 @@ update msg model =
 
                     else
                         ( model, sendDecision session videoPlayer client )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        ScanLibrary key ->
+            case model of
+                Home ({ videoPlayer, client, libraries } as m) ->
+                    ( Home
+                        { m
+                            | libraries =
+                                List.map
+                                    (\lib ->
+                                        if lib.key == key then
+                                            { lib | scanning = True }
+
+                                        else
+                                            lib
+                                    )
+                                    libraries
+                        }
+                    , scanLibrary key client
+                    )
 
                 _ ->
                     ( model, Cmd.none )

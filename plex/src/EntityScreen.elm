@@ -20,7 +20,7 @@ import ReactNative
         , touchableOpacity
         , view
         )
-import ReactNative.ContextMenuIOS exposing (MenuItem, contextMenuButton, isMenuPrimaryAction, menuConfig, onPressMenuItem, pressEventMenuItemDecoder)
+import ReactNative.ContextMenuIOS as CM exposing (MenuItem, contextMenuButton, isMenuPrimaryAction, menuConfig, onPressMenuItem, pressEventMenuItemDecoder)
 import ReactNative.Dimensions exposing (DisplayMetrics)
 import ReactNative.Events exposing (onPress)
 import ReactNative.Icon exposing (ionicon)
@@ -365,6 +365,7 @@ seasonMenu tvShow children =
                     (\sz ->
                         { actionKey = sz.info.ratingKey
                         , actionTitle = "Season " ++ String.fromInt sz.info.index
+                        , attributes = Nothing
                         }
                     )
                     tvShow.seasons

@@ -1,4 +1,4 @@
-module Api exposing (Account, Client, Connection, Country, Director, Genre, Guid, Library, Location, Media, MediaPart, MediaStream, Metadata, Rating, Resource, Role, Section, Setting, SignInResponse, TimelineRequest, TimelineResponse, Writer, accountDecoder, clientGetJson, clientGetJsonTask, clientPostJson, clientRequestUrl, firstAccountWithName, getAccount, getContinueWatching, getLibraries, getLibrary, getLibraryRecentlyAdded, getMetadata, getMetadataChildren, getResources, getSections, getSettings, httpJsonBodyResolver, initialClient, initialLibrary, initialMetadata, librariesDecoder, libraryDecoder, metadataDecoder, metadataListDecoder, playerTimeline, sectionsDecoder, selectSubtitle, settingsDecoder, signIn, timelineResponseDecoder, transcodedImageUrl)
+module Api exposing (Account, Client, Connection, Country, Director, Genre, Guid, Library, Location, Media, MediaPart, MediaStream, Metadata, Rating, Resource, Role, Section, Setting, SignInResponse, TimelineRequest, TimelineResponse, Writer, accountDecoder, clientGetJson, clientGetJsonTask, clientPostJson, clientRequestUrl, firstAccountWithName, getAccount, getContinueWatching, getLibraries, getLibrariesTask, getLibrary, getLibraryRecentlyAdded, getLibraryTask, getMetadata, getMetadataChildren, getResources, getSections, getSettings, httpJsonBodyResolver, initialClient, initialLibrary, initialMetadata, librariesDecoder, libraryDecoder, metadataDecoder, metadataListDecoder, playerTimeline, scanLibrary, sectionsDecoder, selectSubtitle, settingsDecoder, signIn, timelineResponseDecoder, transcodedImageUrl)
 
 import Http
 import Json.Decode as Decode exposing (Decoder)
@@ -15,7 +15,7 @@ type alias Library =
     , art : String -- The background artwork used to represent the library.
     , composite : String -- The composite image associated with the library.
     , filters : Bool -- 1 - allow library filters. 0 - do no allow library filters.
-    , refreshing : Bool -- 1 - the library is refreshing the metadata. 0 - the library is not refreshing the metadata.
+    , scanning : Bool -- 1 - the library is refreshing the metadata. 0 - the library is not refreshing the metadata.
     , thumb : String -- The thumbnail for the library.
     , key : String -- The relative URL of the information for the library.
     , typ : String -- The type of item represented by this Directory element.
@@ -41,7 +41,7 @@ initialLibrary =
     , art = ""
     , composite = ""
     , filters = False
-    , refreshing = False
+    , scanning = False
     , thumb = ""
     , key = ""
     , typ = ""
@@ -428,7 +428,13 @@ httpJsonBodyResolver : Decoder a -> Http.Response String -> Result Http.Error a
 httpJsonBodyResolver decoder resp =
     case resp of
         Http.GoodStatus_ m s ->
-            Decode.decodeString decoder s
+            Decode.decodeString decoder
+                (if String.isEmpty s then
+                    "\"\""
+
+                 else
+                    s
+                )
                 |> Result.mapError (Decode.errorToString >> Http.BadBody)
 
         Http.BadUrl_ s ->
@@ -548,7 +554,7 @@ libraryDecoder =
                 , title = title
                 , language = language
                 , uuid = uuid
-                , refreshing = refreshing
+                , scanning = refreshing
                 , composite = composite
             }
         )
@@ -565,6 +571,11 @@ libraryDecoder =
 getLibraries : (Result Http.Error (List Library) -> msg) -> Client -> Cmd msg
 getLibraries =
     clientGetJson librariesDecoder "/library/sections"
+
+
+getLibrariesTask : Client -> Task Http.Error (List Library)
+getLibrariesTask =
+    clientGetJsonTask librariesDecoder "/library/sections"
 
 
 sectionDecoder : Decoder Section
@@ -626,6 +637,11 @@ getMetadataChildren key =
 getLibrary : String -> (Result Http.Error (List Metadata) -> msg) -> Client -> Cmd msg
 getLibrary key =
     clientGetJson metadataListDecoder <| "/library/sections/" ++ key ++ "/all"
+
+
+getLibraryTask : String -> Client -> Task Http.Error (List Metadata)
+getLibraryTask key =
+    clientGetJsonTask metadataListDecoder <| "/library/sections/" ++ key ++ "/all"
 
 
 firstAccountWithName : Decoder Account -> Decoder Account
@@ -822,6 +838,14 @@ searchSubtitle key language title =
             ++ "/subtitles?"
             ++ ("language=" ++ Url.percentEncode language)
             ++ ("&title=" ++ Url.percentEncode title)
+
+
+scanLibrary : String -> Client -> Task Http.Error ()
+scanLibrary key =
+    clientGetJsonTask (Decode.succeed ()) <|
+        "/library/sections/"
+            ++ key
+            ++ "/refresh"
 
 
 

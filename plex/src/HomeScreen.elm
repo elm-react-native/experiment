@@ -1,10 +1,10 @@
 module HomeScreen exposing (homeScreen)
 
-import Api exposing (Client, Metadata)
+import Api exposing (Client, Library, Metadata)
 import Components exposing (bottomPadding, progressBar, text, videoPlayContainer)
 import Dict
 import Html exposing (Html)
-import Html.Lazy exposing (lazy4)
+import Html.Lazy exposing (lazy5)
 import Json.Decode as Decode
 import Model exposing (..)
 import ReactNative
@@ -24,10 +24,11 @@ import ReactNative
         , touchableScale
         , view
         )
+import ReactNative.ContextMenuIOS as CM exposing (MenuItem, MenuItemAttribute, contextMenuButton, isMenuPrimaryAction, menuConfig, onPressMenuItem, pressEventMenuItemDecoder)
 import ReactNative.Events exposing (onPress, onRefresh)
 import ReactNative.Icon exposing (ionicon)
 import ReactNative.PixelRatio as PixelRatio
-import ReactNative.Properties
+import ReactNative.Properties as Props
     exposing
         ( color
         , contentContainerStyle
@@ -61,11 +62,17 @@ homeStyles =
         , container = { backgroundColor = Theme.backgroundColor }
         , sectionContainer =
             { paddingVertical = 12 }
+        , sectionTitleContainer =
+            { marginLeft = 5
+            , marginBottom = 6
+            , flexDirection = "row"
+            , alignItems = "center"
+            , alignSelf = "flex-start"
+            , gap = 3
+            }
         , sectionTitle =
             { fontSize = 16
             , fontWeight = "bold"
-            , marginLeft = 5
-            , marginBottom = 6
             }
         , sectionContent =
             { flexDirection = "row"
@@ -207,16 +214,55 @@ itemView client isContinueWatching metadata =
         ]
 
 
-sectionContainer : String -> Html Msg -> Html Msg
-sectionContainer title child =
+libraryMenu : Library -> Html Msg -> Html Msg
+libraryMenu { key, scanning } child =
+    contextMenuButton
+        [ pressEventMenuItemDecoder
+            |> Decode.map (\{ actionKey } -> ScanLibrary actionKey)
+            |> onPressMenuItem
+        , isMenuPrimaryAction True
+        , menuConfig
+            { menuTitle = ""
+            , menuItems =
+                [ if scanning then
+                    { actionKey = key
+                    , actionTitle = "Scanning..."
+                    , attributes = Just [ CM.KeepsMenuPresented, CM.Disabled ]
+                    }
+
+                  else
+                    { actionKey = key
+                    , actionTitle = "Scan Library"
+                    , attributes = Just [ CM.KeepsMenuPresented ]
+                    }
+                ]
+            }
+        ]
+        [ child ]
+
+
+sectionContainer : Maybe Library -> String -> Html Msg -> Html Msg
+sectionContainer maybeLibrary title child =
     view [ style homeStyles.sectionContainer ]
-        [ text [ style homeStyles.sectionTitle ] [ str title ]
+        [ case maybeLibrary of
+            Just library ->
+                libraryMenu library <|
+                    touchableOpacity
+                        [ style homeStyles.sectionTitleContainer ]
+                        [ text
+                            [ style homeStyles.sectionTitle ]
+                            [ str title ]
+                        , ionicon "chevron-down-outline" [ size 15, color "white" ]
+                        ]
+
+            _ ->
+                text [ style homeStyles.sectionTitleContainer, style homeStyles.sectionTitle ] [ str title ]
         , child
         ]
 
 
-sectionViewData client title isContinueWatching data =
-    sectionContainer title <|
+sectionViewData client maybeLibrary title isContinueWatching data =
+    sectionContainer maybeLibrary title <|
         flatList
             { renderItem = \{ item } -> itemView client isContinueWatching item
             , keyExtractor = \item _ -> item.guid
@@ -230,17 +276,17 @@ sectionViewData client title isContinueWatching data =
             ]
 
 
-sectionView : Client -> String -> Bool -> RemoteData (List Metadata) -> Html Msg
-sectionView client title isContinueWatching resp =
+sectionView : Client -> Maybe Library -> String -> Bool -> RemoteData (List Metadata) -> Html Msg
+sectionView client maybeLibrary title isContinueWatching resp =
     case resp of
         Just (Ok data) ->
-            lazy4 sectionViewData client title isContinueWatching data
+            lazy5 sectionViewData client maybeLibrary title isContinueWatching data
 
         Just (Err _) ->
-            sectionContainer title <| text [] [ str "Load failed" ]
+            sectionContainer Nothing title <| text [] [ str "Load failed" ]
 
         _ ->
-            sectionContainer title null
+            sectionContainer Nothing title null
 
 
 homeScreen : HomeModel -> a -> Html Msg
@@ -252,7 +298,7 @@ homeScreen model _ =
         recentlyAddedSectionViews =
             List.map
                 (\lib ->
-                    sectionView client ("Recently Added in " ++ lib.title) False <|
+                    sectionView client Nothing ("Recently Added in " ++ lib.title) False <|
                         Dict.get lib.key model.librariesRecentlyAdded
                 )
                 model.libraries
@@ -260,7 +306,7 @@ homeScreen model _ =
         libraryDetailsSectionViews =
             List.map
                 (\lib ->
-                    sectionView client lib.title False <|
+                    sectionView client (Just lib) lib.title False <|
                         Dict.get lib.key model.librariesDetails
                 )
                 model.libraries
@@ -276,7 +322,7 @@ homeScreen model _ =
                 ]
         ]
     <|
-        [ lazy4 sectionView model.client "Continue Watching" True model.continueWatching
+        [ lazy5 sectionView model.client Nothing "Continue Watching" True model.continueWatching
         ]
             ++ recentlyAddedSectionViews
             ++ libraryDetailsSectionViews

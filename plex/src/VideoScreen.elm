@@ -197,6 +197,7 @@ playbackSpeedMenu playbackSpeed =
 
                                 else
                                     "    " ++ speed
+                            , attributes = Nothing
                             }
                         )
             }
@@ -253,6 +254,7 @@ subtitleMenu { metadata, showSubtitle, selectedSubtitle } =
 
                                 else
                                     "    " ++ label
+                            , attributes = Nothing
                             }
                         )
                         subs
