@@ -214,13 +214,14 @@ itemView client isContinueWatching metadata =
         ]
 
 
-libraryMenu : Library -> Html Msg -> Html Msg
+libraryMenu : Library -> List (Html Msg) -> Html Msg
 libraryMenu { key, scanning } child =
     contextMenuButton
         [ pressEventMenuItemDecoder
             |> Decode.map (\{ actionKey } -> ScanLibrary actionKey)
             |> onPressMenuItem
         , isMenuPrimaryAction True
+        , style homeStyles.sectionTitleContainer
         , menuConfig
             { menuTitle = ""
             , menuItems =
@@ -238,7 +239,7 @@ libraryMenu { key, scanning } child =
                 ]
             }
         ]
-        [ child ]
+        child
 
 
 sectionContainer : Maybe Library -> String -> Html Msg -> Html Msg
@@ -247,13 +248,11 @@ sectionContainer maybeLibrary title child =
         [ case maybeLibrary of
             Just library ->
                 libraryMenu library <|
-                    touchableOpacity
-                        [ style homeStyles.sectionTitleContainer ]
-                        [ text
-                            [ style homeStyles.sectionTitle ]
-                            [ str title ]
-                        , ionicon "chevron-down-outline" [ size 15, color "white" ]
-                        ]
+                    [ text
+                        [ style homeStyles.sectionTitle ]
+                        [ str title ]
+                    , ionicon "chevron-down-outline" [ size 15, color "white" ]
+                    ]
 
             _ ->
                 text [ style homeStyles.sectionTitleContainer, style homeStyles.sectionTitle ] [ str title ]

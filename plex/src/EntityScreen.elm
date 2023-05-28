@@ -357,7 +357,12 @@ seasonMenu tvShow children =
             |> Decode.map (\{ actionKey } -> ChangeSeason tvShow.info.ratingKey actionKey)
             |> onPressMenuItem
         , isMenuPrimaryAction True
-        , style { marginTop = 20 }
+        , style
+            { marginTop = 20
+            , flexDirection = "row"
+            , alignItems = "center"
+            , alignSelf = "flex-start"
+            }
         , menuConfig
             { menuTitle = tvShow.info.title
             , menuItems =
@@ -381,22 +386,14 @@ seasonView selectedSeasonIndex tvShow =
             "Season " ++ String.fromInt selectedSeasonIndex
     in
     seasonMenu tvShow
-        [ touchableOpacity
+        [ text
             [ style
-                { flexDirection = "row"
-                , alignItems = "center"
-                , alignSelf = "flex-start"
+                { fontWeight = "bold"
+                , marginRight = 5
                 }
             ]
-            [ text
-                [ style
-                    { fontWeight = "bold"
-                    , marginRight = 5
-                    }
-                ]
-                [ str selectedSeasonLabel ]
-            , ionicon "chevron-down-outline" [ size 12, color "white" ]
-            ]
+            [ str selectedSeasonLabel ]
+        , ionicon "chevron-down-outline" [ size 12, color "white" ]
         ]
 
 
