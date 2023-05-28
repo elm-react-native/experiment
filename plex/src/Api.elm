@@ -1,4 +1,62 @@
-module Api exposing (Account, Client, Connection, Country, Director, Genre, Guid, Library, Location, Media, MediaPart, MediaStream, Metadata, Rating, Resource, Role, Section, Setting, SignInResponse, TimelineRequest, TimelineResponse, Writer, accountDecoder, clientGetJson, clientGetJsonTask, clientPostJson, clientRequestUrl, firstAccountWithName, getAccount, getContinueWatching, getLibraries, getLibrariesTask, getLibrary, getLibraryRecentlyAdded, getLibraryTask, getMetadata, getMetadataChildren, getResources, getSections, getSettings, httpJsonBodyResolver, initialClient, initialLibrary, initialMetadata, librariesDecoder, libraryDecoder, metadataDecoder, metadataListDecoder, playerTimeline, scanLibrary, sectionsDecoder, selectSubtitle, settingsDecoder, signIn, timelineResponseDecoder, transcodedImageUrl)
+module Api exposing
+    ( Account
+    , Client
+    , Connection
+    , Country
+    , Director
+    , Genre
+    , Guid
+    , Library
+    , Location
+    , Media
+    , MediaPart
+    , MediaStream
+    , Metadata
+    , Rating
+    , Resource
+    , Role
+    , Section
+    , Setting
+    , SignInResponse
+    , TimelineRequest
+    , TimelineResponse
+    , Writer
+    , accountDecoder
+    , clientGetJson
+    , clientGetJsonTask
+    , clientPostJson
+    , clientRequestUrl
+    , firstAccountWithName
+    , getAccount
+    , getContinueWatching
+    , getContinueWatchingTask
+    , getLibraries
+    , getLibrariesTask
+    , getLibrary
+    , getLibraryRecentlyAdded
+    , getLibraryTask
+    , getMetadata
+    , getMetadataChildren
+    , getResources
+    , getSections
+    , getSettings
+    , httpJsonBodyResolver
+    , initialClient
+    , initialLibrary
+    , initialMetadata
+    , librariesDecoder
+    , libraryDecoder
+    , metadataDecoder
+    , metadataListDecoder
+    , playerTimeline
+    , scanLibrary
+    , sectionsDecoder
+    , selectSubtitle
+    , settingsDecoder
+    , signIn
+    , timelineResponseDecoder
+    , transcodedImageUrl
+    )
 
 import Http
 import Json.Decode as Decode exposing (Decoder)

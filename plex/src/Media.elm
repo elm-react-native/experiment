@@ -29,6 +29,8 @@ type alias MediaStream =
     , sourceKey : String
     , selected : Bool
     , language : String
+    , width : Int
+    , height : Int
     }
 
 
@@ -61,7 +63,7 @@ decodeMediaPart =
 streamDecoder : Json.Decode.Decoder MediaStream
 streamDecoder =
     Json.Decode.succeed
-        (\id streamType default codec index displayTitle extendedDisplayTitle sourceKey selected language ->
+        (\id streamType default codec index displayTitle extendedDisplayTitle sourceKey selected language width height ->
             { id = id
             , streamType = streamType
             , default = default
@@ -72,6 +74,8 @@ streamDecoder =
             , sourceKey = sourceKey
             , selected = selected
             , language = language
+            , width = width
+            , height = height
             }
         )
         |> decodeAndMap (Json.Decode.field "id" Json.Decode.int)
@@ -84,6 +88,8 @@ streamDecoder =
         |> decodeAndMap (Util.maybeEmptyString <| Json.Decode.field "sourceKey" Json.Decode.string)
         |> decodeAndMap (Util.maybeFalse <| Json.Decode.field "selected" Json.Decode.bool)
         |> decodeAndMap (Util.maybeEmptyString <| Json.Decode.field "language" Json.Decode.string)
+        |> decodeAndMap (Util.maybeZero <| Json.Decode.field "width" Json.Decode.int)
+        |> decodeAndMap (Util.maybeZero <| Json.Decode.field "height" Json.Decode.int)
 
 
 decodeAndMap : Json.Decode.Decoder a -> Json.Decode.Decoder (a -> b) -> Json.Decode.Decoder b
