@@ -65,10 +65,6 @@ homeStyles =
         , sectionTitleContainer =
             { marginLeft = 5
             , marginBottom = 6
-            , flexDirection = "row"
-            , alignItems = "center"
-            , alignSelf = "flex-start"
-            , gap = 3
             }
         , sectionTitle =
             { fontSize = 16
@@ -215,31 +211,35 @@ itemView client isContinueWatching metadata =
 
 
 libraryMenu : Library -> List (Html Msg) -> Html Msg
-libraryMenu { key, scanning } child =
-    contextMenuButton
-        [ pressEventMenuItemDecoder
-            |> Decode.map (\{ actionKey } -> ScanLibrary actionKey)
-            |> onPressMenuItem
-        , isMenuPrimaryAction True
-        , style homeStyles.sectionTitleContainer
-        , menuConfig
-            { menuTitle = ""
-            , menuItems =
-                [ if scanning then
-                    { actionKey = key
-                    , actionTitle = "Scanning..."
-                    , attributes = Just [ CM.KeepsMenuPresented, CM.Disabled ]
-                    }
+libraryMenu { key, scanning, title } children =
+    touchableOpacity
+        [ style homeStyles.sectionTitleContainer ]
+        [ contextMenuButton
+            [ pressEventMenuItemDecoder
+                |> Decode.map
+                    (\{ actionKey } -> ScanLibrary actionKey)
+                |> onPressMenuItem
+            , isMenuPrimaryAction True
+            , style { alignSelf = "flex-start" }
+            , menuConfig
+                { menuTitle = title
+                , menuItems =
+                    [ if scanning then
+                        { actionKey = ""
+                        , actionTitle = "Scanning..."
+                        , attributes = Just [ CM.KeepsMenuPresented, CM.Disabled ]
+                        }
 
-                  else
-                    { actionKey = key
-                    , actionTitle = "Scan Library"
-                    , attributes = Just [ CM.KeepsMenuPresented ]
-                    }
-                ]
-            }
+                      else
+                        { actionKey = key
+                        , actionTitle = "Scan Library"
+                        , attributes = Just [ CM.KeepsMenuPresented ]
+                        }
+                    ]
+                }
+            ]
+            children
         ]
-        child
 
 
 sectionContainer : Maybe Library -> String -> Html Msg -> Html Msg
@@ -250,8 +250,9 @@ sectionContainer maybeLibrary title child =
                 libraryMenu library <|
                     [ text
                         [ style homeStyles.sectionTitle ]
-                        [ str title ]
-                    , ionicon "chevron-down-outline" [ size 15, color "white" ]
+                        [ str title
+                        , ionicon "chevron-down-outline" [ size 15, color "white" ]
+                        ]
                     ]
 
             _ ->

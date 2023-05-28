@@ -352,31 +352,29 @@ episodeView client ep =
 
 seasonMenu : TVShow -> List (Html Msg) -> Html Msg
 seasonMenu tvShow children =
-    contextMenuButton
-        [ pressEventMenuItemDecoder
-            |> Decode.map (\{ actionKey } -> ChangeSeason tvShow.info.ratingKey actionKey)
-            |> onPressMenuItem
-        , isMenuPrimaryAction True
-        , style
-            { marginTop = 20
-            , flexDirection = "row"
-            , alignItems = "center"
-            , alignSelf = "flex-start"
-            }
-        , menuConfig
-            { menuTitle = tvShow.info.title
-            , menuItems =
-                List.map
-                    (\sz ->
-                        { actionKey = sz.info.ratingKey
-                        , actionTitle = "Season " ++ String.fromInt sz.info.index
-                        , attributes = Nothing
-                        }
-                    )
-                    tvShow.seasons
-            }
+    touchableOpacity
+        []
+        [ contextMenuButton
+            [ pressEventMenuItemDecoder
+                |> Decode.map (\{ actionKey } -> ChangeSeason tvShow.info.ratingKey actionKey)
+                |> onPressMenuItem
+            , isMenuPrimaryAction True
+            , style { alignSelf = "flex-start", marginTop = 20 }
+            , menuConfig
+                { menuTitle = tvShow.info.title
+                , menuItems =
+                    List.map
+                        (\sz ->
+                            { actionKey = sz.info.ratingKey
+                            , actionTitle = "Season " ++ String.fromInt sz.info.index
+                            , attributes = Nothing
+                            }
+                        )
+                        tvShow.seasons
+                }
+            ]
+            children
         ]
-        children
 
 
 seasonView : Int -> TVShow -> Html Msg
@@ -392,8 +390,9 @@ seasonView selectedSeasonIndex tvShow =
                 , marginRight = 5
                 }
             ]
-            [ str selectedSeasonLabel ]
-        , ionicon "chevron-down-outline" [ size 12, color "white" ]
+            [ str (selectedSeasonLabel ++ " ")
+            , ionicon "chevron-down-outline" [ size 13, color "white" ]
+            ]
         ]
 
 

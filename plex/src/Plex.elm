@@ -72,17 +72,17 @@ getContinueWatching =
     Api.getContinueWatching GotContinueWatching
 
 
-getLibraryDetails : Client -> Library -> Cmd Msg
-getLibraryDetails client lib =
-    Api.getLibrary lib.key (hijackUnauthorizedError <| GotLibraryDetail lib.key) client
+getLibraryDetails : Client -> String -> Cmd Msg
+getLibraryDetails client key =
+    Api.getLibrary key (hijackUnauthorizedError <| GotLibraryDetail key) client
 
 
-getLibraryRecentlyAdded : Client -> Library -> Cmd Msg
-getLibraryRecentlyAdded client lib =
-    Api.getLibraryRecentlyAdded lib.key
+getLibraryRecentlyAdded : Client -> String -> Cmd Msg
+getLibraryRecentlyAdded client key =
+    Api.getLibraryRecentlyAdded key
         (hijackUnauthorizedError
             (\section ->
-                GotLibraryRecentlyAdded lib.key (Result.map .data section)
+                GotLibraryRecentlyAdded key (Result.map .data section)
             )
         )
         client
@@ -382,8 +382,8 @@ gotLibraries resp m =
                 getContinueWatching m.client
                     :: List.concatMap
                         (\lib ->
-                            [ getLibraryDetails m.client lib
-                            , getLibraryRecentlyAdded m.client lib
+                            [ getLibraryDetails m.client lib.key
+                            , getLibraryRecentlyAdded m.client lib.key
                             ]
                         )
                         libs
