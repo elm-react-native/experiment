@@ -1,16 +1,18 @@
 module Video.Episodes exposing (episodesView)
 
-import Api exposing (Client, Metadata)
+import Api
 import Browser
-import Components exposing (modalFadeView, progressBar, text, videoPlayContainer)
+import Client exposing (Client)
+import Components exposing (loading, modalFadeView, progressBar, text, videoPlayContainer)
 import Dict
+import Dto exposing (Metadata)
 import EntityScreen exposing (seasonMenu)
 import Html exposing (Attribute, Html)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import Model exposing (HomeModel, Msg(..), VideoPlayerControlAction(..))
 import ReactNative exposing (activityIndicator, flatList, fragment, imageBackground, null, str, touchableOpacity, touchableScale, view)
-import ReactNative.BlurView exposing (blurAmount, blurType, blurView)
+import ReactNative.BlurView exposing (blurAmount, blurType)
 import ReactNative.Events exposing (onPress)
 import ReactNative.Icon exposing (ionicon)
 import ReactNative.PixelRatio as PixelRatio
@@ -91,10 +93,6 @@ episodeView client ep =
         , text [ style { color = "gray", fontSize = 11 } ] [ str <| Utils.formatDuration ep.duration ]
         , text [ style { color = "gray", fontSize = 11 }, numberOfLines 5 ] [ str ep.summary ]
         ]
-
-
-loading =
-    activityIndicator [ stringSize "large" ] []
 
 
 episodesView : HomeModel -> Html Msg

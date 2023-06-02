@@ -2,22 +2,22 @@
   "folders": [
     {
       "path": ".",
-      "folder_exclude_patterns": ["elm-stuff"]
+      "folder_exclude_patterns": ["elm-stuff"],
     },
     {
-      "path": "/Users/roy/.elm/0.19.1/packages"
+      "path": "/Users/roy/.elm/0.19.1/packages",
     }
   ],
   "build_systems": [
     {
       "working_dir": "$project_path",
       "name": "Build All Demos",
-      "shell_cmd": "./build demo"
+      "shell_cmd": "./build demo",
     },
     {
       "working_dir": "$project_path",
       "name": "Build Plex",
-      "shell_cmd": "./build plex"
+      "shell_cmd": "./build plex",
     }
   ],
   "settings": {
@@ -35,11 +35,15 @@
     "elm_output_file": "plex/elm.js",
     "LSP": {
       "LSP-typescript": {
-        "enabled": false
+        "enabled": false,
       },
       "LSP-elm": {
-        "enabled": false
-      }
-    }
-  }
+        "enabled": false,
+      },
+      "lsp-haskell":
+      {
+				"enabled": false
+			},
+    },
+  },
 }

@@ -1,7 +1,7 @@
 module SignInModel exposing (SignInModel, SignInMsg(..))
 
-import Api exposing (Client)
 import Browser.Navigation as N
+import Client exposing (Client)
 import Http
 
 

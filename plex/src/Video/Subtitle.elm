@@ -1,6 +1,6 @@
 module Video.Subtitle exposing (..)
 
-import Api
+import Api exposing (getSubtitleUrl)
 import Browser
 import Components exposing (text)
 import Html exposing (Attribute, Html)
@@ -41,41 +41,6 @@ subtitleText : String -> Html msg
 subtitleText s =
     view [ style styles.subtitleContainer ]
         [ text [ style styles.subtitle ] [ str s ] ]
-
-
-getSubtitleUrl client ratingKey session sessionId =
-    Api.clientRequestUrl "/video/:/transcode/universal/subtitles" client
-        ++ ("&hasMDE=1&path=%2Flibrary%2Fmetadata%2F" ++ ratingKey)
-        ++ "&mediaIndex=0"
-        ++ "&partIndex=0"
-        ++ "&protocol=dash"
-        ++ "&fastSeek=1"
-        ++ "&directPlay=0"
-        ++ "&directStream=1"
-        ++ "&subtitleSize=100"
-        ++ "&audioBoost=100"
-        ++ "&location=lan"
-        ++ "&addDebugOverlay=0"
-        ++ "&autoAdjustQuality=0"
-        ++ "&directStreamAudio=1"
-        ++ "&mediaBufferSize=102400"
-        ++ "&subtitles=auto"
-        ++ "&Accept-Language=en"
-        ++ "&X-Plex-Client-Profile-Extra=append-transcode-target-codec%28type%3DvideoProfile%26context%3Dstreaming%26audioCodec%3Daac%252Cac3%252Ceac3%26protocol%3Dhls%29"
-        ++ "&X-Plex-Incomplete-Segments=1"
-        ++ "&X-Plex-Product=Plex%20Web"
-        ++ "&X-Plex-Version=4.87.2"
-        ++ "&X-Plex-Platform=Safari"
-        ++ "&X-Plex-Platform-Version=605.1"
-        ++ "&X-Plex-Features=external-media%2Cindirect-media%2Chub-style-list"
-        ++ "&X-Plex-Model=bundled"
-        ++ "&X-Plex-Device=OSX"
-        ++ "&X-Plex-Device-Name=Safari"
-        --++ "&X-Plex-Device-Screen-Resolution=980x1646%2C393x852"
-        ++ ("&X-Plex-Device-Screen-Resolution=" ++ String.fromFloat client.screenMetrics.width ++ "x" ++ String.fromFloat client.screenMetrics.height)
-        ++ "&X-Plex-Language=en"
-        ++ ("&X-Plex-Session-Identifier=" ++ sessionId)
-        ++ ("&session=" ++ session)
 
 
 videoPlayerSubtitle client { subtitle, subtitleSeekTime, playbackTime, seeking, showSubtitle, metadata, session, sessionId, selectedSubtitle } =

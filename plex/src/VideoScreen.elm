@@ -1,13 +1,15 @@
 module VideoScreen exposing (videoScreen)
 
-import Api exposing (MediaStream, Metadata)
+import Api exposing (videoUri)
+import Client exposing (Client)
 import Components exposing (onPinch, onTap, pinchableView, text)
+import Dto exposing (MediaStream, Metadata)
 import Html exposing (Html)
 import Html.Lazy exposing (lazy)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import Maybe
-import Model exposing (HomeModel, Msg(..), PlaybackSpeed, PlaybackState(..), ScreenLockState(..), SeekStage(..), VideoPlayer, VideoPlayerControlAction(..), dialogueDecoder, episodeTitle, filterMediaStream, getFirstPartId, getSelectedSubtitleStream, isVideoUrlReady, playbackSpeedDecoder, playbackSpeedEncode, playbackSpeedList, playbackSpeedToRate)
+import Model exposing (HomeModel, Msg(..), PlaybackSpeed, PlaybackState(..), ScreenLockState(..), SearchSubtitle, SeekStage(..), VideoPlayer, VideoPlayerControlAction(..), dialogueDecoder, episodeTitle, filterMediaStream, getFirstPartId, getSelectedSubtitleStream, isVideoUrlReady, playbackSpeedDecoder, playbackSpeedEncode, playbackSpeedList, playbackSpeedToRate)
 import ReactNative exposing (activityIndicator, button, fragment, image, null, require, str, touchableOpacity, touchableScale, touchableWithoutFeedback, view)
 import ReactNative.Animated as Animated
 import ReactNative.ContextMenuIOS exposing (MenuItem, contextMenuButton, isMenuPrimaryAction, menuConfig, onPressMenuItem, pressEventMenuItemDecoder)
@@ -22,56 +24,10 @@ import Time
 import Utils exposing (containsItem, formatPlaybackTime)
 import Video.Episodes exposing (episodesView)
 import Video.ProgressBar exposing (videoPlayerControlsProgress)
+import Video.SearchSubtitle exposing (searchSubtitleView)
 import Video.Subtitle exposing (videoPlayerSubtitle)
 import Video.SubtitleStream as SubtitleStream exposing (subtitleStream)
 import Video.VideoView exposing (onBuffering, onEnded, onError, onPlaying, onProgress, paused, rate, seek, src, video)
-
-
-videoUri : VideoPlayer -> Api.Client -> String
-videoUri { session, sessionId, metadata } client =
-    Api.clientRequestUrl "/video/:/transcode/universal/start.mpd" client
-        ++ ("&path=%2Flibrary%2Fmetadata%2F" ++ metadata.ratingKey)
-        ++ "&hasMDE=1"
-        ++ "&mediaIndex=0"
-        ++ "&partIndex=0"
-        ++ "&protocol=dash"
-        ++ "&fastSeek=1"
-        ++ "&directPlay=0"
-        ++ "&directStream=1"
-        ++ "&subtitleSize=100"
-        ++ "&audioBoost=100"
-        ++ "&location=lan"
-        ++ "&addDebugOverlay=0"
-        ++ "&autoAdjustQuality=0"
-        ++ "&directStreamAudio=1"
-        ++ "&mediaBufferSize=102400"
-        ++ "&subtitles=auto"
-        ++ "&Accept-Language=en"
-        --++ "&X-Plex-Client-Profile-Extra=append-transcode-target-codec%28type%3DvideoProfile%26context%3Dstreaming%26audioCodec%3Daac%252Cac3%252Ceac3%26protocol%3Ddash%29"
-        ++ "&X-Plex-Client-Profile-Extra=add-limitation%28scope%3DvideoCodec%26scopeName%3Dhevc%26type%3DupperBound%26name%3Dvideo.bitDepth%26value%3D10%26replace%3Dtrue%29%2Bappend-transcode-target-codec%28type%3DvideoProfile%26context%3Dstreaming%26protocol%3Ddash%26videoCodec%3Dhevc%29%2Badd-limitation%28scope%3DvideoTranscodeTarget%26scopeName%3Dhevc%26scopeType%3DvideoCodec%26context%3Dstreaming%26protocol%3Ddash%26type%3Dmatch%26name%3Dvideo.colorTrc%26list%3Dbt709%7Cbt470m%7Cbt470bg%7Csmpte170m%7Csmpte240m%7Cbt2020-10%7Csmpte2084%26isRequired%3Dfalse%29%2Bappend-transcode-target-codec%28type%3DvideoProfile%26context%3Dstreaming%26audioCodec%3Daac%26protocol%3Ddash%29"
-        ++ "&X-Plex-Incomplete-Segments=1"
-        ++ "&X-Plex-Product=Plex%20Web"
-        ++ "&X-Plex-Version=4.87.2"
-        ++ "&X-Plex-Platform=Safari"
-        ++ "&X-Plex-Platform-Version=605.1"
-        ++ "&X-Plex-Features=external-media%2Cindirect-media%2Chub-style-list"
-        ++ "&X-Plex-Model=bundled"
-        ++ (if Platform.os == "ios" then
-                "&X-Plex-Device=OSX"
-
-            else if Platform.os == "android" then
-                "&X-Plex-Device=android"
-
-            else
-                ""
-           )
-        ++ "&X-Plex-Device-Name=Safari"
-        --++ "&X-Plex-Device-Screen-Resolution=1479x549%2C1728x1117"
-        --++ "&X-Plex-Device-Screen-Resolution=980x1646%2C393x852"
-        ++ ("&X-Plex-Device-Screen-Resolution=" ++ String.fromFloat client.screenMetrics.width ++ "x" ++ String.fromFloat client.screenMetrics.height)
-        ++ "&X-Plex-Language=en"
-        ++ ("&X-Plex-Session-Identifier=" ++ sessionId)
-        ++ ("&session=" ++ session)
 
 
 styles =
@@ -232,12 +188,23 @@ subtitleMenu { metadata, showSubtitle, selectedSubtitle } =
 
         haveSubtitle =
             List.length subs > 1
+
+        searchSubtitleMenuItem =
+            { actionKey = "search"
+            , actionTitle = "    Search"
+            , attributes = Nothing
+            }
     in
     contextMenuButton
         [ pressEventMenuItemDecoder
             |> Decode.map
                 (\{ actionKey } ->
-                    VideoPlayerControl <| ChangeSubtitle partId <| Maybe.withDefault 0 <| String.toInt actionKey
+                    case actionKey of
+                        "search" ->
+                            VideoPlayerControl <| SetSearchSubtitleOpen True
+
+                        _ ->
+                            VideoPlayerControl <| ChangeSubtitle partId <| Maybe.withDefault 0 <| String.toInt actionKey
                 )
             |> onPressMenuItem
         , isMenuPrimaryAction True
@@ -245,22 +212,23 @@ subtitleMenu { metadata, showSubtitle, selectedSubtitle } =
             { menuTitle = ""
             , menuItems =
                 if haveSubtitle then
-                    List.map
-                        (\{ id, label } ->
-                            { actionKey = String.fromInt id
-                            , actionTitle =
-                                if id == selectedSubtitle then
-                                    "✓ " ++ label
+                    searchSubtitleMenuItem
+                        :: List.map
+                            (\{ id, label } ->
+                                { actionKey = String.fromInt id
+                                , actionTitle =
+                                    if id == selectedSubtitle then
+                                        "✓ " ++ label
 
-                                else
-                                    "    " ++ label
-                            , attributes = Nothing
-                            }
-                        )
-                        subs
+                                    else
+                                        "    " ++ label
+                                , attributes = Nothing
+                                }
+                            )
+                            subs
 
                 else
-                    []
+                    [ searchSubtitleMenuItem ]
             }
         ]
         [ videoPlayerControlsImageIcon 20
@@ -469,19 +437,34 @@ pinchResizer videoPlayer =
         []
 
 
+getVideoFileName : Metadata -> String
+getVideoFileName metadata =
+    case metadata.medias of
+        media :: _ ->
+            case media.parts of
+                part :: _ ->
+                    Utils.getFileName part.file
+
+                _ ->
+                    ""
+
+        _ ->
+            ""
+
+
 videoScreen : HomeModel -> () -> Html Msg
 videoScreen ({ videoPlayer, client } as m) _ =
     if isVideoUrlReady videoPlayer then
         view [ style styles.container ]
             [ video
-                [ src <| videoUri videoPlayer client
+                [ src <| videoUri videoPlayer.session videoPlayer.sessionId videoPlayer.metadata client
                 , seek (toFloat videoPlayer.seekTime / toFloat videoPlayer.metadata.duration)
                 , onError <| Decode.succeed <| PlayVideoError "Unexpected error occurred"
                 , onEnded <| Decode.succeed OnVideoEnd
                 , onBuffering <| Decode.succeed <| OnVideoBuffer True
                 , onPlaying <| Decode.succeed <| OnVideoBuffer False
                 , onProgress (\p -> OnVideoProgress p.currentTime)
-                , paused <| (videoPlayer.state /= Playing || videoPlayer.seeking || videoPlayer.episodesOpen)
+                , paused <| (videoPlayer.state /= Playing || videoPlayer.seeking || videoPlayer.episodesOpen || videoPlayer.searchSubtitle.open)
                 , rate <| playbackSpeedToRate videoPlayer.playbackSpeed
                 , style styles.fullscreen
                 , resizeMode videoPlayer.resizeMode
@@ -496,6 +479,7 @@ videoScreen ({ videoPlayer, client } as m) _ =
             , videoPlayerControls videoPlayer
             , bufferingIndicator videoPlayer
             , episodesView m
+            , searchSubtitleView (getVideoFileName videoPlayer.metadata) videoPlayer.searchSubtitle
             ]
 
     else

@@ -1,8 +1,10 @@
 module EntityScreen exposing (entityScreen, seasonMenu)
 
-import Api exposing (Client, Metadata)
+import Api
+import Client exposing (Client)
 import Components exposing (bottomPadding, chip, progressBar, text, videoPlayContainer)
 import Dict
+import Dto exposing (Metadata)
 import Html exposing (Html)
 import Json.Decode as Decode
 import Model exposing (..)

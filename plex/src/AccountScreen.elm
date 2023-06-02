@@ -1,10 +1,11 @@
 module AccountScreen exposing (accountScreen, avatar, avatarStyles)
 
-import Api exposing (Account, Client, Metadata, Section)
 import Browser
 import Browser.Navigation as N
+import Client exposing (Client)
 import Components exposing (text)
 import Dict exposing (Dict)
+import Dto exposing (Account, Metadata, Section)
 import EntityScreen exposing (entityScreen)
 import Html exposing (Html)
 import Http

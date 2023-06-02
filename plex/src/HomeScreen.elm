@@ -1,8 +1,10 @@
 module HomeScreen exposing (homeScreen)
 
-import Api exposing (Client, Library, Metadata)
+import Api
+import Client exposing (Client)
 import Components exposing (bottomPadding, progressBar, text, videoPlayContainer)
 import Dict
+import Dto exposing (Library, Metadata)
 import Html exposing (Html)
 import Html.Lazy exposing (lazy5)
 import Json.Decode as Decode

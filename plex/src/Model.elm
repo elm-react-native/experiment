@@ -1,8 +1,9 @@
-module Model exposing (Dialogue, HomeModel, LibrarySection, Model(..), Msg(..), PlaybackSpeed, PlaybackState(..), RemoteData, ScreenLockState(..), SeekStage(..), TVSeason, TVShow, VideoPlayer, VideoPlayerControlAction(..), dialogueDecoder, episodeTitle, filterMediaStream, findSeason, findTVShowByEpisodeRatingKey, getFirstPartId, getSelectedSubtitleStream, initHomeModel, initialVideoPlayer, isVideoUrlReady, playbackSpeedDecoder, playbackSpeedEncode, playbackSpeedList, playbackSpeedToRate, updateEpisode, updateSelectedSeason, updateTVShow)
+module Model exposing (Dialogue, HomeModel, LibrarySection, Model(..), Msg(..), PlaybackSpeed, PlaybackState(..), RemoteData, ScreenLockState(..), SearchSubtitle, SeekStage(..), TVSeason, TVShow, VideoPlayer, VideoPlayerControlAction(..), dialogueDecoder, episodeTitle, filterMediaStream, findSeason, findTVShowByEpisodeRatingKey, getFirstPartId, getSelectedSubtitleStream, initHomeModel, initialVideoPlayer, isVideoUrlReady, playbackSpeedDecoder, playbackSpeedEncode, playbackSpeedList, playbackSpeedToRate, updateEpisode, updateSelectedSeason, updateTVShow)
 
-import Api exposing (Account, Client, Library, MediaStream, Metadata, Section, initialMetadata)
 import Browser.Navigation as N
+import Client exposing (Client)
 import Dict exposing (Dict)
+import Dto exposing (Account, Library, MediaStream, Metadata, Response, Section, initialMetadata)
 import Http
 import Json.Decode as Decode exposing (Decoder)
 import ReactNative.Animated as Animated
@@ -13,7 +14,7 @@ import Utils exposing (findItem)
 
 
 type alias RemoteData data =
-    Maybe (Result Http.Error data)
+    Maybe (Response data)
 
 
 type alias TVShow =
@@ -39,6 +40,13 @@ type PlaybackState
     | Stopped
 
 
+type alias SearchSubtitle =
+    { items : RemoteData (List MediaStream)
+    , open : Bool
+    , title : String
+    }
+
+
 type alias VideoPlayer =
     { sessionId : String
     , session : String
@@ -61,6 +69,7 @@ type alias VideoPlayer =
     , selectedSubtitle : Int
     , selectedSeasonKey : String
     , episodesOpen : Bool
+    , searchSubtitle : SearchSubtitle
     }
 
 
@@ -93,15 +102,16 @@ initialVideoPlayer =
     , selectedSubtitle = 0
     , selectedSeasonKey = ""
     , episodesOpen = False
+    , searchSubtitle = { open = False, items = Nothing, title = "" }
     }
 
 
 type alias HomeModel =
     { continueWatching : RemoteData (List Metadata)
-    , librariesRecentlyAdded : Dict String (Result Http.Error (List Metadata))
-    , librariesDetails : Dict String (Result Http.Error (List Metadata))
+    , librariesRecentlyAdded : Dict String (Response (List Metadata))
+    , librariesDetails : Dict String (Response (List Metadata))
     , libraries : List Library
-    , tvShows : Dict String (Result Http.Error TVShow)
+    , tvShows : Dict String (Response TVShow)
     , client : Client
     , account : Maybe Account
     , navKey : N.Key
@@ -238,6 +248,8 @@ type VideoPlayerControlAction
     | ChangeSpeed PlaybackSpeed
     | ChangeSubtitle Int Int
     | SetEpisodesOpen Bool
+    | SetSearchSubtitleOpen Bool
+    | GotSearchSubtitle (Response (List MediaStream))
     | ExtendTimeout
 
 
@@ -245,15 +257,15 @@ type Msg
     = NoOp
     | SignInMsg SignInMsg
     | GotSavedClient (Maybe Client)
-    | GotAccount (Result Http.Error Account)
-    | GotLibraries (Result Http.Error (List Library))
-    | GotLibraryDetail String (Result Http.Error (List Metadata))
-    | GotLibraryRecentlyAdded String (Result Http.Error (List Metadata))
-    | GotContinueWatching (Result Http.Error (List Metadata))
-    | GotTVShow String (Result Http.Error TVShow)
-    | GotNextEpisode String (Result Http.Error ( TVShow, Maybe Metadata ))
-    | GotStreams String (Result Http.Error Metadata)
-    | GotEpisodes String String (Result Http.Error (List Metadata))
+    | GotAccount (Response Account)
+    | GotLibraries (Response (List Library))
+    | GotLibraryDetail String (Response (List Metadata))
+    | GotLibraryRecentlyAdded String (Response (List Metadata))
+    | GotContinueWatching (Response (List Metadata))
+    | GotTVShow String (Response TVShow)
+    | GotNextEpisode String (Response ( TVShow, Maybe Metadata ))
+    | GotStreams String (Response Metadata)
+    | GotEpisodes String String (Response (List Metadata))
     | GotoAccount
     | GotoEntity Bool Metadata
     | ChangeSeason String String
@@ -305,7 +317,7 @@ findSeason seasonId { seasons } =
             sz
 
 
-updateTVShow : (TVShow -> TVShow) -> String -> Dict String (Result Http.Error TVShow) -> Dict String (Result Http.Error TVShow)
+updateTVShow : (TVShow -> TVShow) -> String -> Dict String (Response TVShow) -> Dict String (Response TVShow)
 updateTVShow fn showId tvShows =
     case Dict.get showId tvShows of
         Just (Ok show) ->
@@ -319,7 +331,7 @@ updateSelectedSeason seasonId showId tvShows =
     updateTVShow (\sh -> { sh | selectedSeason = seasonId }) showId tvShows
 
 
-findTVShowByEpisodeRatingKey : String -> Dict String (Result Http.Error TVShow) -> Maybe ( TVShow, TVSeason, Metadata )
+findTVShowByEpisodeRatingKey : String -> Dict String (Response TVShow) -> Maybe ( TVShow, TVSeason, Metadata )
 findTVShowByEpisodeRatingKey ratingKey tvShows =
     tvShows
         |> Dict.values
@@ -364,7 +376,7 @@ updateSeason f seasonId tvShow =
     }
 
 
-updateEpisode : Metadata -> Dict String (Result Http.Error TVShow) -> Dict String (Result Http.Error TVShow)
+updateEpisode : Metadata -> Dict String (Response TVShow) -> Dict String (Response TVShow)
 updateEpisode metadata =
     updateTVShow
         (updateSeason

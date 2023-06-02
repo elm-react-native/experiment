@@ -33,6 +33,7 @@ class VideoView : UIView, VLCMediaPlayerDelegate {
   var _rateDirty: Bool = false;
   
   var _src: String = "";
+  var _srcDirty: Bool = false;
   
   var _resizeMode: String = "contain";
   var _resizeModeDirty: Bool = false;
@@ -102,6 +103,19 @@ class VideoView : UIView, VLCMediaPlayerDelegate {
   }
   
   func applyProps() {
+    if (_srcDirty) {
+      _srcDirty = false;
+      
+      if _src != "" {
+        releasePlayer()
+      
+        _player = VLCMediaPlayer()
+        _player.delegate = self
+        _player.drawable = self
+        _player.media = VLCMedia(url: URL(string: _src)!)
+      }
+    }
+
     if (_player == nil) { return }
         
     if (_pausedDirty) {
@@ -141,6 +155,9 @@ class VideoView : UIView, VLCMediaPlayerDelegate {
       }
     }
     
+//    "19:9".withCString { str in
+//      _player.videoAspectRatio = UnsafeMutablePointer<CChar>(mutating: str)
+//    }
   }
   
   @objc
@@ -148,17 +165,12 @@ class VideoView : UIView, VLCMediaPlayerDelegate {
     if _src == src { return }
     
     _src = src ?? ""
-    _pausedDirty = true
-    
-    releasePlayer()
-    
-    if _src != "" {
-      _player = VLCMediaPlayer()
-      _player.delegate = self
-      _player.drawable = self
-      _player.media = VLCMedia(url: URL(string: _src)!)
-    }
-    
+    _srcDirty = true;
+    _pausedDirty = true;
+    _rateDirty = true;
+    _seekDirty = true;
+    _resizeModeDirty = true;
+
     DispatchQueue.main.async {[weak self] in
       self?.applyProps()
     }
@@ -215,6 +227,7 @@ class VideoView : UIView, VLCMediaPlayerDelegate {
     _player?.drawable = nil
     _player?.pause()
     _player?.stop()
+    _player?.media = nil
     _player = nil
   }
   
@@ -222,6 +235,16 @@ class VideoView : UIView, VLCMediaPlayerDelegate {
   override func removeFromSuperview() {
     super.removeFromSuperview()
     releasePlayer()
+  }
+  
+  func videoSize() -> CGSize {
+    let media = _player.media;
+    if let width = media?.metaDictionary[VLCMediaTracksInformationVideoWidth] as? NSNumber,
+       let height = media?.metaDictionary[VLCMediaTracksInformationVideoHeight] as? NSNumber {
+        return CGSize(width: width.doubleValue, height: height.doubleValue)
+    } else {
+        return _player.videoSize
+    }
   }
 }
 

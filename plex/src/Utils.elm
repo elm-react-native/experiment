@@ -1,7 +1,9 @@
-module Utils exposing (charAt, containsItem, elementAt, findItem, fixedSizeLayout, formatDuration, formatPlaybackTime, generateIdentifier, indexOf, maybeEmptyList, maybeEmptyString, maybeFalse, maybeFloatZero, maybeWithDefault, maybeZero, padZero, percentFloat, quotRem)
+module Utils exposing (charAt, containsItem, elementAt, findItem, fixedSizeLayout, formatDuration, formatPlaybackTime, generateIdentifier, getFileName, indexOf, maybeEmptyList, maybeEmptyString, maybeFalse, maybeFloatZero, maybeWithDefault, maybeZero, padZero, percentFloat, quotRem)
 
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
+import Path
+import Path.Platform exposing (posix, win32)
 import Random
 
 
@@ -198,3 +200,17 @@ formatPlaybackTime d maximum =
                 padZero mins ++ ":"
            )
         ++ padZero seconds
+
+
+getFileName path =
+    case Path.fromString win32 path of
+        Ok p ->
+            Path.name p
+
+        _ ->
+            case Path.fromString posix path of
+                Ok p ->
+                    Path.name p
+
+                _ ->
+                    ""

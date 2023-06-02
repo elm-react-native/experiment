@@ -1,11 +1,13 @@
 module SignInScreen exposing (signInScreen, signInStyles, signInUpdate)
 
 import AccountScreen exposing (accountScreen, avatar)
-import Api exposing (Client, Metadata)
+import Api
 import Browser
 import Browser.Navigation as N
+import Client exposing (Client)
 import Components exposing (text)
 import Dict exposing (Dict)
+import Dto exposing (Metadata, Resource)
 import EntityScreen exposing (entityScreen)
 import Html exposing (Html)
 import Http
@@ -62,7 +64,7 @@ import Task
 import Theme
 
 
-findLocalServer : List Api.Resource -> Maybe { serverAddress : String, serverName : String, token : String }
+findLocalServer : List Resource -> Maybe { serverAddress : String, serverName : String, token : String }
 findLocalServer resources =
     resources
         |> List.filterMap

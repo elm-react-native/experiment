@@ -25,6 +25,7 @@ import sliderResolveComponent from '@elm-react-native/react-native-slider';
 import SubtitleStream from './subtitle';
 import blurResolveComponent from '@elm-react-native/react-native-blur';
 import {BlurView} from '@react-native-community/blur';
+import pickerResolveComponent from '@elm-react-native/react-native-picker';
 
 const NativeVideoView = requireNativeComponent('VideoView');
 const VideoView = props => {
@@ -58,7 +59,8 @@ AppRegistry.registerComponent(appName, () => () => {
               vectorIconsResolveComponent(tag) ||
               contextMenuResolveComponent(tag) ||
               sliderResolveComponent(tag) ||
-              blurResolveComponent(tag)
+              blurResolveComponent(tag) ||
+              pickerResolveComponent(tag)
             );
           }}
         />

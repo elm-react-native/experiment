@@ -1,13 +1,14 @@
-module Components exposing (bottomPadding, chip, favicon, modalFadeView, onPinch, onTap, pinchableView, progressBar, text, videoPlay, videoPlayContainer)
+module Components exposing (bottomPadding, chip, favicon, loading, modalFadeView, onPinch, onTap, pinchableView, progressBar, text, videoPlay, videoPlayContainer)
 
 import Browser
 import Html exposing (Attribute, Html)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
-import ReactNative exposing (image, node, require, str, text, touchableOpacity, touchableScale, view)
+import ReactNative exposing (activityIndicator, image, node, require, str, text, touchableOpacity, touchableScale, view)
 import ReactNative.Events exposing (on, onFloat, onPress)
 import ReactNative.Icon exposing (ionicon)
-import ReactNative.Properties exposing (color, name, property, size, source, style, zoomScale)
+import ReactNative.Picker exposing (label, onValueChange, picker, pickerItem, selectedValue)
+import ReactNative.Properties exposing (color, name, property, size, source, stringSize, stringValue, style, zoomScale)
 import Theme
 import Utils exposing (percentFloat)
 
@@ -125,3 +126,88 @@ chip label =
             ]
             [ str label ]
         ]
+
+
+loading =
+    activityIndicator [ stringSize "large" ] []
+
+
+langs =
+    [ "Afrikaans"
+    , "Aragonés"
+    , "Azərbaycan dili"
+    , "Bahasa Indonesia"
+    , "Bahasa Melayu"
+    , "Bengali"
+    , "Bosanski jezik"
+    , "Brezhoneg"
+    , "Burmese"
+    , "Català"
+    , "Čeština"
+    , "Dansk"
+    , "Deutsch"
+    , "Eesti"
+    , "English"
+    , "Español"
+    , "Esperanto"
+    , "Euskara"
+    , "Français"
+    , "Galego"
+    , "Hrvatski"
+    , "Íslenska"
+    , "Italiano"
+    , "Khmer"
+    , "Kiswahili"
+    , "Kurdî"
+    , "Latviešu valoda"
+    , "Lëtzebuergesch"
+    , "Lietuvių kalba"
+    , "Magyar"
+    , "Malayalam"
+    , "Nederlands"
+    , "Norsk"
+    , "Occitan"
+    , "Polski"
+    , "Português"
+    , "Português Brasileiro"
+    , "Română"
+    , "Shqip"
+    , "Sinhala"
+    , "Slovenčina"
+    , "Slovenščina"
+    , "Suomeksi"
+    , "Svenska"
+    , "Telugu"
+    , "Tiếng Việt"
+    , "Türkçe"
+    , "Wikang Tagalog"
+    , "Ελληνικά"
+    , "Беларуская"
+    , "български език"
+    , "Қазақ тілі"
+    , "македонски јазик"
+    , "монгол"
+    , "русский язык"
+    , "српски језик"
+    , "українська"
+    , "ქართული"
+    , "Հայերեն"
+    , "עברית"
+    , "اردو"
+    , "العربية"
+    , "فارسی"
+    , "हिन्दी"
+    , "தமிழ்"
+    , "ಕನ್ನಡ"
+    , "ไทย"
+    , "한국어"
+    , "中文"
+    , "日本語"
+    , "臺語"
+    ]
+
+
+langSelect : String -> (String -> msg) -> Html msg
+langSelect selected onSelect =
+    picker [ selectedValue selected, onValueChange (\{ item } -> onSelect item) ] <|
+        List.map (\lang -> pickerItem [ label lang, stringValue lang ] []) langs

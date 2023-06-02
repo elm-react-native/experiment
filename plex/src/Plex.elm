@@ -1,11 +1,13 @@
 module Plex exposing (..)
 
 import AccountScreen exposing (accountScreen, avatar)
-import Api exposing (Client, Library, Metadata, initialClient)
+import Api
 import Browser
 import Browser.Navigation as N
+import Client exposing (Client, initialClient, loadClient, saveClient)
 import Components exposing (favicon)
 import Dict exposing (Dict)
+import Dto exposing (Account, Library, Metadata, Response)
 import EntityScreen exposing (entityScreen)
 import HomeScreen exposing (homeScreen)
 import Html exposing (Html)
@@ -16,37 +18,32 @@ import Json.Encode as Encode
 import Model exposing (..)
 import Process
 import Random
-import ReactNative exposing (fragment, null, touchableOpacity, touchableWithoutFeedback, view)
-import ReactNative.ActionSheetIOS as ActionSheetIOS
+import ReactNative exposing (null, touchableOpacity)
 import ReactNative.Alert as Alert
 import ReactNative.Animated as Animated
 import ReactNative.Dimensions as Dimensions
 import ReactNative.Easing as Easing
 import ReactNative.Events exposing (onPress)
-import ReactNative.Keyboard as Keyboard
 import ReactNative.Navigation as Nav exposing (screen, stackNavigator)
 import ReactNative.Navigation.Listeners as Listeners
 import ReactNative.Platform as Platform
-import ReactNative.Properties exposing (color, component, componentModel, getId, name, options, size, source, style)
+import ReactNative.Properties exposing (component, componentModel, getId, name, options)
 import ReactNative.Settings as Settings
-import SignInModel exposing (SignInModel, SignInMsg)
+import SignInModel exposing (SignInMsg)
 import SignInScreen exposing (signInScreen, signInUpdate)
 import Task exposing (Task)
 import Theme
 import Time
-import Url
-import Url.Parser as Parser
-import Url.Parser.Query as Query
 import Utils
 import VideoScreen exposing (videoScreen)
 
 
 init : N.Key -> ( Model, Cmd Msg )
 init key =
-    ( Initial key, loadClient )
+    ( Initial key, loadClient (Result.toMaybe >> GotSavedClient) )
 
 
-hijackUnauthorizedError : (Result Http.Error a -> Msg) -> (Result Http.Error a -> Msg)
+hijackUnauthorizedError : (Response a -> Msg) -> (Response a -> Msg)
 hijackUnauthorizedError tagger =
     \resp ->
         case resp of
@@ -121,6 +118,7 @@ waitScanningFinish key client =
             )
 
 
+scanLibrary : String -> Client -> Cmd Msg
 scanLibrary key client =
     Api.scanLibrary key client
         |> Task.andThen (\_ -> waitScanningFinish key client)
@@ -143,6 +141,7 @@ getTVShowAndEpisodes parentRatingKey grandparentRatingKey client =
             )
 
 
+getTVShowAndNextEpisode : String -> String -> String -> Client -> Cmd Msg
 getTVShowAndNextEpisode ratingKey parentRatingKey grandparentRatingKey client =
     getTVShowAndEpisodes parentRatingKey grandparentRatingKey client
         |> Task.map (\tvShow -> ( tvShow, getNextEpisodeOfTVShow ratingKey parentRatingKey tvShow ))
@@ -175,90 +174,13 @@ getEpisodes showId seasonId client =
 
 
 selectSubtitle : String -> Int -> Int -> Client -> Cmd Msg
-selectSubtitle ratingKey partId subtitleStreamId client =
+selectSubtitle _ partId subtitleStreamId client =
     Api.selectSubtitle partId subtitleStreamId client
         |> Task.attempt (hijackUnauthorizedError <| always SubtitleChanged)
 
 
-
---sendPlayQueues client metadata =
---    let
---        path =
---            "/playQueues?type=video"
---                ++ "&continuous=1"
---                ++ ("&uri=server%3A%2F%2Fefdfde8153949a9b7ae2f271a6e32db10925b669%2Fcom.plexapp.plugins.library%2Flibrary%2Fmetadata%2F" ++ metadata.ratingKey)
---                ++ "&repeat=0"
---                ++ "&own=1"
---                ++ "&includeChapters=1"
---                ++ "&includeMarkers=1"
---                ++ "&includeGeolocation=1"
---                ++ "&includeExternalMedia=1"
---                ++ "&X-Plex-Product=Plex%20Web"
---                ++ "&X-Plex-Version=4.100.1"
---                ++ "&X-Plex-Platform=Chrome"
---                ++ "&X-Plex-Platform-Version=110.0"
---                ++ "&X-Plex-Features=external-media%2Cindirect-media%2Chub-style-list"
---                ++ "&X-Plex-Model=bundled"
---                ++ "&X-Plex-Device=OSX"
---                ++ "&X-Plex-Device-Name=Chrome"
---                ++ "&X-Plex-Device-Screen-Resolution=1492x407%2C1728x1117"
---                ++ "&X-Plex-Language=en"
---                ++ "&X-Plex-Drm=none"
---                ++ "&X-Plex-Text-Format=plain"
---                ++ "&X-Plex-Provider-Version=5.1"
---    in
---    Api.clientPostJson (Decode.succeed ()) path (always <| GotPlayQueues metadata) client
-
-
 sendDecision newSession { metadata, sessionId } client =
-    let
-        path =
-            -- I don't actaully understand why it is called `/decision`
-            -- The parameters seems similiar to video uri
-            "/video/:/transcode/universal/decision"
-                ++ ("?path=%2Flibrary%2Fmetadata%2F" ++ metadata.ratingKey)
-                ++ "&hasMDE=1"
-                ++ "&mediaIndex=0"
-                ++ "&partIndex=0"
-                ++ "&protocol=dash"
-                ++ "&fastSeek=1"
-                ++ "&directPlay=0"
-                ++ "&directStream=1"
-                ++ "&subtitleSize=100"
-                ++ "&audioBoost=100"
-                ++ "&location=lan"
-                ++ "&addDebugOverlay=0"
-                ++ "&autoAdjustQuality=0"
-                ++ "&directStreamAudio=1"
-                ++ "&mediaBufferSize=102400"
-                ++ "&subtitles=auto"
-                ++ "&Accept-Language=en"
-                ++ "&X-Plex-Client-Profile-Extra=add-limitation%28scope%3DvideoCodec%26scopeName%3Dhevc%26type%3DupperBound%26name%3Dvideo.bitDepth%26value%3D10%26replace%3Dtrue%29%2Bappend-transcode-target-codec%28type%3DvideoProfile%26context%3Dstreaming%26protocol%3Ddash%26videoCodec%3Dhevc%29%2Badd-limitation%28scope%3DvideoTranscodeTarget%26scopeName%3Dhevc%26scopeType%3DvideoCodec%26context%3Dstreaming%26protocol%3Ddash%26type%3Dmatch%26name%3Dvideo.colorTrc%26list%3Dbt709%7Cbt470m%7Cbt470bg%7Csmpte170m%7Csmpte240m%7Cbt2020-10%7Csmpte2084%26isRequired%3Dfalse%29%2Bappend-transcode-target-codec%28type%3DvideoProfile%26context%3Dstreaming%26audioCodec%3Daac%26protocol%3Ddash%29"
-                --++ "&X-Plex-Client-Profile-Extra=append-transcode-target-codec%28type%3DvideoProfile%26context%3Dstreaming%26audioCodec%3Daac%252Cac3%252Ceac3%26protocol%3Ddash%29"
-                ++ "&X-Plex-Incomplete-Segments=1"
-                ++ "&X-Plex-Product=Plex%20Web"
-                ++ "&X-Plex-Version=4.87.2"
-                ++ "&X-Plex-Platform=Safari"
-                ++ "&X-Plex-Platform-Version=109.0"
-                ++ "&X-Plex-Features=external-media%2Cindirect-media%2Chub-style-list"
-                ++ "&X-Plex-Model=bundled"
-                ++ (if Platform.os == "ios" then
-                        "&X-Plex-Device=OSX"
-
-                    else if Platform.os == "android" then
-                        "&X-Plex-Device=android"
-
-                    else
-                        ""
-                   )
-                ++ "&X-Plex-Device-Name=Safari"
-                --++ "&X-Plex-Device-Screen-Resolution=980x1646%2C393x852"
-                ++ ("&X-Plex-Device-Screen-Resolution=" ++ String.fromFloat client.screenMetrics.width ++ "x" ++ String.fromFloat client.screenMetrics.height)
-                ++ "&X-Plex-Language=en"
-                ++ ("&X-Plex-Session-Identifier=" ++ sessionId)
-                ++ ("&session=" ++ newSession)
-    in
-    Api.clientGetJson (Decode.succeed ()) path (always <| RestartPlaySession True newSession) client
+    Api.sendDecision newSession metadata.ratingKey sessionId (always <| RestartPlaySession True newSession) client
 
 
 savePlaybackTime : VideoPlayer -> Client -> Cmd Msg
@@ -285,56 +207,7 @@ savePlaybackTime videoPlayer client =
         client
 
 
-toDecodeError : Task Never x -> Task Decode.Error x
-toDecodeError =
-    Task.mapError (always <| Decode.Failure "" Encode.null)
-
-
-loadClient : Cmd Msg
-loadClient =
-    Task.map5
-        (\id token serverAddress serverName email ->
-            { token = token
-            , serverAddress = serverAddress
-            , serverName = serverName
-            , id = id
-            , email = email
-            , password = ""
-            , screenMetrics = Dimensions.initialDisplayMetrics
-            }
-        )
-        (Settings.get "clientId" <| Utils.maybeEmptyString Decode.string)
-        (Settings.get "token" Decode.string)
-        (Settings.get "serverAddress" Decode.string)
-        (Settings.get "serverName" Decode.string)
-        (Settings.get "email" <| Utils.maybeEmptyString Decode.string)
-        |> Task.map2
-            (\screenMetrics data -> { data | screenMetrics = screenMetrics })
-            (toDecodeError Dimensions.getScreen)
-        |> Task.attempt (Result.toMaybe >> GotSavedClient)
-
-
-saveClient : Client -> Cmd Msg
-saveClient client =
-    Task.perform (always NoOp) <|
-        let
-            encode s =
-                if String.isEmpty s then
-                    Encode.null
-
-                else
-                    Encode.string s
-        in
-        Settings.set
-            [ ( "serverAddress", encode client.serverAddress )
-            , ( "serverName", encode client.serverName )
-            , ( "token", encode client.token )
-            , ( "clientId", encode client.id )
-            , ( "email", encode client.email )
-            ]
-
-
-updateEpisodes : String -> Result Http.Error (List Metadata) -> List TVSeason -> List TVSeason
+updateEpisodes : String -> Response (List Metadata) -> List TVSeason -> List TVSeason
 updateEpisodes seasonId resp seasons =
     List.map
         (\season ->
@@ -367,7 +240,7 @@ gotSavedClient savedClient navKey =
 signInSubmitResponse client navKey =
     ( Home <| initHomeModel client navKey
     , Cmd.batch
-        [ saveClient client
+        [ saveClient NoOp client
         , getLibraries client
         , getAccount client
         ]
@@ -513,12 +386,12 @@ signOut client navKey =
         , navKey = navKey
         , submitting = False
         }
-    , saveClient { client | token = "", serverAddress = "" }
+    , saveClient NoOp { client | token = "", serverAddress = "" }
     )
 
 
 replaceVideo : Client -> Metadata -> VideoPlayer -> ( VideoPlayer, Cmd Msg )
-replaceVideo client ({ ratingKey, viewOffset, typ } as metadata) videoPlayer =
+replaceVideo client ({ ratingKey, viewOffset } as metadata) videoPlayer =
     if ratingKey == videoPlayer.metadata.ratingKey then
         ( { videoPlayer | state = Playing, seeking = False, episodesOpen = False }, Cmd.none )
 
@@ -550,7 +423,7 @@ replaceVideo client ({ ratingKey, viewOffset, typ } as metadata) videoPlayer =
 
 
 playVideo : Metadata -> HomeModel -> ( Model, Cmd Msg )
-playVideo ({ ratingKey, viewOffset, typ } as metadata) ({ navKey, videoPlayer, client } as m) =
+playVideo ({ ratingKey, viewOffset } as metadata) ({ navKey, videoPlayer, client } as m) =
     if m.videoPlayer.state /= Stopped then
         let
             ( newVideoPlayer, cmd ) =
@@ -602,12 +475,7 @@ getNextEpisodeOfTVShow ratingKey parentRatingKey tvShow =
         Just season ->
             case season.episodes of
                 Just (Ok episodes) ->
-                    case findNext (\ep -> ep.ratingKey == ratingKey) episodes of
-                        Just next ->
-                            Just next
-
-                        Nothing ->
-                            Nothing
+                    findNext (\ep -> ep.ratingKey == ratingKey) episodes
 
                 _ ->
                     Nothing
@@ -619,7 +487,7 @@ getNextEpisodeOfTVShow ratingKey parentRatingKey tvShow =
 {-| return Err True means not giving up, gonna try to fetch TVShow and then try again
 return Err False means TVShow already downloaded and there is no more episode
 -}
-getNextEpisode : Metadata -> Dict String (Result Http.Error TVShow) -> Result Bool Metadata
+getNextEpisode : Metadata -> Dict String (Response TVShow) -> Result Bool Metadata
 getNextEpisode { ratingKey, parentRatingKey, grandparentRatingKey } tvShows =
     let
         findNext pred items =
@@ -647,8 +515,8 @@ getNextEpisode { ratingKey, parentRatingKey, grandparentRatingKey } tvShows =
             Err True
 
 
-videoPlayerControlAction : Client -> Dict String (Result Http.Error TVShow) -> VideoPlayerControlAction -> VideoPlayer -> ( VideoPlayer, Cmd Msg )
-videoPlayerControlAction client tvShows action videoPlayer =
+videoPlayerControlAction : String -> Client -> Dict String (Response TVShow) -> VideoPlayerControlAction -> VideoPlayer -> ( VideoPlayer, Cmd Msg )
+videoPlayerControlAction lang client tvShows action videoPlayer =
     case action of
         SeekAction stage time ->
             ( case stage of
@@ -732,7 +600,48 @@ videoPlayerControlAction client tvShows action videoPlayer =
                 Cmd.none
             )
 
+        SetSearchSubtitleOpen open ->
+            let
+                searchSubtitle =
+                    videoPlayer.searchSubtitle
+            in
+            ( { videoPlayer
+                | searchSubtitle =
+                    { open = open
+                    , title = ""
+                    , items =
+                        if open then
+                            searchSubtitle.items
 
+                        else
+                            Nothing
+                    }
+              }
+            , Api.searchSubtitle
+                videoPlayer.metadata.ratingKey
+                lang
+                ""
+                (VideoPlayerControl << GotSearchSubtitle)
+                client
+            )
+
+        GotSearchSubtitle resp ->
+            let
+                _ =
+                    Debug.log "resp" resp
+
+                { searchSubtitle } =
+                    videoPlayer
+            in
+            ( { videoPlayer
+                | searchSubtitle =
+                    { searchSubtitle | items = Just resp }
+              }
+            , Cmd.none
+            )
+
+
+extendTimeToHideControls : Cmd Msg
 extendTimeToHideControls =
     Task.perform (\now -> UpdateTimeToHideControls <| Time.posixToMillis now + 5000) Time.now
 
@@ -752,6 +661,7 @@ hideVideoPlayerControlsAnimation animatedValue =
         |> Task.perform (always HideVideoPlayerControlsAnimationFinish)
 
 
+insertTVShowIfNotExist : String -> TVShow -> Dict String (Response TVShow) -> Dict String (Response TVShow)
 insertTVShowIfNotExist showId tvShow tvShows =
     if Dict.member showId tvShows then
         tvShows
@@ -820,7 +730,7 @@ update msg model =
 
         GotNextEpisode showId resp ->
             case model of
-                Home ({ tvShows, videoPlayer, client } as m) ->
+                Home ({ videoPlayer, client } as m) ->
                     case resp of
                         Ok ( tvShow, Just nextEpisode ) ->
                             ( Home
@@ -1002,7 +912,7 @@ update msg model =
 
         SaveVideoPlayback _ ->
             case model of
-                Home ({ client, videoPlayer } as m) ->
+                Home { client, videoPlayer } ->
                     if videoPlayer.state == Stopped then
                         ( model, Cmd.none )
 
@@ -1153,10 +1063,18 @@ update msg model =
 
         VideoPlayerControl action ->
             case model of
-                Home ({ videoPlayer, client, tvShows } as m) ->
+                Home ({ videoPlayer, client, tvShows, account } as m) ->
                     let
+                        lang =
+                            case account of
+                                Just acc ->
+                                    acc.defaultSubtitleLanguage
+
+                                _ ->
+                                    "en"
+
                         ( vp, cmd ) =
-                            videoPlayerControlAction client tvShows action videoPlayer
+                            videoPlayerControlAction lang client tvShows action videoPlayer
                     in
                     ( Home { m | videoPlayer = vp }
                     , Cmd.batch
@@ -1275,7 +1193,7 @@ update msg model =
 
         ScanLibrary key ->
             case model of
-                Home ({ videoPlayer, client, libraries } as m) ->
+                Home ({ client, libraries } as m) ->
                     ( Home
                         { m
                             | libraries =
@@ -1300,6 +1218,7 @@ update msg model =
 -- VIEW
 
 
+accountAvatar : Maybe Account -> Html Msg
 accountAvatar account =
     touchableOpacity
         [ onPress <| Decode.succeed GotoAccount ]
