@@ -134,6 +134,7 @@ module ReactNative.Properties exposing
     , progressBackgroundColor
     , progressViewOffset
     , property
+    , readonly
     , refreshCtrl
     , refreshing
     , removeClippedSubviews
@@ -695,6 +696,10 @@ component =
 componentModel : a -> Attribute msg
 componentModel =
     property "componentModel" << encode
+
+
+readonly =
+    property "readonly" << Encode.bool
 
 
 refreshCtrl : Html msg -> Attribute msg
