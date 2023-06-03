@@ -1,4 +1,4 @@
-module Components exposing (bottomPadding, chip, favicon, loading, modalFadeView, onPinch, onTap, pinchableView, progressBar, text, videoPlay, videoPlayContainer)
+module Components exposing (bottomPadding, chip, favicon, loading, modalFadeView, onPinch, onTap, pinchableView, progressBar, smallLoading, text, videoPlay, videoPlayContainer)
 
 import Browser
 import Html exposing (Attribute, Html)
@@ -130,6 +130,10 @@ chip label =
 
 loading =
     activityIndicator [ stringSize "large" ] []
+
+
+smallLoading =
+    activityIndicator [ stringSize "small" ] []
 
 
 langs =

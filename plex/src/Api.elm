@@ -1,5 +1,6 @@
 module Api exposing
-    ( getAccount
+    ( applySubtitle
+    , getAccount
     , getContinueWatching
     , getContinueWatchingTask
     , getLibraries
@@ -276,6 +277,20 @@ searchSubtitle key language title =
                 else
                     "&title=" ++ Url.percentEncode title
                )
+
+
+applySubtitle : String -> String -> (Result Http.Error () -> msg) -> Client -> Cmd msg
+applySubtitle key subtitleKey tagger client =
+    Task.attempt tagger <|
+        clientPutTask Nothing
+            (Decode.succeed ())
+            ("/library/metadata/"
+                ++ key
+                ++ "/subtitles?"
+                ++ "key="
+                ++ Url.percentEncode subtitleKey
+            )
+            client
 
 
 scanLibrary : String -> Client -> Task Http.Error ()

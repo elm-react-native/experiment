@@ -29,6 +29,7 @@ import ReactNative.Navigation.Listeners as Listeners
 import ReactNative.Platform as Platform
 import ReactNative.Properties exposing (component, componentModel, getId, name, options)
 import ReactNative.Settings as Settings
+import Set
 import SignInModel exposing (SignInMsg)
 import SignInScreen exposing (signInScreen, signInUpdate)
 import Task exposing (Task)
@@ -606,15 +607,7 @@ videoPlayerControlAction lang client tvShows action videoPlayer =
                     videoPlayer.searchSubtitle
             in
             ( { videoPlayer
-                | searchSubtitle =
-                    { open = open
-                    , items =
-                        if open then
-                            searchSubtitle.items
-
-                        else
-                            Nothing
-                    }
+                | searchSubtitle = { searchSubtitle | open = open }
               }
             , Api.searchSubtitle
                 videoPlayer.metadata.ratingKey
@@ -640,9 +633,6 @@ videoPlayerControlAction lang client tvShows action videoPlayer =
 
         GotSearchSubtitle resp ->
             let
-                _ =
-                    Debug.log "resp" resp
-
                 { searchSubtitle } =
                     videoPlayer
             in
@@ -651,6 +641,35 @@ videoPlayerControlAction lang client tvShows action videoPlayer =
                     { searchSubtitle | items = Just resp }
               }
             , Cmd.none
+            )
+
+        ApplySubtitle subtitleKey ->
+            let
+                { searchSubtitle } =
+                    videoPlayer
+            in
+            ( { videoPlayer
+                | searchSubtitle =
+                    { searchSubtitle | downloadings = Set.insert subtitleKey searchSubtitle.downloadings }
+              }
+            , Api.applySubtitle
+                videoPlayer.metadata.ratingKey
+                subtitleKey
+                (VideoPlayerControl << ApplySubtitleResp subtitleKey)
+                client
+            )
+
+        ApplySubtitleResp subtitleKey _ ->
+            -- TODO: Show error
+            let
+                { searchSubtitle } =
+                    videoPlayer
+            in
+            ( { videoPlayer
+                | searchSubtitle =
+                    { searchSubtitle | downloadings = Set.remove subtitleKey searchSubtitle.downloadings }
+              }
+            , getStreams videoPlayer.metadata.ratingKey client
             )
 
 

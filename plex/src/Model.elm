@@ -8,6 +8,7 @@ import Http
 import Json.Decode as Decode exposing (Decoder)
 import ReactNative.Animated as Animated
 import ReactNative.Dimensions as Dimensions exposing (DisplayMetrics)
+import Set exposing (Set)
 import SignInModel exposing (SignInModel, SignInMsg)
 import Time
 import Utils exposing (findItem)
@@ -43,6 +44,7 @@ type PlaybackState
 type alias SearchSubtitle =
     { items : RemoteData (List MediaStream)
     , open : Bool
+    , downloadings : Set String
     }
 
 
@@ -78,6 +80,11 @@ type ScreenLockState
     | ConfirmUnlock
 
 
+initialSearchSubtitle : SearchSubtitle
+initialSearchSubtitle =
+    { open = False, items = Nothing, downloadings = Set.empty }
+
+
 initialVideoPlayer : VideoPlayer
 initialVideoPlayer =
     { sessionId = ""
@@ -101,7 +108,7 @@ initialVideoPlayer =
     , selectedSubtitle = 0
     , selectedSeasonKey = ""
     , episodesOpen = False
-    , searchSubtitle = { open = False, items = Nothing }
+    , searchSubtitle = initialSearchSubtitle
     }
 
 
@@ -250,6 +257,8 @@ type VideoPlayerControlAction
     | SetSearchSubtitleOpen Bool
     | SendSearchSubtitle String
     | GotSearchSubtitle (Response (List MediaStream))
+    | ApplySubtitle String
+    | ApplySubtitleResp String (Response ())
     | ExtendTimeout
 
 

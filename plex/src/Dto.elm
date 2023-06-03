@@ -590,6 +590,7 @@ type alias MediaPart =
 
 type alias MediaStream =
     { id : Int -- 4230,
+    , key : String
     , streamType : Int -- 1 video, 2 audio, 3 subtitle,
     , default : Bool -- true,
     , codec : String -- "h264",
@@ -638,8 +639,9 @@ decodeMediaPart =
 streamDecoder : Decode.Decoder MediaStream
 streamDecoder =
     Decode.succeed
-        (\id streamType default codec index displayTitle extendedDisplayTitle format sourceKey selected language width height ->
+        (\id key streamType default codec index displayTitle extendedDisplayTitle format sourceKey selected language width height ->
             { id = id
+            , key = key
             , streamType = streamType
             , default = default
             , codec = codec
@@ -655,6 +657,7 @@ streamDecoder =
             }
         )
         |> decodeAndMap (Decode.field "id" Decode.int)
+        |> decodeAndMap (Utils.maybeEmptyString <| Decode.field "key" Decode.string)
         |> decodeAndMap (Decode.field "streamType" Decode.int)
         |> decodeAndMap (Utils.maybeFalse <| Decode.field "default" Decode.bool)
         |> decodeAndMap (Decode.field "codec" Decode.string)

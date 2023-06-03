@@ -1,6 +1,6 @@
 module Video.SearchSubtitle exposing (searchSubtitleView)
 
-import Components exposing (loading, modalFadeView, text)
+import Components exposing (loading, modalFadeView, smallLoading, text)
 import Dto exposing (MediaStream)
 import Html exposing (Html)
 import Json.Decode as Decode
@@ -12,6 +12,7 @@ import ReactNative.Icon exposing (ionicon)
 import ReactNative.Properties exposing (color, contentContainerStyle, placeholder, placeholderTextColor, readonly, size, style, visible)
 import ReactNative.StyleSheet as StyleSheet
 import ReactNative.TextInput exposing (onEndEditing, returnKeyType)
+import Set exposing (Set)
 import Theme
 
 
@@ -55,12 +56,16 @@ styles =
         }
 
 
-searchResultItem : MediaStream -> Html msg
-searchResultItem { extendedDisplayTitle } =
+searchResultItem : Set String -> MediaStream -> Html Msg
+searchResultItem downloadings { key, extendedDisplayTitle } =
     touchableOpacity
-        [ style styles.subtitle ]
+        [ style styles.subtitle, onPress (Decode.succeed <| VideoPlayerControl <| ApplySubtitle key) ]
         [ text [] [ str extendedDisplayTitle ]
-        , ionicon "download" [ size 16, color "white" ]
+        , if Set.member key downloadings then
+            smallLoading
+
+          else
+            ionicon "download" [ size 16, color "white" ]
         ]
 
 
@@ -75,7 +80,7 @@ close =
 
 
 searchSubtitleView : String -> SearchSubtitle -> Html Msg
-searchSubtitleView defaultTitle { items, open } =
+searchSubtitleView defaultTitle { items, open, downloadings } =
     modalFadeView
         [ style styles.container
         , visible open
@@ -99,7 +104,7 @@ searchSubtitleView defaultTitle { items, open } =
             []
         , case items of
             Just (Ok subs) ->
-                view [ style styles.subtitles ] (List.map searchResultItem subs)
+                view [ style styles.subtitles ] (List.map (searchResultItem downloadings) subs)
 
             Just (Err _) ->
                 view [ style { alignItems = "center" } ] [ text [] [ str "Search Failed" ] ]
