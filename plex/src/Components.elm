@@ -1,13 +1,13 @@
-module Components exposing (bottomPadding, chip, favicon, loading, modalFadeView, onPinch, onTap, pinchableView, progressBar, smallLoading, text, videoPlay, videoPlayContainer)
+module Components exposing (bottomPadding, chip, favicon, langSelect, loading, modalFadeView, onPinch, onTap, pinchableView, progressBar, smallLoading, text, videoPlay, videoPlayContainer)
 
 import Browser
 import Html exposing (Attribute, Html)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import ReactNative exposing (activityIndicator, image, node, require, str, text, touchableOpacity, touchableScale, view)
+import ReactNative.ContextMenuIOS exposing (MenuItem, contextMenuButton, isMenuPrimaryAction, menuConfig, onPressMenuItem, pressEventMenuItemDecoder)
 import ReactNative.Events exposing (on, onFloat, onPress)
 import ReactNative.Icon exposing (ionicon)
-import ReactNative.Picker exposing (label, onValueChange, picker, pickerItem, selectedValue)
 import ReactNative.Properties exposing (color, name, property, size, source, stringSize, stringValue, style, zoomScale)
 import Theme
 import Utils exposing (percentFloat)
@@ -137,81 +137,104 @@ smallLoading =
 
 
 langs =
-    [ "Afrikaans"
-    , "Aragonés"
-    , "Azərbaycan dili"
-    , "Bahasa Indonesia"
-    , "Bahasa Melayu"
-    , "Bengali"
-    , "Bosanski jezik"
-    , "Brezhoneg"
-    , "Burmese"
-    , "Català"
-    , "Čeština"
-    , "Dansk"
-    , "Deutsch"
-    , "Eesti"
-    , "English"
-    , "Español"
-    , "Esperanto"
-    , "Euskara"
-    , "Français"
-    , "Galego"
-    , "Hrvatski"
-    , "Íslenska"
-    , "Italiano"
-    , "Khmer"
-    , "Kiswahili"
-    , "Kurdî"
-    , "Latviešu valoda"
-    , "Lëtzebuergesch"
-    , "Lietuvių kalba"
-    , "Magyar"
-    , "Malayalam"
-    , "Nederlands"
-    , "Norsk"
-    , "Occitan"
-    , "Polski"
-    , "Português"
-    , "Português Brasileiro"
-    , "Română"
-    , "Shqip"
-    , "Sinhala"
-    , "Slovenčina"
-    , "Slovenščina"
-    , "Suomeksi"
-    , "Svenska"
-    , "Telugu"
-    , "Tiếng Việt"
-    , "Türkçe"
-    , "Wikang Tagalog"
-    , "Ελληνικά"
-    , "Беларуская"
-    , "български език"
-    , "Қазақ тілі"
-    , "македонски јазик"
-    , "монгол"
-    , "русский язык"
-    , "српски језик"
-    , "українська"
-    , "ქართული"
-    , "Հայերեն"
-    , "עברית"
-    , "اردو"
-    , "العربية"
-    , "فارسی"
-    , "हिन्दी"
-    , "தமிழ்"
-    , "ಕನ್ನಡ"
-    , "ไทย"
-    , "한국어"
-    , "中文"
-    , "日本語"
-    , "臺語"
+    [ { actionKey = "af", actionTitle = "Afrikaans" }
+    , { actionKey = "an", actionTitle = "Aragonés" }
+    , { actionKey = "az", actionTitle = "Azərbaycan dili" }
+    , { actionKey = "id", actionTitle = "Bahasa Indonesia" }
+    , { actionKey = "ms", actionTitle = "Bahasa Melayu" }
+    , { actionKey = "bn", actionTitle = "Bengali" }
+    , { actionKey = "bs", actionTitle = "Bosanski jezik" }
+    , { actionKey = "br", actionTitle = "Brezhoneg" }
+    , { actionKey = "my", actionTitle = "Burmese" }
+    , { actionKey = "ca", actionTitle = "Català" }
+    , { actionKey = "cs", actionTitle = "Čeština" }
+    , { actionKey = "da", actionTitle = "Dansk" }
+    , { actionKey = "de", actionTitle = "Deutsch" }
+    , { actionKey = "et", actionTitle = "Eesti" }
+    , { actionKey = "es", actionTitle = "Español" }
+    , { actionKey = "eo", actionTitle = "Esperanto" }
+    , { actionKey = "eu", actionTitle = "Euskara" }
+    , { actionKey = "fr", actionTitle = "Français" }
+    , { actionKey = "gl", actionTitle = "Galego" }
+    , { actionKey = "hr", actionTitle = "Hrvatski" }
+    , { actionKey = "is", actionTitle = "Íslenska" }
+    , { actionKey = "it", actionTitle = "Italiano" }
+    , { actionKey = "km", actionTitle = "Khmer" }
+    , { actionKey = "sw", actionTitle = "Kiswahili" }
+    , { actionKey = "ku", actionTitle = "Kurdî" }
+    , { actionKey = "lv", actionTitle = "Latviešu valoda" }
+    , { actionKey = "lb", actionTitle = "Lëtzebuergesch" }
+    , { actionKey = "lt", actionTitle = "Lietuvių kalba" }
+    , { actionKey = "hu", actionTitle = "Magyar" }
+    , { actionKey = "ml", actionTitle = "Malayalam" }
+    , { actionKey = "nl", actionTitle = "Nederlands" }
+    , { actionKey = "no", actionTitle = "Norsk" }
+    , { actionKey = "oc", actionTitle = "Occitan" }
+    , { actionKey = "pl", actionTitle = "Polski" }
+    , { actionKey = "pt", actionTitle = "Português" }
+    , { actionKey = "pt-BR", actionTitle = "Português Brasileiro" }
+    , { actionKey = "ro", actionTitle = "Română" }
+    , { actionKey = "sq", actionTitle = "Shqip" }
+    , { actionKey = "si", actionTitle = "Sinhala" }
+    , { actionKey = "sk", actionTitle = "Slovenčina" }
+    , { actionKey = "sl", actionTitle = "Slovenščina" }
+    , { actionKey = "fi", actionTitle = "Suomeksi" }
+    , { actionKey = "sv", actionTitle = "Svenska" }
+    , { actionKey = "te", actionTitle = "Telugu" }
+    , { actionKey = "vi", actionTitle = "Tiếng Việt" }
+    , { actionKey = "tr", actionTitle = "Türkçe" }
+    , { actionKey = "tl", actionTitle = "Wikang Tagalog" }
+    , { actionKey = "el", actionTitle = "Ελληνικά" }
+    , { actionKey = "be", actionTitle = "Беларуская" }
+    , { actionKey = "bg", actionTitle = "български език" }
+    , { actionKey = "kk", actionTitle = "Қазақ тілі" }
+    , { actionKey = "mk", actionTitle = "македонски јазик" }
+    , { actionKey = "mn", actionTitle = "монгол" }
+    , { actionKey = "ru", actionTitle = "русский язык" }
+    , { actionKey = "sr", actionTitle = "српски језик" }
+    , { actionKey = "uk", actionTitle = "українська" }
+    , { actionKey = "ka", actionTitle = "ქართული" }
+    , { actionKey = "hy", actionTitle = "Հայերեն" }
+
+    --    , { actionKey = "he", actionTitle = "עברית" }
+    --    , { actionKey = "ur", actionTitle = "اردو" }
+    --    , { actionKey = "ar", actionTitle = "العربية" }
+    --    , { actionKey = "fa", actionTitle = "فارسی" }
+    , { actionKey = "hi", actionTitle = "हिन्दी" }
+    , { actionKey = "ta", actionTitle = "தமிழ்" }
+    , { actionKey = "kn", actionTitle = "ಕನ್ನಡ" }
+    , { actionKey = "th", actionTitle = "ไทย" }
+    , { actionKey = "ko", actionTitle = "한국어" }
+    , { actionKey = "ja", actionTitle = "日本語" }
+    , { actionKey = "en", actionTitle = "English" }
+    , { actionKey = "zh", actionTitle = "中文" }
+    , { actionKey = "zh-TW", actionTitle = "繁体中文" }
     ]
 
 
 langSelect : String -> (String -> msg) -> Html msg
 langSelect selected onSelect =
-    picker [ selectedValue selected, onValueChange (\{ item } -> onSelect item) ] <|
-        List.map (\lang -> pickerItem [ label lang, stringValue lang ] []) langs
+    contextMenuButton
+        [ pressEventMenuItemDecoder
+            |> Decode.map (\{ actionKey } -> onSelect actionKey)
+            |> onPressMenuItem
+        , isMenuPrimaryAction True
+        , menuConfig
+            { menuTitle = ""
+            , menuItems =
+                List.map
+                    (\{ actionKey, actionTitle } ->
+                        { actionKey = actionKey
+                        , actionTitle =
+                            if actionKey == selected then
+                                "✓ " ++ actionTitle
+
+                            else
+                                "    " ++ actionTitle
+                        , attributes = Nothing
+                        }
+                    )
+                    langs
+            }
+        ]
+        [ text [] [ str selected ] ]

@@ -44,7 +44,9 @@ type PlaybackState
 type alias SearchSubtitle =
     { items : RemoteData (List MediaStream)
     , open : Bool
+    , language : String
     , downloadings : Set String
+    , title : String
     }
 
 
@@ -82,7 +84,7 @@ type ScreenLockState
 
 initialSearchSubtitle : SearchSubtitle
 initialSearchSubtitle =
-    { open = False, items = Nothing, downloadings = Set.empty }
+    { open = False, language = "", items = Nothing, downloadings = Set.empty, title = "" }
 
 
 initialVideoPlayer : VideoPlayer
@@ -258,6 +260,7 @@ type VideoPlayerControlAction
     | SendSearchSubtitle String
     | GotSearchSubtitle (Response (List MediaStream))
     | ApplySubtitle String
+    | ChangeSearchSubtitleLanguage String
     | ApplySubtitleResp String (Response ())
     | ExtendTimeout
 

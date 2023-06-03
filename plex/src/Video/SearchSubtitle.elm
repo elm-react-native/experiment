@@ -1,6 +1,6 @@
 module Video.SearchSubtitle exposing (searchSubtitleView)
 
-import Components exposing (loading, modalFadeView, smallLoading, text)
+import Components exposing (langSelect, loading, modalFadeView, smallLoading, text)
 import Dto exposing (MediaStream)
 import Html exposing (Html)
 import Json.Decode as Decode
@@ -80,7 +80,7 @@ close =
 
 
 searchSubtitleView : String -> SearchSubtitle -> Html Msg
-searchSubtitleView defaultTitle { items, open, downloadings } =
+searchSubtitleView defaultTitle { language, items, open, downloadings } =
     modalFadeView
         [ style styles.container
         , visible open
@@ -90,6 +90,7 @@ searchSubtitleView defaultTitle { items, open, downloadings } =
         ]
     <|
         [ close
+        , langSelect language (VideoPlayerControl << ChangeSearchSubtitleLanguage)
         , textInput
             [ style styles.input
             , placeholder defaultTitle

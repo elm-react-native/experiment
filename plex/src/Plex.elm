@@ -607,7 +607,7 @@ videoPlayerControlAction lang client tvShows action videoPlayer =
                     videoPlayer.searchSubtitle
             in
             ( { videoPlayer
-                | searchSubtitle = { searchSubtitle | open = open }
+                | searchSubtitle = { searchSubtitle | open = open, language = lang }
               }
             , Api.searchSubtitle
                 videoPlayer.metadata.ratingKey
@@ -622,7 +622,7 @@ videoPlayerControlAction lang client tvShows action videoPlayer =
                 searchSubtitle =
                     videoPlayer.searchSubtitle
             in
-            ( { videoPlayer | searchSubtitle = { searchSubtitle | items = Nothing } }
+            ( { videoPlayer | searchSubtitle = { searchSubtitle | items = Nothing, title = title } }
             , Api.searchSubtitle
                 videoPlayer.metadata.ratingKey
                 lang
@@ -670,6 +670,20 @@ videoPlayerControlAction lang client tvShows action videoPlayer =
                     { searchSubtitle | downloadings = Set.remove subtitleKey searchSubtitle.downloadings }
               }
             , getStreams videoPlayer.metadata.ratingKey client
+            )
+
+        ChangeSearchSubtitleLanguage language ->
+            let
+                { searchSubtitle } =
+                    videoPlayer
+            in
+            ( { videoPlayer | searchSubtitle = { searchSubtitle | language = language } }
+            , Api.searchSubtitle
+                videoPlayer.metadata.ratingKey
+                language
+                searchSubtitle.title
+                (VideoPlayerControl << GotSearchSubtitle)
+                client
             )
 
 

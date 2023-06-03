@@ -7,7 +7,6 @@
         "packages/react-native-vector-icons",
         "packages/react-native-video",
         "packages/react-native-blur",
-        "packages/react-native-picker",
         "demo/src",
         "plex/src"
     ],
