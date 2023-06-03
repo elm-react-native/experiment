@@ -43,7 +43,6 @@ type PlaybackState
 type alias SearchSubtitle =
     { items : RemoteData (List MediaStream)
     , open : Bool
-    , title : String
     }
 
 
@@ -102,7 +101,7 @@ initialVideoPlayer =
     , selectedSubtitle = 0
     , selectedSeasonKey = ""
     , episodesOpen = False
-    , searchSubtitle = { open = False, items = Nothing, title = "" }
+    , searchSubtitle = { open = False, items = Nothing }
     }
 
 
@@ -249,6 +248,7 @@ type VideoPlayerControlAction
     | ChangeSubtitle Int Int
     | SetEpisodesOpen Bool
     | SetSearchSubtitleOpen Bool
+    | SendSearchSubtitle String
     | GotSearchSubtitle (Response (List MediaStream))
     | ExtendTimeout
 

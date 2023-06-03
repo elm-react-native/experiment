@@ -1,4 +1,4 @@
-module Theme exposing (backgroundColor, fontFamily, themeColor)
+module Theme exposing (backgroundColor, fontFamily, inputPlaceholderColor, themeColor)
 
 import Utils exposing (quotRem)
 
@@ -16,3 +16,8 @@ themeColor =
 backgroundColor : String
 backgroundColor =
     "#2c2c2c"
+
+
+inputPlaceholderColor : String
+inputPlaceholderColor =
+    "#555"

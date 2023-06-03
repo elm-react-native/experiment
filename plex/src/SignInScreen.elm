@@ -219,7 +219,7 @@ signInScreen { client, submitting } =
                     [ style signInStyles.input
                     , disabled submitting
                     , placeholder "Email"
-                    , placeholderTextColor "#555"
+                    , placeholderTextColor Theme.inputPlaceholderColor
                     , stringValue client.email
                     , onChangeText InputEmail
                     , inputMode "email"
@@ -232,7 +232,7 @@ signInScreen { client, submitting } =
                     [ style signInStyles.input
                     , disabled submitting
                     , placeholder "Password"
-                    , placeholderTextColor "#555"
+                    , placeholderTextColor Theme.inputPlaceholderColor
                     , stringValue client.password
                     , secureTextEntry True
                     , onChangeText InputPassword

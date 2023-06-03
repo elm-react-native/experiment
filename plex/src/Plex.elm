@@ -546,7 +546,7 @@ videoPlayerControlAction lang client tvShows action videoPlayer =
                         Playing
                 , seeking = False
               }
-            , Cmd.none
+            , savePlaybackTime videoPlayer client
             )
 
         NextEpisode ->
@@ -608,7 +608,6 @@ videoPlayerControlAction lang client tvShows action videoPlayer =
             ( { videoPlayer
                 | searchSubtitle =
                     { open = open
-                    , title = ""
                     , items =
                         if open then
                             searchSubtitle.items
@@ -621,6 +620,20 @@ videoPlayerControlAction lang client tvShows action videoPlayer =
                 videoPlayer.metadata.ratingKey
                 lang
                 ""
+                (VideoPlayerControl << GotSearchSubtitle)
+                client
+            )
+
+        SendSearchSubtitle title ->
+            let
+                searchSubtitle =
+                    videoPlayer.searchSubtitle
+            in
+            ( { videoPlayer | searchSubtitle = { searchSubtitle | items = Nothing } }
+            , Api.searchSubtitle
+                videoPlayer.metadata.ratingKey
+                lang
+                title
                 (VideoPlayerControl << GotSearchSubtitle)
                 client
             )
@@ -1077,16 +1090,7 @@ update msg model =
                             videoPlayerControlAction lang client tvShows action videoPlayer
                     in
                     ( Home { m | videoPlayer = vp }
-                    , Cmd.batch
-                        [ extendTimeToHideControls
-                        , cmd
-                        , case action of
-                            TogglePlay ->
-                                savePlaybackTime vp client
-
-                            _ ->
-                                Cmd.none
-                        ]
+                    , Cmd.batch [ extendTimeToHideControls, cmd ]
                     )
 
                 _ ->
