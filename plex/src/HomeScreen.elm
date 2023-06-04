@@ -41,6 +41,7 @@ import ReactNative.Properties as Props
         , refreshCtrl
         , refreshing
         , showsHorizontalScrollIndicator
+        , showsVerticalScrollIndicator
         , size
         , source
         , style
@@ -316,6 +317,8 @@ homeScreen model _ =
     scrollView
         [ persistentScrollbar False
         , contentContainerStyle homeStyles.container
+        , showsHorizontalScrollIndicator False
+        , showsVerticalScrollIndicator False
         , style { backgroundColor = Theme.backgroundColor }
         , refreshCtrl <|
             refreshControl

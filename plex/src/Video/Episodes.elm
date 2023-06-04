@@ -139,7 +139,7 @@ episodesView { client, tvShows, videoPlayer } =
                                             , justifyContent = "space-between"
                                             , width = "100%"
                                             , height = 60
-                                            , paddingHorizontal = 50
+                                            , paddingHorizontal = 58
                                             , alignItems = "flex-end"
                                             }
                                         ]

@@ -423,7 +423,7 @@ getSelectedSubtitleStream metadata =
 
 
 episodeTitle ep =
-    "S" ++ String.fromInt ep.parentIndex ++ ":E" ++ String.fromInt ep.index ++ " " ++ ep.title
+    "S" ++ String.fromInt ep.parentIndex ++ ":E" ++ String.fromInt ep.index ++ " " ++ "“" ++ ep.title ++ "”"
 
 
 filterMediaStream : (MediaStream -> Bool) -> Metadata -> List MediaStream

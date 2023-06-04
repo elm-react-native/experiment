@@ -246,7 +246,11 @@ langSelect selected onSelect =
             [ style
                 { padding = 10
                 , backgroundColor = "black"
+                , borderRadius = 4
                 }
             ]
-            [ text [] [ str <| Maybe.withDefault "" <| Dict.get selected langTitles ] ]
+            [ text
+                [ style { fontWeight = "bold" } ]
+                [ str <| Maybe.withDefault "" <| Dict.get selected langTitles ]
+            ]
         ]

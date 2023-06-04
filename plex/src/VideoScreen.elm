@@ -321,6 +321,8 @@ videoPlayerControlsFooter videoPlayer =
             , bottom =
                 Animated.multiply (Animated.create -20)
                     (Animated.subtract (Animated.create 1) videoPlayer.playerControlsAnimatedValue)
+            , justifyContent = "center"
+            , flexDirection = "column"
             }
         ]
         [ if videoPlayer.screenLock == Unlocked then
@@ -338,12 +340,7 @@ videoPlayerControlsToolbar videoPlayer =
         [ style
             { flexDirection = "row"
             , justifyContent =
-                if videoPlayer.screenLock == Unlocked then
-                    "space-between"
-
-                else
-                    "center"
-            , paddingHorizontal = 80
+                "center"
             , height =
                 if videoPlayer.screenLock == Unlocked then
                     50
@@ -351,7 +348,7 @@ videoPlayerControlsToolbar videoPlayer =
                 else
                     80
             , alignItems = "flex-start"
-            , width = "100%"
+            , gap = 20
             }
         ]
         (if videoPlayer.screenLock == Unlocked then
@@ -364,7 +361,7 @@ videoPlayerControlsToolbar videoPlayer =
                 videoPlayerControlsFooterButton (require "./assets/episodes.png") "Episodes" <| VideoPlayerControl <| SetEpisodesOpen True
             , subtitleMenu videoPlayer
             , if videoPlayer.metadata.typ == "episode" then
-                videoPlayerControlsFooterButton (require "./assets/next-ep.png") "Next Episode" <| VideoPlayerControl NextEpisode
+                videoPlayerControlsFooterButton (require "./assets/next-ep.png") "Next Ep." <| VideoPlayerControl NextEpisode
 
               else
                 null
@@ -508,7 +505,7 @@ videoPlayerControlsImageIcon sz src label props =
             null
 
           else
-            text [ style { fontSize = 15, fontWeight = "bold" } ] [ str label ]
+            text [ style { fontSize = 13, fontWeight = "bold" } ] [ str label ]
         ]
 
 
@@ -517,4 +514,4 @@ videoPlayerControlsPressableImageIcon sz src label msg =
 
 
 videoPlayerControlsFooterButton =
-    videoPlayerControlsPressableImageIcon 20
+    videoPlayerControlsPressableImageIcon 17
