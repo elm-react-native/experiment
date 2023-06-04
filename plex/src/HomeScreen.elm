@@ -30,6 +30,7 @@ import ReactNative.ContextMenuIOS as CM exposing (MenuItem, MenuItemAttribute, c
 import ReactNative.Events exposing (onPress, onRefresh)
 import ReactNative.Icon exposing (ionicon)
 import ReactNative.PixelRatio as PixelRatio
+import ReactNative.Platform as Platform
 import ReactNative.Properties as Props
     exposing
         ( color
@@ -53,6 +54,70 @@ import Theme
 import Utils exposing (formatDuration, percentFloat)
 
 
+bannerWidth =
+    if Platform.isPad then
+        150
+
+    else
+        100
+
+
+bannerHeight =
+    if Platform.isPad then
+        225
+
+    else
+        150
+
+
+sectionTitleSize =
+    if Platform.isPad then
+        24
+
+    else
+        16
+
+
+itemLabelSize =
+    if Platform.isPad then
+        15
+
+    else
+        10
+
+
+itemLabelBackgroundHeight =
+    if Platform.isPad then
+        22
+
+    else
+        15
+
+
+itemImageAltSize =
+    if Platform.isPad then
+        18
+
+    else
+        12
+
+
+itemBorderRadius =
+    if Platform.isPad then
+        6
+
+    else
+        4
+
+
+itemGap =
+    if Platform.isPad then
+        10
+
+    else
+        5
+
+
 homeStyles =
     StyleSheet.create
         { loading =
@@ -66,11 +131,11 @@ homeStyles =
         , sectionContainer =
             { paddingVertical = 12 }
         , sectionTitleContainer =
-            { marginLeft = 5
+            { marginLeft = itemGap
             , marginBottom = 6
             }
         , sectionTitle =
-            { fontSize = 16
+            { fontSize = sectionTitleSize
             , fontWeight = "bold"
             }
         , sectionContent =
@@ -81,10 +146,10 @@ homeStyles =
         , sectionContentLoading =
             { width = "100%" }
         , itemContainer =
-            { marginHorizontal = 5
+            { marginHorizontal = itemGap
             , overflow = "hidden"
-            , width = 100
-            , height = 150
+            , width = bannerWidth
+            , height = bannerHeight
             , justifyContent = "flex-end"
             }
         , itemImage =
@@ -104,21 +169,21 @@ homeStyles =
             , justifyContent = "center"
             , alignItems = "center"
             , backgroundColor = "black"
-            , borderRadius = 4
+            , borderRadius = itemBorderRadius
             }
         , itemImageAltText =
-            { fontSize = 12
+            { fontSize = itemImageAltSize
             , fontWeight = "bold"
             }
         , itemLabel =
-            { fontSize = 10
-            , lineHeight = 10
+            { fontSize = itemLabelSize
+            , lineHeight = itemLabelSize
             , fontWeight = "bold"
             }
         , itemLabelBackground =
             { alignItems = "center"
             , justifyContent = "flex-end"
-            , height = 15
+            , height = itemLabelBackgroundHeight
             , overflow = "hidden"
             }
         }
@@ -189,15 +254,24 @@ itemView client isContinueWatching metadata =
             , source
                 { uri =
                     Api.transcodedImageUrl thumb
-                        (PixelRatio.getPixelSizeForLayoutSize 100)
-                        (PixelRatio.getPixelSizeForLayoutSize 150)
+                        (PixelRatio.getPixelSizeForLayoutSize bannerWidth)
+                        (PixelRatio.getPixelSizeForLayoutSize bannerHeight)
                         client
                 }
-            , imageStyle { borderRadius = 4 }
+            , imageStyle
+                { borderRadius = itemBorderRadius
+                }
             ]
           <|
             if isContinueWatching then
-                [ videoPlayContainer 48 (Decode.succeed <| PlayVideo metadata)
+                [ videoPlayContainer
+                    (if Platform.isPad then
+                        72
+
+                     else
+                        48
+                    )
+                    (Decode.succeed <| PlayVideo metadata)
                 ]
 
             else

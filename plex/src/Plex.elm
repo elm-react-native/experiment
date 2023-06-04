@@ -976,14 +976,22 @@ homeUpdate msg model =
 
 accountAvatar : Maybe Account -> Html HomeMsg
 accountAvatar account =
+    let
+        size =
+            if Platform.isPad then
+                32
+
+            else
+                24
+    in
     touchableOpacity
         [ onPress <| Decode.succeed GotoAccount ]
         [ case account of
             Just acc ->
-                avatar acc 24
+                avatar acc size
 
             _ ->
-                avatar { name = "", thumb = "" } 24
+                avatar { name = "", thumb = "" } size
         ]
 
 
@@ -1003,12 +1011,28 @@ root model =
                         [ name "home"
                         , options
                             { headerTitle = m.client.serverName
-                            , headerLeft = \_ -> favicon 20
+                            , headerLeft =
+                                \_ ->
+                                    favicon
+                                        (if Platform.isPad then
+                                            30
+
+                                         else
+                                            20
+                                        )
                             , headerRight = \_ -> lazy accountAvatar m.account
                             , headerTintColor = "white"
                             , headerStyle =
+                                { backgroundColor = Theme.backgroundColor
+                                }
+                            , headerTitleStyle =
                                 { fontFamily = Theme.fontFamily
-                                , backgroundColor = Theme.backgroundColor
+                                , fontSize =
+                                    if Platform.isPad then
+                                        24
+
+                                    else
+                                        16
                                 }
                             }
                         , component homeScreen
