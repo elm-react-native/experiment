@@ -1,9 +1,9 @@
-module Model exposing (Dialogue, HomeModel, LibrarySection, Model(..), Msg(..), PlaybackSpeed, PlaybackState(..), RemoteData, ScreenLockState(..), SearchSubtitle, SeekStage(..), TVSeason, TVShow, VideoPlayer, VideoPlayerControlAction(..), dialogueDecoder, episodeTitle, filterMediaStream, findSeason, findTVShowByEpisodeRatingKey, getFirstPartId, getSelectedSubtitleStream, initHomeModel, initialVideoPlayer, isVideoUrlReady, playbackSpeedDecoder, playbackSpeedEncode, playbackSpeedList, playbackSpeedToRate, updateEpisode, updateSelectedSeason, updateTVShow)
+module Model exposing (ExternalSubtitle, ExternalSubtitleStatus(..), HomeModel, HomeMsg(..), LibrarySection, Model(..), Msg(..), PlaybackSpeed, PlaybackState(..), RemoteData, ScreenLockState(..), SearchSubtitle, SeekStage(..), TVSeason, TVShow, VideoPlayer, VideoPlayerControlAction(..), episodeTitle, filterMediaStream, findSeason, findTVShowByEpisodeRatingKey, getFirstPartId, getSelectedSubtitleStream, initHomeModel, initialVideoPlayer, isVideoUrlReady, playbackSpeedDecoder, playbackSpeedEncode, playbackSpeedList, playbackSpeedToRate, setExternalSubtitleStatus, updateEpisode, updateSelectedSeason, updateTVShow)
 
 import Browser.Navigation as N
 import Client exposing (Client)
 import Dict exposing (Dict)
-import Dto exposing (Account, Library, MediaStream, Metadata, Response, Section, initialMetadata)
+import Dto exposing (Account, Dialogue, Library, MediaStream, Metadata, Response, Section, initialMetadata)
 import Http
 import Json.Decode as Decode exposing (Decoder)
 import ReactNative.Animated as Animated
@@ -41,11 +41,20 @@ type PlaybackState
     | Stopped
 
 
+type ExternalSubtitleStatus
+    = Searched
+    | Downloading
+    | Downloaded
+
+
+type alias ExternalSubtitle =
+    { stream : MediaStream, status : ExternalSubtitleStatus }
+
+
 type alias SearchSubtitle =
-    { items : RemoteData (List MediaStream)
+    { items : RemoteData (List ExternalSubtitle)
     , open : Bool
     , language : String
-    , downloadings : Set String
     , title : String
     }
 
@@ -84,7 +93,7 @@ type ScreenLockState
 
 initialSearchSubtitle : SearchSubtitle
 initialSearchSubtitle =
-    { open = False, language = "", items = Nothing, downloadings = Set.empty, title = "" }
+    { open = False, language = "", items = Nothing, title = "" }
 
 
 initialVideoPlayer : VideoPlayer
@@ -152,21 +161,6 @@ type Model
     = Initial N.Key
     | SignIn SignInModel
     | Home HomeModel
-
-
-type alias Dialogue =
-    { start : Int
-    , end : Int
-    , text : String
-    }
-
-
-dialogueDecoder : Decoder Dialogue
-dialogueDecoder =
-    Decode.map3 Dialogue
-        (Decode.field "start" Decode.int)
-        (Decode.field "end" Decode.int)
-        (Decode.field "text" Decode.string)
 
 
 type SeekStage
@@ -269,6 +263,11 @@ type Msg
     = NoOp
     | SignInMsg SignInMsg
     | GotSavedClient (Maybe Client)
+    | HomeMsg HomeMsg
+
+
+type HomeMsg
+    = HomeNoOp
     | GotAccount (Response Account)
     | GotLibraries (Response (List Library))
     | GotLibraryDetail String (Response (List Metadata))
@@ -452,3 +451,27 @@ getFirstPartId metadata =
 
         _ ->
             Nothing
+
+
+setExternalSubtitleStatus : String -> ExternalSubtitleStatus -> SearchSubtitle -> SearchSubtitle
+setExternalSubtitleStatus key status searchSubtitle =
+    { searchSubtitle
+        | items =
+            case searchSubtitle.items of
+                Just (Ok items) ->
+                    Just
+                        (Ok <|
+                            List.map
+                                (\s ->
+                                    if key == s.stream.key then
+                                        { stream = s.stream, status = status }
+
+                                    else
+                                        s
+                                )
+                                items
+                        )
+
+                _ ->
+                    searchSubtitle.items
+    }

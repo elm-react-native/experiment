@@ -4,7 +4,7 @@ import Components exposing (langSelect, loading, modalFadeView, smallLoading, te
 import Dto exposing (MediaStream)
 import Html exposing (Html)
 import Json.Decode as Decode
-import Model exposing (Msg(..), SearchSubtitle, VideoPlayerControlAction(..))
+import Model exposing (ExternalSubtitle, ExternalSubtitleStatus(..), HomeMsg(..), SearchSubtitle, VideoPlayerControlAction(..))
 import ReactNative exposing (str, textInput, touchableOpacity, touchableScale, view)
 import ReactNative.BlurView exposing (blurAmount, blurType, blurView)
 import ReactNative.Events exposing (onPress)
@@ -27,15 +27,16 @@ styles =
             }
         , container =
             { gap = 15
-            , alignItems = "center"
+            , alignItems = "flex-start"
             , justifyContent = "flex-start"
             , flex = 1
+            , paddingHorizontal = "10%"
             }
         , input =
             { borderBottomWidth = StyleSheet.hairlineWidth
             , fontFamily = Theme.fontFamily
             , height = 44
-            , width = "80%"
+            , width = "100%"
             , marginTop = 20
             , color = "white"
             , borderColor = Theme.themeColor
@@ -45,7 +46,7 @@ styles =
             , alignItems = "flex-start"
             , justifyContent = "flex-start"
             , flex = 1
-            , width = "80%"
+            , width = "100%"
             }
         , subtitle =
             { justifyContent = "space-between"
@@ -56,20 +57,28 @@ styles =
         }
 
 
-searchResultItem : Set String -> MediaStream -> Html Msg
-searchResultItem downloadings { key, extendedDisplayTitle } =
+searchResultItem : ExternalSubtitle -> Html HomeMsg
+searchResultItem { stream, status } =
+    let
+        { key, extendedDisplayTitle } =
+            stream
+    in
     touchableOpacity
         [ style styles.subtitle, onPress (Decode.succeed <| VideoPlayerControl <| ApplySubtitle key) ]
         [ text [] [ str extendedDisplayTitle ]
-        , if Set.member key downloadings then
-            smallLoading
+        , case status of
+            Searched ->
+                ionicon "download" [ size 16, color "white" ]
 
-          else
-            ionicon "download" [ size 16, color "white" ]
+            Downloading ->
+                smallLoading
+
+            Downloaded ->
+                text [] [ str "✓" ]
         ]
 
 
-close : Html Msg
+close : Html HomeMsg
 close =
     view
         [ style { position = "absolute", right = 35, top = 25 } ]
@@ -79,8 +88,8 @@ close =
         ]
 
 
-searchSubtitleView : String -> SearchSubtitle -> Html Msg
-searchSubtitleView defaultTitle { language, items, open, downloadings } =
+searchSubtitleView : String -> SearchSubtitle -> Html HomeMsg
+searchSubtitleView defaultTitle { language, items, open } =
     modalFadeView
         [ style styles.container
         , visible open
@@ -90,7 +99,6 @@ searchSubtitleView defaultTitle { language, items, open, downloadings } =
         ]
     <|
         [ close
-        , langSelect language (VideoPlayerControl << ChangeSearchSubtitleLanguage)
         , textInput
             [ style styles.input
             , placeholder defaultTitle
@@ -103,9 +111,10 @@ searchSubtitleView defaultTitle { language, items, open, downloadings } =
                 )
             ]
             []
+        , langSelect language (VideoPlayerControl << ChangeSearchSubtitleLanguage)
         , case items of
             Just (Ok subs) ->
-                view [ style styles.subtitles ] (List.map (searchResultItem downloadings) subs)
+                view [ style styles.subtitles ] (List.map searchResultItem subs)
 
             Just (Err _) ->
                 view [ style { alignItems = "center" } ] [ text [] [ str "Search Failed" ] ]

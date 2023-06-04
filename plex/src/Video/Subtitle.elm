@@ -3,11 +3,12 @@ module Video.Subtitle exposing (..)
 import Api exposing (getSubtitleUrl)
 import Browser
 import Components exposing (text)
+import Dto exposing (dialogueDecoder)
 import Html exposing (Attribute, Html)
 import Html.Lazy exposing (lazy)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
-import Model exposing (Msg(..), dialogueDecoder)
+import Model exposing (HomeMsg(..))
 import ReactNative exposing (fragment, null, str, view)
 import ReactNative.Platform as Platform
 import ReactNative.Properties exposing (pointerEvents, style)

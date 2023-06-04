@@ -3,13 +3,13 @@ module VideoScreen exposing (videoScreen)
 import Api exposing (videoUri)
 import Client exposing (Client)
 import Components exposing (onPinch, onTap, pinchableView, text)
-import Dto exposing (MediaStream, Metadata)
+import Dto exposing (MediaStream, Metadata, dialogueDecoder)
 import Html exposing (Html)
 import Html.Lazy exposing (lazy)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import Maybe
-import Model exposing (HomeModel, Msg(..), PlaybackSpeed, PlaybackState(..), ScreenLockState(..), SearchSubtitle, SeekStage(..), VideoPlayer, VideoPlayerControlAction(..), dialogueDecoder, episodeTitle, filterMediaStream, getFirstPartId, getSelectedSubtitleStream, isVideoUrlReady, playbackSpeedDecoder, playbackSpeedEncode, playbackSpeedList, playbackSpeedToRate)
+import Model exposing (HomeModel, HomeMsg(..), PlaybackSpeed, PlaybackState(..), ScreenLockState(..), SearchSubtitle, SeekStage(..), VideoPlayer, VideoPlayerControlAction(..), episodeTitle, filterMediaStream, getFirstPartId, getSelectedSubtitleStream, isVideoUrlReady, playbackSpeedDecoder, playbackSpeedEncode, playbackSpeedList, playbackSpeedToRate)
 import ReactNative exposing (activityIndicator, button, fragment, image, null, require, str, touchableOpacity, touchableScale, touchableWithoutFeedback, view)
 import ReactNative.Animated as Animated
 import ReactNative.ContextMenuIOS exposing (MenuItem, contextMenuButton, isMenuPrimaryAction, menuConfig, onPressMenuItem, pressEventMenuItemDecoder)
@@ -75,7 +75,7 @@ videoTitle metadata =
             metadata.title
 
 
-videoPlayerControlsHeader : VideoPlayer -> Html Msg
+videoPlayerControlsHeader : VideoPlayer -> Html HomeMsg
 videoPlayerControlsHeader videoPlayer =
     Animated.view
         [ style
@@ -98,7 +98,7 @@ videoPlayerControlsHeader videoPlayer =
         ]
 
 
-videoPlayerControlsBody : VideoPlayer -> Html Msg
+videoPlayerControlsBody : VideoPlayer -> Html HomeMsg
 videoPlayerControlsBody videoPlayer =
     view
         [ style
@@ -124,7 +124,7 @@ videoPlayerControlsBody videoPlayer =
         ]
 
 
-playbackSpeedMenu : PlaybackSpeed -> Html Msg
+playbackSpeedMenu : PlaybackSpeed -> Html HomeMsg
 playbackSpeedMenu playbackSpeed =
     contextMenuButton
         [ pressEventMenuItemDecoder
@@ -166,7 +166,7 @@ playbackSpeedMenu playbackSpeed =
         ]
 
 
-subtitleMenu : VideoPlayer -> Html Msg
+subtitleMenu : VideoPlayer -> Html HomeMsg
 subtitleMenu { metadata, showSubtitle, selectedSubtitle } =
     let
         partId =
@@ -312,7 +312,7 @@ screenLocked videoPlayer =
         ]
 
 
-videoPlayerControlsFooter : VideoPlayer -> Html Msg
+videoPlayerControlsFooter : VideoPlayer -> Html HomeMsg
 videoPlayerControlsFooter videoPlayer =
     Animated.view
         [ style
@@ -332,7 +332,7 @@ videoPlayerControlsFooter videoPlayer =
         ]
 
 
-videoPlayerControlsToolbar : VideoPlayer -> Html Msg
+videoPlayerControlsToolbar : VideoPlayer -> Html HomeMsg
 videoPlayerControlsToolbar videoPlayer =
     view
         [ style
@@ -375,7 +375,7 @@ videoPlayerControlsToolbar videoPlayer =
         )
 
 
-videoPlayerControls : VideoPlayer -> Html Msg
+videoPlayerControls : VideoPlayer -> Html HomeMsg
 videoPlayerControls videoPlayer =
     if videoPlayer.showControls || videoPlayer.hidingControls then
         touchableWithoutFeedback
@@ -417,7 +417,7 @@ handlePinch isUnlocked scale =
                     "contain"
 
     else
-        NoOp
+        HomeNoOp
 
 
 bufferingIndicator videoPlayer =
@@ -452,7 +452,7 @@ getVideoFileName metadata =
             ""
 
 
-videoScreen : HomeModel -> () -> Html Msg
+videoScreen : HomeModel -> () -> Html HomeMsg
 videoScreen ({ videoPlayer, client } as m) _ =
     if isVideoUrlReady videoPlayer then
         view [ style styles.container ]

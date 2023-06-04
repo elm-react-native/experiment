@@ -135,7 +135,7 @@ itemLabel label =
         ]
 
 
-itemView : Client -> Bool -> Metadata -> Html Msg
+itemView : Client -> Bool -> Metadata -> Html HomeMsg
 itemView client isContinueWatching metadata =
     let
         { label, thumb, alt, videoRatingKey, viewOffset, duration } =
@@ -212,7 +212,7 @@ itemView client isContinueWatching metadata =
         ]
 
 
-libraryMenu : Library -> List (Html Msg) -> Html Msg
+libraryMenu : Library -> List (Html HomeMsg) -> Html HomeMsg
 libraryMenu { key, scanning, title } children =
     touchableOpacity
         [ style homeStyles.sectionTitleContainer ]
@@ -244,7 +244,7 @@ libraryMenu { key, scanning, title } children =
         ]
 
 
-sectionContainer : Maybe Library -> String -> Html Msg -> Html Msg
+sectionContainer : Maybe Library -> String -> Html HomeMsg -> Html HomeMsg
 sectionContainer maybeLibrary title child =
     view [ style homeStyles.sectionContainer ]
         [ case maybeLibrary of
@@ -278,7 +278,7 @@ sectionViewData client maybeLibrary title isContinueWatching data =
             ]
 
 
-sectionView : Client -> Maybe Library -> String -> Bool -> RemoteData (List Metadata) -> Html Msg
+sectionView : Client -> Maybe Library -> String -> Bool -> RemoteData (List Metadata) -> Html HomeMsg
 sectionView client maybeLibrary title isContinueWatching resp =
     case resp of
         Just (Ok data) ->
@@ -291,7 +291,7 @@ sectionView client maybeLibrary title isContinueWatching resp =
             sectionContainer Nothing title null
 
 
-homeScreen : HomeModel -> a -> Html Msg
+homeScreen : HomeModel -> a -> Html HomeMsg
 homeScreen model _ =
     let
         client =

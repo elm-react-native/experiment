@@ -110,7 +110,7 @@ avatar account size =
             []
 
 
-accountScreen : HomeModel -> a -> Html Msg
+accountScreen : HomeModel -> a -> Html HomeMsg
 accountScreen model _ =
     view
         [ style

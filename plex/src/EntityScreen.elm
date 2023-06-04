@@ -191,7 +191,7 @@ ratingView score icon =
         ]
 
 
-entityPlayButton : Metadata -> Bool -> Html Msg
+entityPlayButton : Metadata -> Bool -> Html HomeMsg
 entityPlayButton ({ ratingKey, viewOffset, duration, typ } as metadata) isContinueWatching =
     let
         title =
@@ -298,7 +298,7 @@ entitySummary tvShow metadata =
             [ str summary ]
 
 
-episodeView : Client -> Metadata -> Html Msg
+episodeView : Client -> Metadata -> Html HomeMsg
 episodeView client ep =
     fragment []
         [ view
@@ -352,7 +352,7 @@ episodeView client ep =
         ]
 
 
-seasonMenu : TVShow -> List (Html Msg) -> Html Msg
+seasonMenu : TVShow -> List (Html HomeMsg) -> Html HomeMsg
 seasonMenu tvShow children =
     touchableOpacity
         []
@@ -379,7 +379,7 @@ seasonMenu tvShow children =
         ]
 
 
-seasonView : Int -> TVShow -> Html Msg
+seasonView : Int -> TVShow -> Html HomeMsg
 seasonView selectedSeasonIndex tvShow =
     let
         selectedSeasonLabel =
@@ -443,7 +443,7 @@ entityEposidesHeader tvShow =
             loadingEposidesIndicator 0
 
 
-entityWriters : RemoteData TVShow -> Metadata -> Html Msg
+entityWriters : RemoteData TVShow -> Metadata -> Html HomeMsg
 entityWriters tvShow metadata =
     let
         writers =
@@ -471,7 +471,7 @@ entityWriters tvShow metadata =
             ]
 
 
-entityDirectors : RemoteData TVShow -> Metadata -> Html Msg
+entityDirectors : RemoteData TVShow -> Metadata -> Html HomeMsg
 entityDirectors tvShow metadata =
     let
         directors =
@@ -499,7 +499,7 @@ entityDirectors tvShow metadata =
             ]
 
 
-entityCasts : RemoteData TVShow -> Metadata -> Html Msg
+entityCasts : RemoteData TVShow -> Metadata -> Html HomeMsg
 entityCasts tvShow metadata =
     let
         casts =
@@ -527,7 +527,7 @@ entityCasts tvShow metadata =
             ]
 
 
-entityInfo : Bool -> RemoteData TVShow -> Metadata -> Html Msg
+entityInfo : Bool -> RemoteData TVShow -> Metadata -> Html HomeMsg
 entityInfo isContinueWatching tvShow metadata =
     let
         { title, label, showProgress, showPlayButton, displayEpisodes } =
@@ -623,7 +623,7 @@ entityInfo isContinueWatching tvShow metadata =
         ]
 
 
-entityScreen : HomeModel -> { isContinueWatching : Bool, metadata : Metadata } -> Html Msg
+entityScreen : HomeModel -> { isContinueWatching : Bool, metadata : Metadata } -> Html HomeMsg
 entityScreen model { isContinueWatching, metadata } =
     let
         client =

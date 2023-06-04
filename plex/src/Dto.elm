@@ -675,3 +675,18 @@ streamDecoder =
 decodeAndMap : Decode.Decoder a -> Decode.Decoder (a -> b) -> Decode.Decoder b
 decodeAndMap =
     Decode.map2 (|>)
+
+
+type alias Dialogue =
+    { start : Int
+    , end : Int
+    , text : String
+    }
+
+
+dialogueDecoder : Decoder Dialogue
+dialogueDecoder =
+    Decode.map3 Dialogue
+        (Decode.field "start" Decode.int)
+        (Decode.field "end" Decode.int)
+        (Decode.field "text" Decode.string)

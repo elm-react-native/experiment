@@ -10,7 +10,7 @@ import EntityScreen exposing (seasonMenu)
 import Html exposing (Attribute, Html)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
-import Model exposing (HomeModel, Msg(..), VideoPlayerControlAction(..))
+import Model exposing (HomeModel, HomeMsg(..), VideoPlayerControlAction(..))
 import ReactNative exposing (activityIndicator, flatList, fragment, imageBackground, null, str, touchableOpacity, touchableScale, view)
 import ReactNative.BlurView exposing (blurAmount, blurType)
 import ReactNative.Events exposing (onPress)
@@ -34,7 +34,7 @@ styles =
         }
 
 
-episodeView : Client -> Metadata -> Html Msg
+episodeView : Client -> Metadata -> Html HomeMsg
 episodeView client ep =
     view [ style { width = 200, paddingHorizontal = 10, gap = 5 } ]
         [ view
@@ -95,7 +95,7 @@ episodeView client ep =
         ]
 
 
-episodesView : HomeModel -> Html Msg
+episodesView : HomeModel -> Html HomeMsg
 episodesView { client, tvShows, videoPlayer } =
     let
         metadata =

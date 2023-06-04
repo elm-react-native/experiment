@@ -3,7 +3,7 @@ module Video.ProgressBar exposing (..)
 import Browser
 import Components exposing (text)
 import Html exposing (Attribute, Html)
-import Model exposing (Msg(..), SeekStage(..), VideoPlayer, VideoPlayerControlAction(..))
+import Model exposing (HomeMsg(..), SeekStage(..), VideoPlayer, VideoPlayerControlAction(..))
 import ReactNative exposing (str, view)
 import ReactNative.Events exposing (onFloatValueChange)
 import ReactNative.Properties exposing (intValue, style)
@@ -12,7 +12,7 @@ import Theme
 import Utils exposing (formatPlaybackTime)
 
 
-videoPlayerControlsProgress : VideoPlayer -> Html Msg
+videoPlayerControlsProgress : VideoPlayer -> Html HomeMsg
 videoPlayerControlsProgress videoPlayer =
     view
         [ style

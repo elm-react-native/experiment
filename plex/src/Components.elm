@@ -1,6 +1,7 @@
 module Components exposing (bottomPadding, chip, favicon, langSelect, loading, modalFadeView, onPinch, onTap, pinchableView, progressBar, smallLoading, text, videoPlay, videoPlayContainer)
 
 import Browser
+import Dict
 import Html exposing (Attribute, Html)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
@@ -137,79 +138,83 @@ smallLoading =
 
 
 langs =
-    [ { actionKey = "af", actionTitle = "Afrikaans" }
-    , { actionKey = "an", actionTitle = "Aragonés" }
-    , { actionKey = "az", actionTitle = "Azərbaycan dili" }
-    , { actionKey = "id", actionTitle = "Bahasa Indonesia" }
-    , { actionKey = "ms", actionTitle = "Bahasa Melayu" }
-    , { actionKey = "bn", actionTitle = "Bengali" }
-    , { actionKey = "bs", actionTitle = "Bosanski jezik" }
-    , { actionKey = "br", actionTitle = "Brezhoneg" }
-    , { actionKey = "my", actionTitle = "Burmese" }
-    , { actionKey = "ca", actionTitle = "Català" }
-    , { actionKey = "cs", actionTitle = "Čeština" }
-    , { actionKey = "da", actionTitle = "Dansk" }
-    , { actionKey = "de", actionTitle = "Deutsch" }
-    , { actionKey = "et", actionTitle = "Eesti" }
-    , { actionKey = "es", actionTitle = "Español" }
-    , { actionKey = "eo", actionTitle = "Esperanto" }
-    , { actionKey = "eu", actionTitle = "Euskara" }
-    , { actionKey = "fr", actionTitle = "Français" }
-    , { actionKey = "gl", actionTitle = "Galego" }
-    , { actionKey = "hr", actionTitle = "Hrvatski" }
-    , { actionKey = "is", actionTitle = "Íslenska" }
-    , { actionKey = "it", actionTitle = "Italiano" }
-    , { actionKey = "km", actionTitle = "Khmer" }
-    , { actionKey = "sw", actionTitle = "Kiswahili" }
-    , { actionKey = "ku", actionTitle = "Kurdî" }
-    , { actionKey = "lv", actionTitle = "Latviešu valoda" }
-    , { actionKey = "lb", actionTitle = "Lëtzebuergesch" }
-    , { actionKey = "lt", actionTitle = "Lietuvių kalba" }
-    , { actionKey = "hu", actionTitle = "Magyar" }
-    , { actionKey = "ml", actionTitle = "Malayalam" }
-    , { actionKey = "nl", actionTitle = "Nederlands" }
-    , { actionKey = "no", actionTitle = "Norsk" }
-    , { actionKey = "oc", actionTitle = "Occitan" }
-    , { actionKey = "pl", actionTitle = "Polski" }
-    , { actionKey = "pt", actionTitle = "Português" }
-    , { actionKey = "pt-BR", actionTitle = "Português Brasileiro" }
-    , { actionKey = "ro", actionTitle = "Română" }
-    , { actionKey = "sq", actionTitle = "Shqip" }
-    , { actionKey = "si", actionTitle = "Sinhala" }
-    , { actionKey = "sk", actionTitle = "Slovenčina" }
-    , { actionKey = "sl", actionTitle = "Slovenščina" }
-    , { actionKey = "fi", actionTitle = "Suomeksi" }
-    , { actionKey = "sv", actionTitle = "Svenska" }
-    , { actionKey = "te", actionTitle = "Telugu" }
-    , { actionKey = "vi", actionTitle = "Tiếng Việt" }
-    , { actionKey = "tr", actionTitle = "Türkçe" }
-    , { actionKey = "tl", actionTitle = "Wikang Tagalog" }
-    , { actionKey = "el", actionTitle = "Ελληνικά" }
-    , { actionKey = "be", actionTitle = "Беларуская" }
-    , { actionKey = "bg", actionTitle = "български език" }
-    , { actionKey = "kk", actionTitle = "Қазақ тілі" }
-    , { actionKey = "mk", actionTitle = "македонски јазик" }
-    , { actionKey = "mn", actionTitle = "монгол" }
-    , { actionKey = "ru", actionTitle = "русский язык" }
-    , { actionKey = "sr", actionTitle = "српски језик" }
-    , { actionKey = "uk", actionTitle = "українська" }
-    , { actionKey = "ka", actionTitle = "ქართული" }
-    , { actionKey = "hy", actionTitle = "Հայերեն" }
+    [ ( "af", "Afrikaans" )
+    , ( "an", "Aragonés" )
+    , ( "az", "Azərbaycan dili" )
+    , ( "id", "Bahasa Indonesia" )
+    , ( "ms", "Bahasa Melayu" )
+    , ( "bn", "Bengali" )
+    , ( "bs", "Bosanski jezik" )
+    , ( "br", "Brezhoneg" )
+    , ( "my", "Burmese" )
+    , ( "ca", "Català" )
+    , ( "cs", "Čeština" )
+    , ( "da", "Dansk" )
+    , ( "de", "Deutsch" )
+    , ( "et", "Eesti" )
+    , ( "es", "Español" )
+    , ( "eo", "Esperanto" )
+    , ( "eu", "Euskara" )
+    , ( "fr", "Français" )
+    , ( "gl", "Galego" )
+    , ( "hr", "Hrvatski" )
+    , ( "is", "Íslenska" )
+    , ( "it", "Italiano" )
+    , ( "km", "Khmer" )
+    , ( "sw", "Kiswahili" )
+    , ( "ku", "Kurdî" )
+    , ( "lv", "Latviešu valoda" )
+    , ( "lb", "Lëtzebuergesch" )
+    , ( "lt", "Lietuvių kalba" )
+    , ( "hu", "Magyar" )
+    , ( "ml", "Malayalam" )
+    , ( "nl", "Nederlands" )
+    , ( "no", "Norsk" )
+    , ( "oc", "Occitan" )
+    , ( "pl", "Polski" )
+    , ( "pt", "Português" )
+    , ( "pt-BR", "Português Brasileiro" )
+    , ( "ro", "Română" )
+    , ( "sq", "Shqip" )
+    , ( "si", "Sinhala" )
+    , ( "sk", "Slovenčina" )
+    , ( "sl", "Slovenščina" )
+    , ( "fi", "Suomeksi" )
+    , ( "sv", "Svenska" )
+    , ( "te", "Telugu" )
+    , ( "vi", "Tiếng Việt" )
+    , ( "tr", "Türkçe" )
+    , ( "tl", "Wikang Tagalog" )
+    , ( "el", "Ελληνικά" )
+    , ( "be", "Беларуская" )
+    , ( "bg", "български език" )
+    , ( "kk", "Қазақ тілі" )
+    , ( "mk", "македонски јазик" )
+    , ( "mn", "монгол" )
+    , ( "ru", "русский язык" )
+    , ( "sr", "српски језик" )
+    , ( "uk", "українська" )
+    , ( "ka", "ქართული" )
+    , ( "hy", "Հայերեն" )
 
-    --    , { actionKey = "he", actionTitle = "עברית" }
-    --    , { actionKey = "ur", actionTitle = "اردو" }
-    --    , { actionKey = "ar", actionTitle = "العربية" }
-    --    , { actionKey = "fa", actionTitle = "فارسی" }
-    , { actionKey = "hi", actionTitle = "हिन्दी" }
-    , { actionKey = "ta", actionTitle = "தமிழ்" }
-    , { actionKey = "kn", actionTitle = "ಕನ್ನಡ" }
-    , { actionKey = "th", actionTitle = "ไทย" }
-    , { actionKey = "ko", actionTitle = "한국어" }
-    , { actionKey = "ja", actionTitle = "日本語" }
-    , { actionKey = "en", actionTitle = "English" }
-    , { actionKey = "zh", actionTitle = "中文" }
-    , { actionKey = "zh-TW", actionTitle = "繁体中文" }
+    --    ,("he", "עברית")
+    --    ,("ur", "اردو")
+    --    ,("ar", "العربية")
+    --    ,("fa", "فارسی")
+    , ( "hi", "हिन्दी" )
+    , ( "ta", "தமிழ்" )
+    , ( "kn", "ಕನ್ನಡ" )
+    , ( "th", "ไทย" )
+    , ( "ko", "한국어" )
+    , ( "ja", "日本語" )
+    , ( "en", "English" )
+    , ( "zh", "中文" )
+    , ( "zh-TW", "繁体中文" )
     ]
+
+
+langTitles =
+    Dict.fromList langs
 
 
 langSelect : String -> (String -> msg) -> Html msg
@@ -220,10 +225,10 @@ langSelect selected onSelect =
             |> onPressMenuItem
         , isMenuPrimaryAction True
         , menuConfig
-            { menuTitle = ""
+            { menuTitle = "Language"
             , menuItems =
                 List.map
-                    (\{ actionKey, actionTitle } ->
+                    (\( actionKey, actionTitle ) ->
                         { actionKey = actionKey
                         , actionTitle =
                             if actionKey == selected then
@@ -237,4 +242,11 @@ langSelect selected onSelect =
                     langs
             }
         ]
-        [ text [] [ str selected ] ]
+        [ touchableOpacity
+            [ style
+                { padding = 10
+                , backgroundColor = "black"
+                }
+            ]
+            [ text [] [ str <| Maybe.withDefault "" <| Dict.get selected langTitles ] ]
+        ]

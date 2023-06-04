@@ -1,7 +1,7 @@
 module Video.SubtitleStream exposing (onDialogues, playbackTime, subtitleStream, subtitleStreamId, url)
 
+import Dto exposing (Dialogue)
 import Json.Encode as Encode
-import Model exposing (Dialogue)
 import ReactNative exposing (node)
 import ReactNative.Events exposing (on)
 import ReactNative.Properties exposing (property)
