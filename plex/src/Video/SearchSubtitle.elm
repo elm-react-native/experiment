@@ -113,6 +113,9 @@ searchSubtitleView defaultTitle { language, items, open } =
             []
         , langSelect language (VideoPlayerControl << ChangeSearchSubtitleLanguage)
         , case items of
+            Just (Ok []) ->
+                view [ style { alignItems = "center" } ] [ text [] [ str "Not found" ] ]
+
             Just (Ok subs) ->
                 view [ style styles.subtitles ] (List.map searchResultItem subs)
 

@@ -203,12 +203,12 @@ signInScreen { client, submitting } =
     touchableWithoutFeedback
         [ onPress <| Decode.succeed DismissKeyboard
         ]
-        [ view
+        [ keyboardAvoidingView
             [ style signInStyles.container
+            , behavior "padding"
             ]
-            [ keyboardAvoidingView
+            [ view
                 [ style signInStyles.form
-                , behavior "height"
                 ]
                 [ image
                     [ source <| require "./assets/plex-logo.png"
