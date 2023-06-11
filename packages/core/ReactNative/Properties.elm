@@ -119,6 +119,7 @@ module ReactNative.Properties exposing
     , nextFocusLeft
     , nextFocusRight
     , nextFocusUp
+    , numColumns
     , numberOfLines
     , onEndReachedThreshold
     , onstyle
@@ -1096,3 +1097,7 @@ shadowRadius =
 shadowOffset : { width : Float, height : Float } -> Attribute msg
 shadowOffset =
     property "shadowOffset" << encode
+
+
+numColumns =
+    property "numColumns" << Encode.int

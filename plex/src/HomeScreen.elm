@@ -294,21 +294,34 @@ libraryMenu { key, scanning, title } children =
         [ contextMenuButton
             [ pressEventMenuItemDecoder
                 |> Decode.map
-                    (\{ actionKey } -> ScanLibrary actionKey)
+                    (\{ actionKey } ->
+                        if actionKey == "viewLibrary" then
+                            ViewLibrary key
+
+                        else if actionKey == "scanLibrary" then
+                            ScanLibrary actionKey
+
+                        else
+                            HomeNoOp
+                    )
                 |> onPressMenuItem
             , isMenuPrimaryAction True
             , style { alignSelf = "flex-start" }
             , menuConfig
                 { menuTitle = title
                 , menuItems =
-                    [ if scanning then
+                    [ { actionKey = "viewLibrary"
+                      , actionTitle = "View Library"
+                      , attributes = Nothing
+                      }
+                    , if scanning then
                         { actionKey = ""
                         , actionTitle = "Scanning..."
                         , attributes = Just [ CM.KeepsMenuPresented, CM.Disabled ]
                         }
 
                       else
-                        { actionKey = key
+                        { actionKey = "scanLibrary"
                         , actionTitle = "Scan Library"
                         , attributes = Just [ CM.KeepsMenuPresented ]
                         }

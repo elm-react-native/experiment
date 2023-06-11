@@ -301,6 +301,7 @@ type HomeMsg
     | SubtitleChanged
     | RestartPlaySession Bool String
     | ScanLibrary String
+    | ViewLibrary String
 
 
 {-| fallback to first season when not find, return `Nothing` when seasons is empty

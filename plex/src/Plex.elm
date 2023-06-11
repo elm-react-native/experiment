@@ -6,7 +6,7 @@ import Browser
 import Browser.Navigation as N
 import Client exposing (Client, initialClient, loadClient, saveClient)
 import Cmds exposing (..)
-import Components exposing (favicon)
+import Components exposing (favicon, text)
 import Dict exposing (Dict)
 import Dto exposing (Account, Library, Metadata, Response)
 import EntityScreen exposing (entityScreen)
@@ -16,10 +16,11 @@ import Html.Lazy exposing (lazy)
 import Http
 import Json.Decode as Decode
 import Json.Encode as Encode
+import LibraryScreen exposing (libraryScreen)
 import Model exposing (..)
 import Process
 import Random
-import ReactNative exposing (null, touchableOpacity)
+import ReactNative exposing (null, str, touchableOpacity)
 import ReactNative.Alert as Alert
 import ReactNative.Dimensions as Dimensions
 import ReactNative.Events exposing (onPress)
@@ -969,6 +970,19 @@ homeUpdate msg model =
             , scanLibrary key client
             )
 
+        ViewLibrary libraryKey ->
+            ( model
+            , case Utils.findItem (\{ key } -> libraryKey == key) model.libraries of
+                Just library ->
+                    Cmd.batch
+                        [ Nav.push model.navKey "library" library
+                        , getLibraryDetails model.client libraryKey
+                        ]
+
+                _ ->
+                    Cmd.none
+            )
+
 
 
 -- VIEW
@@ -1047,6 +1061,20 @@ root model =
                             , headerStyle = { backgroundColor = Theme.backgroundColor }
                             }
                         , component accountScreen
+                        ]
+                        []
+                    , screen
+                        [ name "library"
+                        , options
+                            (\{ route } ->
+                                { headerTitle = route.params.title
+                                , headerBackTitle = m.client.serverName
+                                , headerTintColor = Theme.themeColor
+                                , headerStyle = { backgroundColor = Theme.backgroundColor }
+                                }
+                            )
+                        , getId (\{ key } -> key)
+                        , component libraryScreen
                         ]
                         []
                     , screen
