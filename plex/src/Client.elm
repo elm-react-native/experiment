@@ -2,7 +2,7 @@ module Client exposing (..)
 
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
-import ReactNative.Dimensions exposing (DisplayMetrics, getScreen, initialDisplayMetrics)
+import ReactNative.Dimensions exposing (ScaledSize, getScreen, initialScaledSize)
 import ReactNative.Settings as Settings
 import Task exposing (Task)
 import Utils
@@ -15,7 +15,7 @@ type alias Client =
     , id : String
     , email : String
     , password : String
-    , screenMetrics : DisplayMetrics
+    , screenMetrics : ScaledSize
     }
 
 
@@ -27,7 +27,7 @@ initialClient =
     , token = ""
     , email = ""
     , password = ""
-    , screenMetrics = initialDisplayMetrics
+    , screenMetrics = initialScaledSize
     }
 
 

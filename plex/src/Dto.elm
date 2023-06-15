@@ -3,7 +3,7 @@ module Dto exposing (..)
 import Http
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
-import ReactNative.Dimensions exposing (DisplayMetrics, initialDisplayMetrics)
+import ReactNative.Dimensions exposing (ScaledSize, initialScaledSize)
 import Utils exposing (maybeEmptyList, maybeEmptyString, maybeFalse, maybeFloatZero, maybeZero)
 
 

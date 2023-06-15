@@ -1,12 +1,12 @@
 module ReactNative.Dimensions exposing
     ( DimensionsValue
-    , DisplayMetrics
+    , ScaledSize
     , dimensionsValueDecoder
-    , displayMetricsDecoder
+    , scaledSizeDecoder
     , getScreen
     , getWindow
     , initialDimensionsValue
-    , initialDisplayMetrics
+    , initialScaledSize
     , onChange
     )
 
@@ -17,7 +17,7 @@ import Json.Encode as Encode
 import Task exposing (Task)
 
 
-type alias DisplayMetrics =
+type alias ScaledSize =
     { width : Float
     , height : Float
     , scale : Float
@@ -25,8 +25,8 @@ type alias DisplayMetrics =
     }
 
 
-initialDisplayMetrics : DisplayMetrics
-initialDisplayMetrics =
+initialScaledSize : ScaledSize
+initialScaledSize =
     { width = 0
     , height = 0
     , scale = 0
@@ -34,9 +34,9 @@ initialDisplayMetrics =
     }
 
 
-displayMetricsDecoder : Decoder DisplayMetrics
-displayMetricsDecoder =
-    Decode.map4 DisplayMetrics
+scaledSizeDecoder : Decoder ScaledSize
+scaledSizeDecoder =
+    Decode.map4 ScaledSize
         (Decode.field "width" Decode.float)
         (Decode.field "height" Decode.float)
         (Decode.field "scale" Decode.float)
@@ -44,36 +44,36 @@ displayMetricsDecoder =
 
 
 type alias DimensionsValue =
-    { window : DisplayMetrics
-    , screen : DisplayMetrics
+    { window : ScaledSize
+    , screen : ScaledSize
     }
 
 
 initialDimensionsValue : DimensionsValue
 initialDimensionsValue =
-    { window = initialDisplayMetrics
-    , screen = initialDisplayMetrics
+    { window = initialScaledSize
+    , screen = initialScaledSize
     }
 
 
 dimensionsValueDecoder : Decoder DimensionsValue
 dimensionsValueDecoder =
     Decode.map2 DimensionsValue
-        (Decode.field "window" displayMetricsDecoder)
-        (Decode.field "screen" displayMetricsDecoder)
+        (Decode.field "window" scaledSizeDecoder)
+        (Decode.field "screen" scaledSizeDecoder)
 
 
-get : String -> Task Never DisplayMetrics
+get : String -> Task Never ScaledSize
 get dim =
-    Task.succeed initialDisplayMetrics
+    Task.succeed initialScaledSize
 
 
-getWindow : Task Never DisplayMetrics
+getWindow : Task Never ScaledSize
 getWindow =
     get "window"
 
 
-getScreen : Task Never DisplayMetrics
+getScreen : Task Never ScaledSize
 getScreen =
     get "screen"
 

@@ -23,7 +23,7 @@ import ReactNative
         , view
         )
 import ReactNative.ContextMenuIOS as CM exposing (MenuItem, contextMenuButton, isMenuPrimaryAction, menuConfig, onPressMenuItem, pressEventMenuItemDecoder)
-import ReactNative.Dimensions exposing (DisplayMetrics)
+import ReactNative.Dimensions exposing (ScaledSize)
 import ReactNative.Events exposing (onPress)
 import ReactNative.Icon exposing (ionicon)
 import ReactNative.PixelRatio as PixelRatio

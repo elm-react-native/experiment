@@ -13,7 +13,7 @@ import Model exposing (HomeModel, HomeMsg(..), PlaybackSpeed, PlaybackState(..),
 import ReactNative exposing (activityIndicator, button, fragment, image, null, require, str, touchableOpacity, touchableScale, touchableWithoutFeedback, view)
 import ReactNative.Animated as Animated
 import ReactNative.ContextMenuIOS exposing (MenuItem, contextMenuButton, isMenuPrimaryAction, menuConfig, onPressMenuItem, pressEventMenuItemDecoder)
-import ReactNative.Dimensions as Dimensions exposing (DisplayMetrics)
+import ReactNative.Dimensions as Dimensions exposing (ScaledSize)
 import ReactNative.Events exposing (onFloatValueChange, onPress)
 import ReactNative.Icon exposing (ionicon, materialIcon)
 import ReactNative.Platform as Platform

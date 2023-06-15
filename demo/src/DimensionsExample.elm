@@ -7,7 +7,7 @@ import ReactNative exposing (fragment, str, text, view)
 import ReactNative.Dimensions as Dimensions
     exposing
         ( DimensionsValue
-        , DisplayMetrics
+        , ScaledSize
         , dimensionsValueDecoder
         , initialDimensionsValue
         )
@@ -71,8 +71,8 @@ styles =
         }
 
 
-displayMetricsView : String -> DisplayMetrics -> Html msg
-displayMetricsView title metrics =
+scaledSizeView : String -> ScaledSize -> Html msg
+scaledSizeView title metrics =
     fragment
         []
         [ text [ style styles.header ] [ str title ]
@@ -86,8 +86,8 @@ displayMetricsView title metrics =
 root : Model -> Html Msg
 root model =
     view [ style styles.container ]
-        [ displayMetricsView "Window Dimensions" model.window
-        , displayMetricsView "Screen Dimensions" model.screen
+        [ scaledSizeView "Window Dimensions" model.window
+        , scaledSizeView "Screen Dimensions" model.screen
         ]
 
 

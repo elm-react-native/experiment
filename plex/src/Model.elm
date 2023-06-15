@@ -7,7 +7,7 @@ import Dto exposing (Account, Dialogue, Library, MediaStream, Metadata, Response
 import Http
 import Json.Decode as Decode exposing (Decoder)
 import ReactNative.Animated as Animated
-import ReactNative.Dimensions as Dimensions exposing (DimensionsValue, DisplayMetrics)
+import ReactNative.Dimensions as Dimensions exposing (DimensionsValue, ScaledSize)
 import Set exposing (Set)
 import SignInModel exposing (SignInModel, SignInMsg)
 import Time
