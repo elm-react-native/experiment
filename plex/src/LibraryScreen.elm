@@ -7,7 +7,8 @@ import Dict
 import Dto exposing (Library, Metadata)
 import Html exposing (Html)
 import Html.Lazy exposing (lazy5)
-import Json.Decode as Decode
+import Json.Decode as Decode exposing (Decoder)
+import Json.Encode as Encode
 import Model exposing (..)
 import ReactNative
     exposing
@@ -38,6 +39,7 @@ import ReactNative.Properties as Props
         , horizontal
         , imageStyle
         , initialNumToRender
+        , key
         , numColumns
         , persistentScrollbar
         , refreshCtrl
@@ -56,11 +58,12 @@ import Utils exposing (formatDuration, percentFloat)
 
 
 libraryScreen : HomeModel -> Library -> Html HomeMsg
-libraryScreen model library =
-    view [ style styles.container ]
-        [ case Dict.get library.key model.librariesDetails of
+libraryScreen { librariesDetails, client } library =
+    view
+        [ style styles.container ]
+        [ case Dict.get library.key librariesDetails of
             Just (Ok data) ->
-                itemsView model.client data
+                itemsView client data
 
             Just (Err _) ->
                 text [] [ str "load failed" ]
@@ -70,21 +73,52 @@ libraryScreen model library =
         ]
 
 
+isLandscape { width, height } =
+    width > height
+
+
+getNumColumns metrics =
+    if isLandscape metrics then
+        num // 2 * 3
+
+    else
+        num
+
+
+getItemWidth metrics =
+    let
+        n =
+            getNumColumns metrics
+    in
+    ( n, metrics.width / toFloat n - (itemGap * 2) )
+
+
 itemsView client data =
+    let
+        ( n, w ) =
+            getItemWidth client.screenMetrics
+    in
     flatList
         { renderItem = \{ item } -> itemView client item
         , keyExtractor = \item _ -> item.guid
-        , getItemLayout = Utils.fixedSizeLayout 110
+        , getItemLayout = Utils.fixedSizeLayout w
         , data = data
         }
         [ showsHorizontalScrollIndicator False
         , showsVerticalScrollIndicator False
-        , numColumns 4
+        , numColumns n
+        , key (String.fromInt n)
         ]
 
 
 itemView client metadata =
     let
+        ( n, w ) =
+            getItemWidth client.screenMetrics
+
+        h =
+            (w * 3) / 2
+
         { label, thumb, alt, videoRatingKey, viewOffset, duration } =
             case metadata.typ of
                 "movie" ->
@@ -106,7 +140,7 @@ itemView client metadata =
                     }
     in
     touchableScale
-        [ style styles.itemContainer
+        [ style <| styles.itemContainer w h
         , onPress <| Decode.succeed <| GotoEntity False metadata
         ]
         [ view
@@ -117,8 +151,8 @@ itemView client metadata =
             , source
                 { uri =
                     Api.transcodedImageUrl thumb
-                        (PixelRatio.getPixelSizeForLayoutSize bannerWidth)
-                        (PixelRatio.getPixelSizeForLayoutSize bannerHeight)
+                        (PixelRatio.getPixelSizeForLayoutSize w)
+                        (PixelRatio.getPixelSizeForLayoutSize h)
                         client
                 }
             , imageStyle
@@ -127,6 +161,14 @@ itemView client metadata =
             ]
             []
         ]
+
+
+num =
+    if Platform.isPad then
+        6
+
+    else
+        4
 
 
 itemBorderRadius =
@@ -192,17 +234,17 @@ styles =
             , height = "100%"
             , width = "100%"
             , paddingVertical = 10
-            , paddingHorizontal = 5
             , alignItems = "center"
             }
         , itemContainer =
-            { marginHorizontal = itemGap
-            , marginVertical = itemGap
-            , overflow = "hidden"
-            , width = bannerWidth
-            , height = bannerHeight
-            , justifyContent = "flex-end"
-            }
+            \w h ->
+                { marginHorizontal = itemGap
+                , marginVertical = itemGap
+                , overflow = "hidden"
+                , width = w
+                , height = h
+                , justifyContent = "flex-end"
+                }
         , itemImage =
             { position = "absolute"
             , top = 0

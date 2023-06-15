@@ -983,6 +983,16 @@ homeUpdate msg model =
                     Cmd.none
             )
 
+        DimensionsValueChanged { screen } ->
+            let
+                client =
+                    model.client
+
+                _ =
+                    Debug.log "screen" screen
+            in
+            ( { model | client = { client | screenMetrics = screen } }, Cmd.none )
+
 
 
 -- VIEW
@@ -1130,7 +1140,7 @@ subs model =
                     ]
 
             else
-                Sub.none
+                Dimensions.onChange <| Decode.map (HomeMsg << DimensionsValueChanged) Dimensions.dimensionsValueDecoder
 
         _ ->
             Sub.none

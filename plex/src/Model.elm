@@ -7,7 +7,7 @@ import Dto exposing (Account, Dialogue, Library, MediaStream, Metadata, Response
 import Http
 import Json.Decode as Decode exposing (Decoder)
 import ReactNative.Animated as Animated
-import ReactNative.Dimensions as Dimensions exposing (DisplayMetrics)
+import ReactNative.Dimensions as Dimensions exposing (DimensionsValue, DisplayMetrics)
 import Set exposing (Set)
 import SignInModel exposing (SignInModel, SignInMsg)
 import Time
@@ -302,6 +302,7 @@ type HomeMsg
     | RestartPlaySession Bool String
     | ScanLibrary String
     | ViewLibrary String
+    | DimensionsValueChanged DimensionsValue
 
 
 {-| fallback to first season when not find, return `Nothing` when seasons is empty
