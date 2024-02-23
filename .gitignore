@@ -70,3 +70,4 @@ buck-out/
 /Plex/ios/Pods/
 /Plex/vendor/bundle/
 App.jsx
+.expo/
