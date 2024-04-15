@@ -239,18 +239,18 @@ const createScreenElement = (
     );
   }
 
-  let screenComponent = screenComponentsCache.get(component);
-  if (!screenComponent) {
-    screenComponent = (props) => {
+  let ScreenComponent = screenComponentsCache.get(component);
+  if (!ScreenComponent) {
+    ScreenComponent = (props) => {
       let model = React.useContext(ModelContext);
       model = componentModel ? componentModel(model) : model;
 
       return component(model, props.route.params);
     };
-    screenComponentsCache.set(component, screenComponent);
+    screenComponentsCache.set(component, ScreenComponent);
   }
 
-  return <Screen {...actualProps} component={screenComponent} key={key} />;
+  return <Screen {...actualProps} component={ScreenComponent} key={key} />;
 };
 
 const createNavigator = function (tag) {
