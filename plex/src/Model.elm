@@ -278,7 +278,7 @@ type HomeMsg
     | GotContinueWatching (Response (List Metadata))
     | GotTVShow String (Response TVShow)
     | GotNextEpisode String (Response ( TVShow, Maybe Metadata ))
-    | GotStreams String (Response Metadata)
+    | GotStreams String Bool (Response Metadata)
     | GotEpisodes String String (Response (List Metadata))
     | GotoAccount
     | GotoEntity Bool Metadata
@@ -425,7 +425,9 @@ updateEpisode metadata =
 
 getSelectedSubtitleStream : Metadata -> Maybe MediaStream
 getSelectedSubtitleStream metadata =
-    List.head <| filterMediaStream (\s -> s.streamType == 3 && s.selected) metadata
+    List.head <|
+        List.reverse <|
+            filterMediaStream (\s -> s.streamType == 3 && s.selected) metadata
 
 
 episodeTitle ep =

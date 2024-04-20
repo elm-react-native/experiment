@@ -240,7 +240,7 @@ replaceVideo client ({ ratingKey, viewOffset } as metadata) videoPlayer =
           }
         , Cmd.batch
             [ Random.generate GotPlaySession Utils.generateIdentifier
-            , getStreams ratingKey client
+            , getStreams ratingKey False client
             ]
         )
 
@@ -267,7 +267,7 @@ playVideo ({ ratingKey, viewOffset } as metadata) ({ navKey, videoPlayer, client
           }
         , Cmd.batch
             [ Nav.push navKey "video" ()
-            , getStreams ratingKey client
+            , getStreams ratingKey False client
             , Random.generate GotPlaySession Utils.generateIdentifier
             , if String.isEmpty videoPlayer.sessionId then
                 Random.generate GotPlaySessionId Utils.generateIdentifier
@@ -474,9 +474,9 @@ videoPlayerControlAction lang client tvShows action videoPlayer =
                 Ok _ ->
                     ( { videoPlayer
                         | searchSubtitle =
-                            setExternalSubtitleStatus subtitleKey Downloaded videoPlayer.searchSubtitle
+                            setExternalSubtitleStatus subtitleKey Downloaded { searchSubtitle | open = False }
                       }
-                    , getStreams videoPlayer.metadata.ratingKey client
+                    , getStreams videoPlayer.metadata.ratingKey True client
                     )
 
                 _ ->
@@ -716,7 +716,7 @@ homeUpdate msg model =
               }
             , Cmd.batch
                 [ getContinueWatching model.client
-                , getStreams videoPlayer.metadata.ratingKey model.client
+                , getStreams videoPlayer.metadata.ratingKey False model.client
                 , savePlaybackTime { videoPlayer | state = Stopped } client
                 ]
             )
@@ -797,7 +797,7 @@ homeUpdate msg model =
                         ]
                     )
 
-        GotStreams _ data ->
+        GotStreams _ restart data ->
             let
                 { videoPlayer } =
                     model
@@ -822,7 +822,11 @@ homeUpdate msg model =
 
                 _ ->
                     model
-            , Cmd.none
+            , if restart then
+                Random.generate (RestartPlaySession False) Utils.generateIdentifier
+
+              else
+                Cmd.none
             )
 
         ToggleVideoPlayerControls ->
