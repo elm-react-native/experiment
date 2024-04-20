@@ -299,7 +299,7 @@ libraryMenu { key, scanning, title } children =
                             ViewLibrary key
 
                         else if actionKey == "scanLibrary" then
-                            ScanLibrary actionKey
+                            ScanLibrary key
 
                         else
                             HomeNoOp
