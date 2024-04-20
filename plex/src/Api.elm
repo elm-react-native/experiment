@@ -10,6 +10,7 @@ module Api exposing
     , getLibraryTask
     , getMetadata
     , getMetadataChildren
+    , getProviders
     , getResources
     , getSections
     , getSettings
@@ -148,6 +149,11 @@ clientPostJson decoder path tagger client =
         , timeout = Just 15000
         , tracker = Nothing
         }
+
+
+getProviders : (Response MediaContainer -> msg) -> Client -> Cmd msg
+getProviders =
+    clientGetJson providersResponseDecoder "/media/providers"
 
 
 getLibraries : (Response (List Library) -> msg) -> Client -> Cmd msg

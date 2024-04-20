@@ -52,6 +52,7 @@ gotSavedClient savedClient navKey =
             , Cmd.batch
                 [ Cmd.map HomeMsg <| getLibraries client
                 , Cmd.map HomeMsg <| getAccount client
+                , Cmd.map HomeMsg <| getProviders client
                 ]
             )
 
@@ -739,6 +740,14 @@ homeUpdate msg model =
                 _ ->
                     ( model, Cmd.none )
 
+        GotProviders resp ->
+            case resp of
+                Ok { updater } ->
+                    ( { model | serverHasUpdate = updater }, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
         GotLibraryDetail key resp ->
             ( { model | librariesDetails = Dict.insert key resp model.librariesDetails, refreshing = False }, Cmd.none )
 
@@ -992,6 +1001,11 @@ homeUpdate msg model =
                     Debug.log "screen" screen
             in
             ( { model | client = { client | screenMetrics = screen } }, Cmd.none )
+
+        UpdateServer ->
+            ( model
+            , Alert.showAlert (always HomeNoOp) "Todo" []
+            )
 
 
 

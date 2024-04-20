@@ -3,7 +3,7 @@ module Model exposing (ExternalSubtitle, ExternalSubtitleStatus(..), HomeModel, 
 import Browser.Navigation as N
 import Client exposing (Client)
 import Dict exposing (Dict)
-import Dto exposing (Account, Dialogue, Library, MediaStream, Metadata, Response, Section, initialMetadata)
+import Dto exposing (Account, Dialogue, Library, MediaContainer, MediaStream, Metadata, Response, Section, initialMetadata)
 import Http
 import Json.Decode as Decode exposing (Decoder)
 import ReactNative.Animated as Animated
@@ -134,6 +134,7 @@ type alias HomeModel =
     , navKey : N.Key
     , videoPlayer : VideoPlayer
     , refreshing : Bool
+    , serverHasUpdate : Bool
     }
 
 
@@ -149,6 +150,7 @@ initHomeModel client navKey =
     , navKey = navKey
     , videoPlayer = initialVideoPlayer
     , refreshing = False
+    , serverHasUpdate = False
     }
 
 
@@ -269,6 +271,7 @@ type Msg
 type HomeMsg
     = HomeNoOp
     | GotAccount (Response Account)
+    | GotProviders (Response MediaContainer)
     | GotLibraries (Response (List Library))
     | GotLibraryDetail String (Response (List Metadata))
     | GotLibraryRecentlyAdded String (Response (List Metadata))
@@ -303,6 +306,7 @@ type HomeMsg
     | ScanLibrary String
     | ViewLibrary String
     | DimensionsValueChanged DimensionsValue
+    | UpdateServer
 
 
 {-| fallback to first season when not find, return `Nothing` when seasons is empty

@@ -29,6 +29,11 @@ getAccount =
     Api.getAccount (hijackUnauthorizedError GotAccount)
 
 
+getProviders : Client -> Cmd HomeMsg
+getProviders =
+    Api.getProviders (hijackUnauthorizedError GotProviders)
+
+
 getLibraries : Client -> Cmd HomeMsg
 getLibraries =
     Api.getLibraries (hijackUnauthorizedError GotLibraries)
@@ -164,10 +169,10 @@ getTVShow id seasonId client =
         |> Task.attempt (hijackUnauthorizedError <| GotTVShow id)
 
 
-getStreams : String -> Client -> Cmd HomeMsg
-getStreams id client =
+getStreams : String -> Bool -> Client -> Cmd HomeMsg
+getStreams id restart client =
     Api.getMetadata id client
-        |> Task.attempt (hijackUnauthorizedError <| GotStreams id)
+        |> Task.attempt (hijackUnauthorizedError <| GotStreams id restart)
 
 
 getSeasons : Metadata -> String -> Client -> Cmd HomeMsg

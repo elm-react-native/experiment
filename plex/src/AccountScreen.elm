@@ -127,17 +127,16 @@ accountScreen model _ =
 
             _ ->
                 null
-        , scrollView [ contentContainerStyle { width = "100%", alignItems = "center" } ]
-            [ view
-                []
-                [ button
-                    [ color "white"
-                    , title "Sign Out"
-                    , onPress <| Decode.succeed SignOut
-                    ]
-                    []
-                ]
-            , view []
-                [ text [] [ str "Version 0.9" ] ]
+        , button
+            [ color "white"
+            , title "Sign Out"
+            , onPress <| Decode.succeed SignOut
             ]
+            []
+        , if model.serverHasUpdate then
+            button [ color "white", title "Server Update Available", onPress <| Decode.succeed UpdateServer ] []
+
+          else
+            null
+        , text [] [ str "Version 0.9" ]
         ]
