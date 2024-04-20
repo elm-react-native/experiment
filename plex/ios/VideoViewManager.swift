@@ -71,6 +71,10 @@ class VideoView : UIView, VLCMediaPlayerDelegate {
       self.onError?(["target": reactTag ?? ""]);
       break;
     case .ended:
+      if _player.remainingTime != nil && _player.remainingTime!.intValue > 1000 {
+        self.onError?(["target": reactTag ?? ""]);
+        break;
+      }
       self.onEnded?(["target": reactTag ?? ""]);
       break;
     case .stopped:
