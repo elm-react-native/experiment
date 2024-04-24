@@ -15,7 +15,7 @@ end
 target 'Plex' do
   config = use_native_modules!
 
-  pod 'MobileVLCKit', '3.4.0'
+  pod 'MobileVLCKit'
 
   # Flags change depending on the env values.
   flags = get_default_flags()

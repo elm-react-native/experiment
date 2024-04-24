@@ -71,3 +71,4 @@ buck-out/
 /Plex/vendor/bundle/
 App.jsx
 .expo/
+.xcode.env.local
