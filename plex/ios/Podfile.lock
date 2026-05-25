@@ -8,7 +8,7 @@ PODS:
   - hermes-engine (250829098.0.10):
     - hermes-engine/Pre-built (= 250829098.0.10)
   - hermes-engine/Pre-built (250829098.0.10)
-  - MobileVLCKit (3.5.1)
+  - MobileVLCKit (3.7.3)
   - RCTDeprecation (0.85.3)
   - RCTRequired (0.85.3)
   - RCTSwiftUI (0.85.3)
@@ -2125,7 +2125,7 @@ PODS:
 DEPENDENCIES:
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
-  - MobileVLCKit
+  - MobileVLCKit (= 3.7.3)
   - RCTDeprecation (from `../node_modules/react-native/ReactApple/Libraries/RCTFoundation/RCTDeprecation`)
   - RCTRequired (from `../node_modules/react-native/Libraries/Required`)
   - RCTSwiftUI (from `../node_modules/react-native/ReactApple/RCTSwiftUI`)
@@ -2394,7 +2394,7 @@ SPEC CHECKSUMS:
   DGSwiftUtilities: 567f8d5ee618f0b7afb185b17aa45ff356315a0f
   FBLazyVector: 24e62c765683b8d89006a88a2c8f5cf019f0074d
   hermes-engine: 7f7ed8c738253fdd5c84220e7bd91ee057909fb1
-  MobileVLCKit: 144d5f565512d1147d63b0fa1379231b3fd66535
+  MobileVLCKit: 73d7ddb52238b6885b70b0f281cae75a0a6e3ac0
   RCTDeprecation: a4c521821fab57cbb125b36effe84d897d0dfa12
   RCTRequired: 9f3a7e5645d4bc3f551593de7550bb66ab6e42bc
   RCTSwiftUI: 239ed2eb9e73de5a6f518810630f0c95e01c8702
@@ -2478,6 +2478,6 @@ SPEC CHECKSUMS:
   RNVectorIcons: 9d52f79c911eb6099a14b8135bd261ccef039fcb
   Yoga: 36fee8f1fca3f54a28c3d7f80e69f66d73d3af96
 
-PODFILE CHECKSUM: fb7f76c95180d98c22d523dd6e403087da58f690
+PODFILE CHECKSUM: 5c2f2228b8ce4e83432626df8f368179bb0e9964
 
 COCOAPODS: 1.16.2

@@ -9,10 +9,54 @@ if linkage != nil
   use_frameworks! :linkage => linkage.to_sym
 end
 
+def add_preprocessor_definitions(build_settings, definitions)
+  current = build_settings['GCC_PREPROCESSOR_DEFINITIONS'] || ['$(inherited)']
+  current = current.split if current.is_a?(String)
+  definitions.each do |definition|
+    current << definition unless current.include?(definition)
+  end
+  build_settings['GCC_PREPROCESSOR_DEFINITIONS'] = current
+end
+
+def add_preprocessor_definitions_to_xcconfig(path, definitions)
+  contents = File.read(path)
+  if contents.match?(/^GCC_PREPROCESSOR_DEFINITIONS = /)
+    contents = contents.gsub(/^GCC_PREPROCESSOR_DEFINITIONS = (.*)$/) do
+      current = Regexp.last_match(1).split
+      definitions.each do |definition|
+        current << definition unless current.include?(definition)
+      end
+      "GCC_PREPROCESSOR_DEFINITIONS = #{current.join(' ')}"
+    end
+  else
+    contents << "\nGCC_PREPROCESSOR_DEFINITIONS = $(inherited) #{definitions.join(' ')}\n"
+  end
+  File.write(path, contents)
+end
+
+def align_react_native_prebuilt_settings(installer)
+  app_definitions = ['FOLLY_CFG_NO_COROUTINES=1', 'REACT_NATIVE_PRODUCTION=1']
+  pod_definitions = ['REACT_NATIVE_PRODUCTION=1']
+
+  installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |config|
+      add_preprocessor_definitions(config.build_settings, pod_definitions)
+    end
+  end
+
+  xcconfig_paths = Dir.glob(
+    File.join(installer.sandbox.root.to_s, 'Target Support Files', 'Pods-Plex*', 'Pods-Plex*.xcconfig')
+  )
+
+  xcconfig_paths.each do |path|
+    add_preprocessor_definitions_to_xcconfig(path, app_definitions)
+  end
+end
+
 target 'Plex' do
   config = use_native_modules!
 
-  pod 'MobileVLCKit'
+  pod 'MobileVLCKit', '3.7.3'
 
   use_react_native!(
     :path => config[:reactNativePath],
@@ -32,6 +76,7 @@ target 'Plex' do
       # necessary for Mac Catalyst builds
       :mac_catalyst_enabled => false
     )
+    align_react_native_prebuilt_settings(installer)
     # __apply_Xcode_12_5_M1_post_install_workaround(installer)
   end
 end
