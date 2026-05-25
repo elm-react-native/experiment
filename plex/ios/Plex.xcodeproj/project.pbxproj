@@ -18,7 +18,9 @@
 		666C7F417FB34EBCAE08017B /* NetflixSans-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = D9F85D9BCCA04529BDBB97C7 /* NetflixSans-Regular.otf */; };
 		807CF6F894584F32A7CA46AE /* NetflixSans-Bold.woff2 in Resources */ = {isa = PBXBuildFile; fileRef = BA3B723D477341E7A2A0ADDC /* NetflixSans-Bold.woff2 */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
+		83EFB9204CEFE29D8BB2216B /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A3479D9B7745B8E0787B76F1 /* PrivacyInfo.xcprivacy */; };
 		8C6FFD67FFAE4CAC976A82B0 /* NetflixSans-Regular.woff2 in Resources */ = {isa = PBXBuildFile; fileRef = 8BD67A573DFE4B9D81391B5F /* NetflixSans-Regular.woff2 */; };
+		A97465B37EC2F99936A52C7B /* RCTRootContentViewStub.m in Sources */ = {isa = PBXBuildFile; fileRef = 77A307C5BDFD61A8A227B7F6 /* RCTRootContentViewStub.m */; };
 		B01403DD29B0D04000561CC8 /* VideoViewManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B01403DC29B0D04000561CC8 /* VideoViewManager.swift */; };
 		B01403DF29B0D14D00561CC8 /* VideoViewManager.m in Sources */ = {isa = PBXBuildFile; fileRef = B01403DE29B0D14D00561CC8 /* VideoViewManager.m */; };
 		D06C7C1CB5504091BCDA4AFF /* NetflixSans-Light.otf in Resources */ = {isa = PBXBuildFile; fileRef = EFF601EE7AEF4FD6A019C89D /* NetflixSans-Light.otf */; };
@@ -51,9 +53,11 @@
 		30DF9CB994EA2E031A28D590 /* Pods-Plex-PlexTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Plex-PlexTests.release.xcconfig"; path = "Target Support Files/Pods-Plex-PlexTests/Pods-Plex-PlexTests.release.xcconfig"; sourceTree = "<group>"; };
 		51CC834902C0D0513C17323C /* libPods-Plex-PlexTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Plex-PlexTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		5B15A291F59F4CCE8400B847 /* NetflixSans-Medium.woff2 */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "NetflixSans-Medium.woff2"; path = "../assets/fonts/NetflixSans-Medium.woff2"; sourceTree = "<group>"; };
+		77A307C5BDFD61A8A227B7F6 /* RCTRootContentViewStub.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = RCTRootContentViewStub.m; sourceTree = "<group>"; };
 		785F38905D9B96A8E4681772 /* libPods-Plex.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Plex.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = Plex/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		8BD67A573DFE4B9D81391B5F /* NetflixSans-Regular.woff2 */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "NetflixSans-Regular.woff2"; path = "../assets/fonts/NetflixSans-Regular.woff2"; sourceTree = "<group>"; };
+		A3479D9B7745B8E0787B76F1 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = Plex/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		B01403DB29B0D03F00561CC8 /* Plex-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Plex-Bridging-Header.h"; sourceTree = "<group>"; };
 		B01403DC29B0D04000561CC8 /* VideoViewManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoViewManager.swift; sourceTree = "<group>"; };
 		B01403DE29B0D14D00561CC8 /* VideoViewManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VideoViewManager.m; sourceTree = "<group>"; };
@@ -116,6 +120,8 @@
 				B01403DE29B0D14D00561CC8 /* VideoViewManager.m */,
 				B01403DC29B0D04000561CC8 /* VideoViewManager.swift */,
 				B01403DB29B0D03F00561CC8 /* Plex-Bridging-Header.h */,
+				A3479D9B7745B8E0787B76F1 /* PrivacyInfo.xcprivacy */,
+				77A307C5BDFD61A8A227B7F6 /* RCTRootContentViewStub.m */,
 			);
 			name = Plex;
 			sourceTree = "<group>";
@@ -292,6 +298,7 @@
 				EB27B70A07F34F8290498E82 /* NetflixSans-Light.woff2 in Resources */,
 				4D017EDC937846359FF2601B /* NetflixSans-Medium.woff2 in Resources */,
 				8C6FFD67FFAE4CAC976A82B0 /* NetflixSans-Regular.woff2 in Resources */,
+				83EFB9204CEFE29D8BB2216B /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -464,6 +471,7 @@
 				B01403DD29B0D04000561CC8 /* VideoViewManager.swift in Sources */,
 				B01403DF29B0D14D00561CC8 /* VideoViewManager.m in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
+				A97465B37EC2F99936A52C7B /* RCTRootContentViewStub.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -662,20 +670,22 @@
 				);
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
-				OTHER_CFLAGS = "$(inherited)";
+				OTHER_CFLAGS = (
+					"$(inherited)",
+					"-DRCT_REMOVE_LEGACY_ARCH=1",
+				);
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
 					"-DFOLLY_NO_CONFIG",
 					"-DFOLLY_MOBILE=1",
 					"-DFOLLY_USE_LIBCPP=1",
+					"-DRCT_REMOVE_LEGACY_ARCH=1",
 				);
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					"-Wl",
-					"-ld_classic",
-				);
+				OTHER_LDFLAGS = "$(inherited)";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
+				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
 				USE_HERMES = true;
 			};
 			name = Debug;
@@ -733,20 +743,21 @@
 					"\"$(inherited)\"",
 				);
 				MTL_ENABLE_DEBUG_INFO = NO;
-				OTHER_CFLAGS = "$(inherited)";
+				OTHER_CFLAGS = (
+					"$(inherited)",
+					"-DRCT_REMOVE_LEGACY_ARCH=1",
+				);
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
 					"-DFOLLY_NO_CONFIG",
 					"-DFOLLY_MOBILE=1",
 					"-DFOLLY_USE_LIBCPP=1",
+					"-DRCT_REMOVE_LEGACY_ARCH=1",
 				);
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					"-Wl",
-					"-ld_classic",
-				);
+				OTHER_LDFLAGS = "$(inherited)";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
+				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
 				USE_HERMES = true;
 				VALIDATE_PRODUCT = YES;
 			};
