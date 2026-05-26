@@ -18,29 +18,48 @@ def add_preprocessor_definitions(build_settings, definitions)
   build_settings['GCC_PREPROCESSOR_DEFINITIONS'] = current
 end
 
-def add_preprocessor_definitions_to_xcconfig(path, definitions)
+def remove_preprocessor_definitions(build_settings, definitions)
+  current = build_settings['GCC_PREPROCESSOR_DEFINITIONS'] || ['$(inherited)']
+  current = current.split if current.is_a?(String)
+  current -= definitions
+  current = ['$(inherited)'] if current.empty?
+  build_settings['GCC_PREPROCESSOR_DEFINITIONS'] = current
+end
+
+def update_preprocessor_definitions_in_xcconfig(path, add_definitions, remove_definitions)
   contents = File.read(path)
   if contents.match?(/^GCC_PREPROCESSOR_DEFINITIONS = /)
     contents = contents.gsub(/^GCC_PREPROCESSOR_DEFINITIONS = (.*)$/) do
       current = Regexp.last_match(1).split
-      definitions.each do |definition|
+      current -= remove_definitions
+      add_definitions.each do |definition|
         current << definition unless current.include?(definition)
       end
+      current = ['$(inherited)'] if current.empty?
       "GCC_PREPROCESSOR_DEFINITIONS = #{current.join(' ')}"
     end
   else
-    contents << "\nGCC_PREPROCESSOR_DEFINITIONS = $(inherited) #{definitions.join(' ')}\n"
+    definitions = ['$(inherited)', *add_definitions]
+    contents << "\nGCC_PREPROCESSOR_DEFINITIONS = #{definitions.join(' ')}\n"
   end
   File.write(path, contents)
 end
 
+def debug_configuration?(name)
+  name.to_s.downcase.include?('debug')
+end
+
 def align_react_native_prebuilt_settings(installer)
-  app_definitions = ['FOLLY_CFG_NO_COROUTINES=1', 'REACT_NATIVE_PRODUCTION=1']
-  pod_definitions = ['REACT_NATIVE_PRODUCTION=1']
+  app_definitions = ['FOLLY_CFG_NO_COROUTINES=1']
+  production_definitions = ['REACT_NATIVE_PRODUCTION=1']
 
   installer.pods_project.targets.each do |target|
     target.build_configurations.each do |config|
-      add_preprocessor_definitions(config.build_settings, pod_definitions)
+      if debug_configuration?(config.name)
+        remove_preprocessor_definitions(config.build_settings, production_definitions)
+      else
+        add_preprocessor_definitions(config.build_settings, production_definitions)
+      end
     end
   end
 
@@ -49,7 +68,11 @@ def align_react_native_prebuilt_settings(installer)
   )
 
   xcconfig_paths.each do |path|
-    add_preprocessor_definitions_to_xcconfig(path, app_definitions)
+    if debug_configuration?(File.basename(path))
+      update_preprocessor_definitions_in_xcconfig(path, app_definitions, production_definitions)
+    else
+      update_preprocessor_definitions_in_xcconfig(path, app_definitions + production_definitions, [])
+    end
   end
 end
 
