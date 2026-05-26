@@ -83,7 +83,7 @@ close =
     view
         [ style { position = "absolute", right = 35, top = 25 } ]
         [ touchableScale [ onPress <| Decode.succeed <| VideoPlayerControl <| SetSearchSubtitleOpen False ]
-            [ ionicon "ios-close" [ color "white", size 25 ]
+            [ ionicon "close" [ color "white", size 25 ]
             ]
         ]
 

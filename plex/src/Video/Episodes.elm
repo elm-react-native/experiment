@@ -166,7 +166,7 @@ episodesView { client, tvShows, videoPlayer } =
                                                 ]
                                             ]
                                         , touchableScale [ onPress <| Decode.succeed <| VideoPlayerControl <| SetEpisodesOpen False ]
-                                            [ ionicon "ios-close"
+                                            [ ionicon "close"
                                                 [ color "white"
                                                 , size 25
                                                 ]

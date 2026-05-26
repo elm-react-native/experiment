@@ -94,7 +94,7 @@ videoPlayerControlsHeader videoPlayer =
             [ str <| videoTitle videoPlayer.metadata ]
         , view
             [ style { position = "absolute", right = 35, top = 25 } ]
-            [ videoPlayerControlsIcon 25 "ios-close" StopPlayVideo ]
+            [ videoPlayerControlsIcon 25 "close" StopPlayVideo ]
         ]
 
 
