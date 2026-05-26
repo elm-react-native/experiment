@@ -68,7 +68,7 @@ AppRegistry.registerComponent(appName, () => () => {
 });
 
 const PinchableView = ({onTap, onPinch, ...props}) => {
-  const ph = Gesture.Pinch().onStart(e => {
+  const ph = Gesture.Pinch().onEnd(e => {
     // console.log('pinch');
     onPinch && onPinch(e.scale);
   });

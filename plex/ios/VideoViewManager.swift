@@ -37,6 +37,7 @@ class VideoView : UIView, VLCMediaPlayerDelegate {
   
   var _resizeMode: String = "contain";
   var _resizeModeDirty: Bool = false;
+  var _lastBoundsSize: CGSize = .zero;
   
   private var _eventDispatcher:RCTEventDispatcher?
   @objc var onProgress: RCTDirectEventBlock?
@@ -84,6 +85,7 @@ class VideoView : UIView, VLCMediaPlayerDelegate {
       }
       break;
     case .playing:
+      applyResizeMode(animated: false)
       self.onPlaying?(["target": reactTag ?? ""]);
       break;
     case .paused:
@@ -103,6 +105,45 @@ class VideoView : UIView, VLCMediaPlayerDelegate {
         "target": reactTag ?? "",
         "currentTime": NSNumber(value: _player.time.intValue),
       ]);
+    }
+  }
+
+  override func layoutSubviews() {
+    super.layoutSubviews()
+
+    if _lastBoundsSize != bounds.size {
+      _lastBoundsSize = bounds.size
+      applyResizeMode(animated: false)
+    }
+  }
+
+  func applyResizeMode(animated: Bool) {
+    if (_player == nil) { return }
+
+    _player.scaleFactor = 0
+
+    let mediaSize = videoSize()
+    let viewSize = bounds.size
+    var scale: CGFloat = 1.0
+
+    if _resizeMode == "cover",
+       mediaSize.width > 0,
+       mediaSize.height > 0,
+       viewSize.width > 0,
+       viewSize.height > 0 {
+      let containScale = min(viewSize.width / mediaSize.width, viewSize.height / mediaSize.height)
+      let coverScale = max(viewSize.width / mediaSize.width, viewSize.height / mediaSize.height)
+      scale = coverScale / containScale
+    }
+
+    let applyTransform = {
+      self.transform = CGAffineTransform(scaleX: scale, y: scale)
+    }
+
+    if animated {
+      UIView.animate(withDuration: 0.3, animations: applyTransform)
+    } else {
+      applyTransform()
     }
   }
   
@@ -145,18 +186,7 @@ class VideoView : UIView, VLCMediaPlayerDelegate {
     
     if (_resizeModeDirty) {
       _resizeModeDirty = false
-      
-      if (_resizeMode == "contain") {
-        UIView.animate(withDuration: 0.3, animations: {
-          [weak self] in
-          self?.transform = CGAffineTransform(scaleX: 1.0, y: 1.0)
-        })
-      } else if (_resizeMode == "cover") {
-        UIView.animate(withDuration: 0.3, animations: {
-          [weak self] in
-          self?.transform = CGAffineTransform(scaleX: 1.23, y: 1.23)
-        })
-      }
+      applyResizeMode(animated: true)
     }
     
 //    "19:9".withCString { str in
@@ -251,4 +281,3 @@ class VideoView : UIView, VLCMediaPlayerDelegate {
     }
   }
 }
-
