@@ -26,7 +26,6 @@ import {
   DrawerLayoutAndroid,
   TouchableNativeFeedback,
   InputAccessoryView,
-  SafeAreaView,
   Alert,
   Vibration,
   Platform,
@@ -50,6 +49,10 @@ import {
   UIManager,
   LogBox,
 } from "react-native";
+import {
+  SafeAreaProvider,
+  SafeAreaView,
+} from "react-native-safe-area-context";
 import {
   NavigationContainer,
   createNavigationContainerRef,
@@ -373,22 +376,26 @@ const ElmRoot = (props) => {
   const ele = viewRef.current(model);
   if (React.isValidElement(ele)) {
     return (
-      <EventNodeContext.Provider value={sendToAppRef.current}>
-        {ele}
-      </EventNodeContext.Provider>
+      <SafeAreaProvider>
+        <EventNodeContext.Provider value={sendToAppRef.current}>
+          {ele}
+        </EventNodeContext.Provider>
+      </SafeAreaProvider>
     );
   } else {
     const doc = ele;
     titleRef.current !== doc.title &&
       (_VirtualDom_doc.title = titleRef.current = doc.title);
     return (
-      <NavigationContainer ref={navigationRef}>
-        <EventNodeContext.Provider value={sendToAppRef.current}>
-          <ModelContext.Provider value={model}>
-            {listToChildren(doc.body)}
-          </ModelContext.Provider>
-        </EventNodeContext.Provider>
-      </NavigationContainer>
+      <SafeAreaProvider>
+        <NavigationContainer ref={navigationRef}>
+          <EventNodeContext.Provider value={sendToAppRef.current}>
+            <ModelContext.Provider value={model}>
+              {listToChildren(doc.body)}
+            </ModelContext.Provider>
+          </EventNodeContext.Provider>
+        </NavigationContainer>
+      </SafeAreaProvider>
     );
   }
 };

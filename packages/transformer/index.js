@@ -4,9 +4,23 @@ const shell = require("shelljs");
 const path = require("path");
 const readline = require("readline");
 const util = require("util");
+const crypto = require("crypto");
 const patch = require("./patcher");
 
 const p = (...ps) => path.join(__dirname, ...ps);
+
+const getPatcherCacheKey = () => {
+  const hash = crypto.createHash("sha1");
+  for (const file of [
+    "patcher/index.js",
+    "patcher/prepend.jsx",
+    "patcher/replace.jsx",
+    "patcher/append.jsx",
+  ]) {
+    hash.update(fs.readFileSync(p(file)));
+  }
+  return hash.digest("hex");
+};
 
 const getElmJson = async (projectRoot) => {
   for (f of [
@@ -121,6 +135,6 @@ module.exports = {
 
   getCacheKey: (config) => {
     const res = defaultTransformer.getCacheKey(config);
-    return `elm-react-natvie${res}`;
+    return `elm-react-natvie${getPatcherCacheKey()}${res}`;
   },
 };
