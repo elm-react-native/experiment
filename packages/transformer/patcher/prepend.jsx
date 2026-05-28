@@ -116,13 +116,13 @@ const createChildren = (ChildCompnent, kidList, eventNode) => {
   let children = [];
   for (let kids = kidList, i = 0; kids.b; kids = kids.b) {
     const kid = kids.a;
-    const kidProps = _VirtualDom_factsToReactProps(kid, eventNode);
-    if (!kidProps.key) {
-      kidProps.key = i;
+    let { key, props: kidProps } = _VirtualDom_factsToReactProps(kid, eventNode);
+    if (!key) {
+      key = i;
       i++;
     }
     const grandchildren = listToChildren(kidProps.kidList);
-    children.push(<ChildCompnent {...kidProps}>{grandchildren}</ChildCompnent>);
+    children.push(<ChildCompnent key={key} {...kidProps}>{grandchildren}</ChildCompnent>);
   }
   return children;
 };
@@ -130,7 +130,7 @@ const createChildren = (ChildCompnent, kidList, eventNode) => {
 const componentRefs = new Map();
 const ElmNodeComponentWithRef = (props) => {
   const eventNode = React.useContext(EventNodeContext);
-  const actualProps = _VirtualDom_factsToReactProps(props, eventNode);
+  const { key, props: actualProps } = _VirtualDom_factsToReactProps(props, eventNode);
   const id = actualProps.id;
   const Component = scope.resolveComponent(props.tag);
   const drawerRef = React.useRef(null);
@@ -145,14 +145,14 @@ const ElmNodeComponentWithRef = (props) => {
     const Parent = Component[0];
     const Child = Component[1];
     return (
-      <Parent {...actualProps} ref={drawerRef}>
+      <Parent key={key} {...actualProps} ref={drawerRef}>
         {createChildren(Child, props.kidList, eventNode)}
       </Parent>
     );
   } else {
     const children = listToChildren(props.kidList);
     return (
-      <Component {...actualProps} ref={drawerRef}>
+      <Component key={key} {...actualProps} ref={drawerRef}>
         {children}
       </Component>
     );
@@ -161,20 +161,20 @@ const ElmNodeComponentWithRef = (props) => {
 
 const ElmNodeComponent = (props) => {
   const eventNode = React.useContext(EventNodeContext);
-  const actualProps = _VirtualDom_factsToReactProps(props, eventNode);
+  const { key, props: actualProps } = _VirtualDom_factsToReactProps(props, eventNode);
   const Component = scope.resolveComponent(props.tag);
 
   if (Array.isArray(Component)) {
     const Parent = Component[0];
     const Child = Component[1];
     return (
-      <Parent {...actualProps}>
+      <Parent key={key} {...actualProps}>
         {createChildren(Child, props.kidList, eventNode)}
       </Parent>
     );
   } else {
     const children = listToChildren(props.kidList);
-    return <Component {...actualProps}>{children}</Component>;
+    return <Component key={key} {...actualProps}>{children}</Component>;
   }
 };
 
@@ -186,23 +186,23 @@ const childrenWrapKey = (children) => {
 
 const ElmKeyedNodeComponent = (props) => {
   const eventNode = React.useContext(EventNodeContext);
-  const actualProps = _VirtualDom_factsToReactProps(props.factList, eventNode);
+  const { key, props: actualProps } = _VirtualDom_factsToReactProps(props.factList, eventNode);
 
   const Component = scope.resolveComponent(props.tag);
   if (Array.isArray(Component)) {
     const Parent = Component[0];
     const Child = Component[1];
     const children = createChildren(Child, props.kidList, eventNode);
-    return <Parent {...actualProps}>{childrenWrapKey(children)}</Parent>;
+    return <Parent key={key} {...actualProps}>{childrenWrapKey(children)}</Parent>;
   } else {
     const children = listToChildren(props.kidList);
-    return <Component {...actualProps}>{childrenWrapKey(children)}</Component>;
+    return <Component key={key} {...actualProps}>{childrenWrapKey(children)}</Component>;
   }
 };
 
 const SectionListComponent = (props) => {
   const eventNode = React.useContext(EventNodeContext);
-  const actualProps = _VirtualDom_factsToReactProps(props, eventNode);
+  const { key, props: actualProps } = _VirtualDom_factsToReactProps(props, eventNode);
   const { sections, ...rest } = actualProps;
   const sections2 = React.useMemo(
     () =>
@@ -212,7 +212,7 @@ const SectionListComponent = (props) => {
       })),
     [sections]
   );
-  return <SectionList {...rest} sections={sections2}></SectionList>;
+  return <SectionList key={key} {...rest} sections={sections2}></SectionList>;
 };
 
 const screenListenersMakeCallback = (listeners, eventNode) => {
@@ -233,7 +233,7 @@ const createScreenElement = (
   eventNode,
   key
 ) => {
-  const { component, componentModel, ...actualProps } =
+  const { key: _, props: { component, componentModel, ...actualProps } } =
     _VirtualDom_factsToReactProps(props, null);
   if (actualProps.listeners) {
     actualProps.listeners = screenListenersMakeCallback(
@@ -278,7 +278,7 @@ const registerNavigator = function (tag, prefix) {
 
 const NavigatorComponent = (props) => {
   const eventNode = React.useContext(EventNodeContext);
-  const { componentModel, ...actualProps } = _VirtualDom_factsToReactProps(
+  const { key: _, props: { componentModel, ...actualProps } } = _VirtualDom_factsToReactProps(
     props,
     eventNode
   );
@@ -422,6 +422,7 @@ const ELM_NODE_COMPONENT_PROPS = { tag: 1, factList: 1, kidList: 1 };
 function _VirtualDom_factsToReactProps(inputProps, eventNode) {
   var factList = inputProps.factList;
   var initPanResponder;
+  var keyProp;
 
   for (
     var props = {};
@@ -434,6 +435,11 @@ function _VirtualDom_factsToReactProps(inputProps, eventNode) {
 
     var key = entry.n;
     var value = entry.o;
+    if (key === "key") {
+      keyProp = value;
+
+      continue;
+    }
 
     if (tag === "a0") {
       props[_VirtualDom_makeEventPropName(key)] = _VirtualDom_makeCallback(
@@ -474,8 +480,9 @@ function _VirtualDom_factsToReactProps(inputProps, eventNode) {
         initPanResponder = v(eventNode);
       } else if (key === "refreshControl") {
         const v = _Json_unwrap(value);
+        const { key, props } = _VirtualDom_factsToReactProps(v, eventNode);
         props[key] = (
-          <RefreshControl {..._VirtualDom_factsToReactProps(v, eventNode)} />
+          <RefreshControl key={key} {...props} />
         );
       } else {
         const v = _Json_unwrap(value);
@@ -497,6 +504,11 @@ function _VirtualDom_factsToReactProps(inputProps, eventNode) {
   // Components like TouchableWithoutFeedback works by cloning its child and applying responder props to it.
   // It is therefore required that any intermediary components pass through those props to the underlying React Native component.
   for (let k in inputProps) {
+    if (k === "key") {
+      keyProp = inputProps[k];
+      continue;
+    }
+
     if (
       inputProps.hasOwnProperty(k) &&
       !ELM_NODE_COMPONENT_PROPS[k] &&
@@ -506,15 +518,15 @@ function _VirtualDom_factsToReactProps(inputProps, eventNode) {
     }
   }
 
-  return props;
+  return { key: keyProp, props };
 }
 
 const FlatListComponent = (props) => {
   const eventNode = React.useContext(EventNodeContext);
-  const actualProps = _VirtualDom_factsToReactProps(props, eventNode);
+  const { key, props: actualProps } = _VirtualDom_factsToReactProps(props, eventNode);
   const { data, ...rest } = actualProps;
   const data2 = React.useMemo(() => _List_toArray(data || _list_Nil), [data]);
-  return <FlatList {...rest} data={data2}></FlatList>;
+  return <FlatList key={key} {...rest} data={data2}></FlatList>;
 };
 
 const TouchableScale = ({
