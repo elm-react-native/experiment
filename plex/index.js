@@ -15,7 +15,9 @@ import {
 import {
   GestureHandlerRootView,
   GestureDetector,
-  Gesture,
+  useExclusiveGestures,
+  usePinchGesture,
+  useTapGesture,
 } from 'react-native-gesture-handler';
 import {name as appName} from './app.json';
 import App from '@elm-module/Plex';
@@ -68,20 +70,25 @@ AppRegistry.registerComponent(appName, () => () => {
 });
 
 const PinchableView = ({onTap, onPinch, ...props}) => {
-  const ph = Gesture.Pinch().onEnd(e => {
-    // console.log('pinch');
-    onPinch && onPinch(e.scale);
+  const ph = usePinchGesture({
+    onDeactivate: e => {
+      // console.log('pinch');
+      onPinch && onPinch(e.scale);
+    },
   });
 
-  const tp = Gesture.Tap()
-    .maxDuration(250)
-    .onStart(e => {
+  const tp = useTapGesture({
+    maxDuration: 250,
+    onActivate: () => {
       // console.log('tap');
       onTap && onTap();
-    });
+    },
+  });
+
+  const gesture = useExclusiveGestures(ph, tp);
 
   return (
-    <GestureDetector gesture={Gesture.Exclusive(ph, tp)}>
+    <GestureDetector gesture={gesture}>
       <View
         style={{position: 'absolute', top: 0, left: 0, bottom: 0, right: 0}}
         {...props}
