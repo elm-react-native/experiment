@@ -9,7 +9,7 @@ import Foundation
 import React
 import MobileVLCKit
 
-@objc (VideoViewManager)
+@objc(VideoViewManager)
 class VideViewManager : RCTViewManager {
   override static func requiresMainQueueSetup() -> Bool {
     return true;
@@ -151,13 +151,13 @@ class VideoView : UIView, VLCMediaPlayerDelegate {
     if (_srcDirty) {
       _srcDirty = false;
       
-      if _src != "" {
-        releasePlayer()
+      releasePlayer()
       
+      if let url = URL(string: _src) {
         _player = VLCMediaPlayer()
         _player.delegate = self
         _player.drawable = self
-        _player.media = VLCMedia(url: URL(string: _src)!)
+        _player.media = VLCMedia(url: url)
       }
     }
 
