@@ -480,9 +480,9 @@ function _VirtualDom_factsToReactProps(inputProps, eventNode) {
         initPanResponder = v(eventNode);
       } else if (key === "refreshControl") {
         const v = _Json_unwrap(value);
-        const { key, props } = _VirtualDom_factsToReactProps(v, eventNode);
+        const { key: rcKey, props: rcProps } = _VirtualDom_factsToReactProps(v, eventNode);
         props[key] = (
-          <RefreshControl key={key} {...props} />
+          <RefreshControl key={rcKey} {...rcProps} />
         );
       } else {
         const v = _Json_unwrap(value);
